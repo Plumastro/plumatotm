@@ -6,6 +6,8 @@ This module generates radar charts showing the correlation strength
 between animals and astrological planets/points.
 """
 
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
 import matplotlib.pyplot as plt
 import numpy as np
 import json
@@ -138,16 +140,7 @@ class RadarChartGenerator:
             angles.append(angle)
         angles += angles[:1]  # Complete the circle
         
-        # Debug: Print what's happening with MC
-        print(f"Number of planets: {num_vars}")
-        print(f"Planets: {self.planets}")
-        print(f"Animal percentages keys: {list(animal_percentages.keys())}")
-        print(f"Birth chart keys: {list(birth_chart.keys())}")
-        print(f"Values collected: {len(planet_values)}")
-        print(f"Labels collected: {len(planet_labels)}")
-        print(f"Checking MC: {'MC' in animal_percentages}")
-        if 'MC' not in animal_percentages:
-            print("MC is missing from animal_percentages!")
+
         
         # Add the first value to the end to close the polygon
         values += values[:1]
@@ -254,9 +247,14 @@ def generate_radar_charts_from_results(result_file: str = "outputs/result.json")
 
 if __name__ == "__main__":
     # Test the radar chart generation
-    chart = generate_radar_charts_from_results()
-    if chart:
-        print("🎉 Radar chart generated successfully!")
-        print(f"📊 Top animal chart: {chart['top_animal_chart']}")
-    else:
-        print("❌ Failed to generate radar chart")
+    try:
+        chart = generate_radar_charts_from_results()
+        if chart:
+            print("🎉 Radar chart generated successfully!")
+            print(f"📊 Top animal chart: {chart['top_animal_chart']}")
+        else:
+            print("❌ Failed to generate radar chart")
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        import traceback
+        traceback.print_exc()

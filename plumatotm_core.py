@@ -405,6 +405,20 @@ class BirthChartAnalyzer:
             json.dump(combined_results, f, indent=2)
         print(f"Combined results saved to: {output_files['result']}")
         
+        # 9. Generate radar chart automatically
+        try:
+            from plumatotm_radar import generate_radar_charts_from_results
+            print("🎨 Generating radar chart...")
+            radar_result = generate_radar_charts_from_results(output_files["result"])
+            if radar_result:
+                print(f"📊 Radar chart saved: {radar_result['top_animal_chart']}")
+            else:
+                print("⚠️  Radar chart generation failed")
+        except ImportError:
+            print("⚠️  Radar chart module not available")
+        except Exception as e:
+            print(f"⚠️  Radar chart generation failed: {e}")
+        
         # Print summary
         print(f"\n=== ANALYSIS SUMMARY ===")
         print(f"Top 3 animals:")
@@ -514,7 +528,7 @@ Note: This version automatically converts local time to UTC based on coordinates
         # Initialize analyzer
         analyzer = BirthChartAnalyzer(args.scores_json, args.weights_csv, args.multipliers_csv)
         
-        # Run analysis with UTC time
+        # Run analysis with UTC time (includes radar chart generation)
         analyzer.run_analysis(args.date, utc_time, args.lat, args.lon)
         
         print("\nAnalysis completed successfully!")
