@@ -1,0 +1,31 @@
+# Requirements for PLUMATOTM API Server
+# Use with Python 3.11 for pre-compiled wheels
+
+# Core astrological library (same as main program)
+pyswisseph>=2.10.3.2
+flatlib>=0.2.3
+
+# Data processing
+pandas>=2.3.0
+numpy>=2.3.0
+
+# Date and time handling
+python-dateutil>=2.9.0
+pytz>=2025.0
+
+# Geocoding (optional - for place name to coordinates conversion)
+geopy>=2.4.0
+
+# Timezone detection (for local to UTC conversion)
+timezonefinder>=6.5.0
+
+# FastAPI and web server
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+
+# Visualization
+matplotlib>=3.10.0
+
+# Optional: for production deployment
+gunicorn>=21.2.0
