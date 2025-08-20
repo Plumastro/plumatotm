@@ -95,8 +95,8 @@ cd test-plumatotm
 # Install dependencies
 pip install -r requirements.txt
 
-# Test the API
-python plumatotm_api.py
+# Test the core engine
+python plumatotm_core.py --help
 ```
 
 ## Step 8: Update Files (Future Changes)

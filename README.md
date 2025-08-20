@@ -92,34 +92,28 @@ python plumatotm_core.py \
   --lon LONGITUDE
 ```
 
-### REST API
-
-Start the API server:
+### Examples
 
 ```bash
-python plumatotm_api.py
-```
+# Example 1: Test person
+python plumatotm_core.py \
+  --scores_json "plumatotm_raw_scores.json" \
+  --weights_csv "plumatotm_planets_weights.csv" \
+  --multipliers_csv "plumatotm_planets_multiplier.csv" \
+  --date 1990-05-15 \
+  --time 14:30 \
+  --lat 48.8566 \
+  --lon 2.3522
 
-The API will be available at `http://localhost:8000`
-
-#### API Endpoints
-
-- `GET /` - Health check
-- `GET /health` - Detailed health status
-- `POST /analyze` - Analyze birth data
-
-#### Example API Request
-
-```bash
-curl -X POST "http://localhost:8000/analyze" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "date": "1990-05-15",
-    "time": "14:30",
-    "lat": 48.8566,
-    "lon": 2.3522,
-    "name": "John Doe"
-  }'
+# Example 2: Another person
+python plumatotm_core.py \
+  --scores_json "plumatotm_raw_scores.json" \
+  --weights_csv "plumatotm_planets_weights.csv" \
+  --multipliers_csv "plumatotm_planets_multiplier.csv" \
+  --date 1995-04-13 \
+  --time 11:30 \
+  --lat 48.8667 \
+  --lon 2.2333
 ```
 
 ### Radar Charts
@@ -134,20 +128,20 @@ python plumatotm_radar.py
 
 ### Render Deployment
 
-This project is configured for easy deployment on Render:
+This project is ready for deployment on Render:
 
 1. Connect your GitHub repository to Render
 2. Create a new Web Service
 3. Set the build command: `pip install -r requirements.txt`
-4. Set the start command: `python plumatotm_api.py`
+4. Set the start command: `python plumatotm_core.py --help`
 5. Deploy!
 
-### Environment Variables
+### For Shopify Integration
 
-Set these environment variables in your deployment:
-
-- `PORT`: Port number (Render will set this automatically)
-- `HOST`: Host address (usually `0.0.0.0`)
+Once deployed on Render, Shopify can call your engine by:
+- Making HTTP requests to your Render URL
+- Passing birth data as parameters
+- Receiving JSON responses with animal compatibility results
 
 ## 📊 Output Files
 
@@ -165,11 +159,11 @@ The engine generates several output files in the `outputs/` directory:
 
 ## 🔬 Testing
 
-Run the test scripts to verify functionality:
+Test the core functionality:
 
 ```bash
-# Test the API
-python test_plumatotm_api.py
+# Test the main engine
+python plumatotm_core.py --help
 
 # Test radar chart generation
 python test_plumatotm_radar.py
@@ -187,21 +181,17 @@ The engine uses three main data files:
 
 ### Output Format
 
-The API returns JSON responses with the following structure:
+The engine generates JSON files with the following structure:
 
 ```json
 {
-  "success": true,
-  "message": "Analysis completed successfully",
-  "data": {
-    "birth_chart": {...},
-    "planet_weights": {...},
-    "raw_scores": {...},
-    "weighted_scores": {...},
-    "animal_totals": {...},
-    "top3_percentage_strength": {...},
-    "top3_true_false": {...}
-  }
+  "birth_chart": {...},
+  "planet_weights": {...},
+  "raw_scores": {...},
+  "weighted_scores": {...},
+  "animal_totals": {...},
+  "top3_percentage_strength": {...},
+  "top3_true_false": {...}
 }
 ```
 
