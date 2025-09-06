@@ -55,8 +55,9 @@ try:
     from flatlib.datetime import Datetime
     from flatlib.geopos import GeoPos
     from flatlib.object import Object
-except ImportError:
-    print("Error: flatlib is required. Install with: pip install flatlib")
+except ImportError as e:
+    print(f"Error: flatlib is required. Install with: pip install flatlib")
+    print(f"Import error details: {e}")
     sys.exit(1)
 
 # Zodiac signs for validation

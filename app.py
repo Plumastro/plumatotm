@@ -23,8 +23,15 @@ def initialize_analyzer():
     """Initialize the analyzer with required files"""
     global analyzer
     try:
-        # Import the BirthChartAnalyzer class
+        print("🔍 Testing flatlib import...")
+        import flatlib
+        print(f"✅ flatlib imported successfully (version: {getattr(flatlib, '__version__', 'unknown')})")
+        
+        print("🔍 Importing BirthChartAnalyzer...")
         from plumatotm_core import BirthChartAnalyzer
+        print("✅ BirthChartAnalyzer imported successfully")
+        
+        print("🔍 Initializing analyzer...")
         analyzer = BirthChartAnalyzer(
             scores_json="plumatotm_raw_scores.json",
             weights_csv="plumatotm_planets_weights.csv", 
@@ -32,8 +39,14 @@ def initialize_analyzer():
         )
         print("✅ PLUMATOTM Analyzer initialized successfully")
         return True
+    except ImportError as e:
+        print(f"❌ Import error: {e}")
+        print("💡 This might be a flatlib installation issue on Render")
+        return False
     except Exception as e:
         print(f"❌ Failed to initialize analyzer: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 @app.route('/')
