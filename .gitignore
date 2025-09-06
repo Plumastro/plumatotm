@@ -55,5 +55,8 @@ outputs/result.json
 .env.local
 .env.production
 
+# API Keys
+api_key.txt
+
 # Logs
 *.log

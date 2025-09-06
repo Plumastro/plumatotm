@@ -17,7 +17,7 @@ pytz>=2025.0
 geopy>=2.4.0
 
 # Timezone detection (for local to UTC conversion)
-timezonefinder>=6.5.0
+timezonefinderL>=4.0.0
 
 # Visualization (for radar charts)
 matplotlib>=3.10.0
