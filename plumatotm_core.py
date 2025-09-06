@@ -134,7 +134,13 @@ def convert_local_to_utc(date: str, local_time: str, lat: float, lon: float) -> 
         if not timezone_name:
             raise ValueError(f"timezonefinderL could not determine timezone for coordinates ({lat}, {lon}). Please check coordinates or install timezonefinderL with: pip install timezonefinderL")
         
-        detection_method = "timezonefinder_automatic"
+        # Special correction for Israel coordinates
+        # timezonefinderL sometimes returns Asia/Hebron instead of Asia/Jerusalem for Israeli coordinates
+        if timezone_name == "Asia/Hebron" and 31.0 <= lat <= 33.5 and 34.0 <= lon <= 35.5:
+            timezone_name = "Asia/Jerusalem"
+            detection_method = "timezonefinder_corrected_israel"
+        else:
+            detection_method = "timezonefinder_automatic"
         
         # Parse date and time components
         y, m, d = map(int, date.split("-"))
@@ -962,8 +968,12 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
         print(f"Coordinates: {lat_abs:.5f}°{lat_sign}, {lon_abs:.5f}°{lon_sign}")
         print(f"Raw coordinates: ({lat:.5f}, {lon:.5f})")
         
-        # 1. Compute birth chart
-        planet_signs, planet_houses, planet_positions = self.compute_birth_chart(date, time, lat, lon)
+        # Convert local time to UTC automatically
+        utc_time, timezone_method = convert_local_to_utc(date, time, lat, lon)
+        print(f"Converted to UTC: {utc_time}")
+        
+        # 1. Compute birth chart with UTC time
+        planet_signs, planet_houses, planet_positions = self.compute_birth_chart(date, utc_time, lat, lon)
         print(f"\nBirth chart computed: {planet_signs}")
         print(f"Planet houses: {planet_houses}")
         
@@ -989,7 +999,7 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
         # 8. Generate outputs
         self.generate_outputs(planet_signs, planet_houses, dynamic_weights, raw_scores, 
                             weighted_scores, animal_totals, percentage_strength, true_false_table, 
-                            time, timezone_method, openai_api_key, planet_positions,
+                            utc_time, timezone_method, openai_api_key, planet_positions,
                             date, time, lat, lon)
 
 
