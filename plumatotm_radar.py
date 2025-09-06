@@ -107,7 +107,7 @@ class RadarChartGenerator:
                     except Exception as e:
                         print(f"⚠️  Could not load icon {name} for {planet}: {e}")
     
-    def generate_top_animal_radar(self, result_data: Dict, output_path: str = "outputs/top_animal_radar.png"):
+    def generate_top_animal_radar(self, result_data: Dict, output_path: str = "outputs/top1_animal_radar.png"):
         """
         Generate a radar chart for the top animal showing correlation with all planets.
         
@@ -160,6 +160,122 @@ class RadarChartGenerator:
             planet_labels, 
             animal_name, 
             top_score,
+            output_path
+        )
+        
+        return output_path
+    
+    def generate_top2_animal_radar(self, result_data: Dict, output_path: str = "outputs/top2_animal_radar.png"):
+        """
+        Generate a radar chart for the second animal showing correlation with all planets.
+        
+        Args:
+            result_data: The analysis results from the API
+            output_path: Where to save the radar chart image
+        """
+        
+        # Extract data
+        top2_animal = result_data['data']['top_3_animals'][1]
+        animal_name = top2_animal['ANIMAL']
+        top2_score = top2_animal['TOTAL_SCORE']
+        
+        # Get percentage strength data for the top 2 animal
+        percentage_strength = result_data['data']['top3_percentage_strength']
+        animal_percentages = percentage_strength[animal_name]
+        
+        # Get birth chart data for planet signs
+        birth_chart = result_data.get('birth_chart', {})
+        
+        # Prepare data for radar chart
+        planet_values = []
+        planet_labels = []
+        
+        for planet in self.planets:
+            if planet in animal_percentages:
+                value = animal_percentages[planet]
+                planet_values.append(value)
+                
+                # Use custom icon if available, otherwise use symbol
+                if planet in self.custom_icons:
+                    label = planet  # Will be replaced with icon in the chart
+                else:
+                    planet_symbol = self.planet_symbols.get(planet, planet)
+                    label = planet_symbol
+                planet_labels.append(label)
+            else:
+                planet_values.append(0)
+                # Use custom icon if available, otherwise use symbol
+                if planet in self.custom_icons:
+                    label = planet  # Will be replaced with icon in the chart
+                else:
+                    planet_symbol = self.planet_symbols.get(planet, planet)
+                    label = planet_symbol
+                planet_labels.append(label)
+        
+        # Create the radar chart
+        self._create_radar_chart(
+            planet_values, 
+            planet_labels, 
+            animal_name, 
+            top2_score,
+            output_path
+        )
+        
+        return output_path
+    
+    def generate_top3_animal_radar(self, result_data: Dict, output_path: str = "outputs/top3_animal_radar.png"):
+        """
+        Generate a radar chart for the third animal showing correlation with all planets.
+        
+        Args:
+            result_data: The analysis results from the API
+            output_path: Where to save the radar chart image
+        """
+        
+        # Extract data
+        top3_animal = result_data['data']['top_3_animals'][2]
+        animal_name = top3_animal['ANIMAL']
+        top3_score = top3_animal['TOTAL_SCORE']
+        
+        # Get percentage strength data for the top 3 animal
+        percentage_strength = result_data['data']['top3_percentage_strength']
+        animal_percentages = percentage_strength[animal_name]
+        
+        # Get birth chart data for planet signs
+        birth_chart = result_data.get('birth_chart', {})
+        
+        # Prepare data for radar chart
+        planet_values = []
+        planet_labels = []
+        
+        for planet in self.planets:
+            if planet in animal_percentages:
+                value = animal_percentages[planet]
+                planet_values.append(value)
+                
+                # Use custom icon if available, otherwise use symbol
+                if planet in self.custom_icons:
+                    label = planet  # Will be replaced with icon in the chart
+                else:
+                    planet_symbol = self.planet_symbols.get(planet, planet)
+                    label = planet_symbol
+                planet_labels.append(label)
+            else:
+                planet_values.append(0)
+                # Use custom icon if available, otherwise use symbol
+                if planet in self.custom_icons:
+                    label = planet  # Will be replaced with icon in the chart
+                else:
+                    planet_symbol = self.planet_symbols.get(planet, planet)
+                    label = planet_symbol
+                planet_labels.append(label)
+        
+        # Create the radar chart
+        self._create_radar_chart(
+            planet_values, 
+            planet_labels, 
+            animal_name, 
+            top3_score,
             output_path
         )
         
@@ -382,11 +498,15 @@ def generate_radar_charts_from_results(result_file: str = "outputs/result.json",
             "birth_chart": result_data.get("birth_chart", {})
         }
         
-        # Generate the top animal radar chart
-        top_chart_path = generator.generate_top_animal_radar(radar_data)
+        # Generate the top 3 animal radar charts
+        top1_chart_path = generator.generate_top_animal_radar(radar_data)
+        top2_chart_path = generator.generate_top2_animal_radar(radar_data)
+        top3_chart_path = generator.generate_top3_animal_radar(radar_data)
         
         return {
-            'top_animal_chart': top_chart_path
+            'top1_animal_chart': top1_chart_path,
+            'top2_animal_chart': top2_chart_path,
+            'top3_animal_chart': top3_chart_path
         }
         
     except Exception as e:
@@ -400,10 +520,12 @@ if __name__ == "__main__":
     try:
         chart = generate_radar_charts_from_results()
         if chart:
-            print("🎉 Radar chart generated successfully!")
-            print(f"📊 Top animal chart: {chart['top_animal_chart']}")
+            print("🎉 Radar charts generated successfully!")
+            print(f"📊 Top 1 animal chart: {chart['top1_animal_chart']}")
+            print(f"📊 Top 2 animal chart: {chart['top2_animal_chart']}")
+            print(f"📊 Top 3 animal chart: {chart['top3_animal_chart']}")
         else:
-            print("❌ Failed to generate radar chart")
+            print("❌ Failed to generate radar charts")
     except Exception as e:
         print(f"❌ Error: {e}")
         import traceback

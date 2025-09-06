@@ -565,10 +565,20 @@ class BirthChartAnalyzer:
                         pos_data = planet_positions[planet]
                         degrees = int(pos_data["degrees"])
                         minutes = int(pos_data["minutes"])
-                        french_chart[planet_fr] = f"en {degrees}° {minutes}' {sign_fr}"
+                        
+                        # Get house number if available
+                        house_number = planet_houses.get(planet, "")
+                        if house_number:
+                            french_chart[planet_fr] = f"en {degrees}° {minutes}' {sign_fr} en Maison {house_number}"
+                        else:
+                            french_chart[planet_fr] = f"en {degrees}° {minutes}' {sign_fr}"
                     else:
                         # Fallback to just sign if no position data
-                        french_chart[planet_fr] = f"en {sign_fr}"
+                        house_number = planet_houses.get(planet, "")
+                        if house_number:
+                            french_chart[planet_fr] = f"en {sign_fr} en Maison {house_number}"
+                        else:
+                            french_chart[planet_fr] = f"en {sign_fr}"
             
             return french_chart
             
@@ -854,7 +864,9 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
             
             radar_result = generate_radar_charts_from_results(output_files["result"], icons_folder)
             if radar_result:
-                print(f"📊 Radar chart saved: {radar_result['top_animal_chart']}")
+                print(f"📊 Top 1 radar chart saved: {radar_result['top1_animal_chart']}")
+                print(f"📊 Top 2 radar chart saved: {radar_result['top2_animal_chart']}")
+                print(f"📊 Top 3 radar chart saved: {radar_result['top3_animal_chart']}")
             else:
                 print("⚠️  Radar chart generation failed")
         except ImportError:
