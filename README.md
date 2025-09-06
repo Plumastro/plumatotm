@@ -10,6 +10,7 @@ PLUMATOTM is a sophisticated astrological analysis engine that computes animal c
 - **Multiple Output Formats**: JSON, CSV, and visual radar charts
 - **REST API**: Full HTTP API for integration with web applications
 - **Timezone Handling**: Automatic local to UTC time conversion based on coordinates
+- **ChatGPT Interpretation**: AI-powered explanation of why the top animal matches the subject's personality
 
 ## 🚀 Quick Start
 
@@ -71,6 +72,7 @@ plumatotm/
     ├── animal_totals.json
     ├── top3_percentage_strength.json
     ├── top3_true_false.json
+    ├── chatgpt_interpretation.json
     ├── top_animal_radar.png
     └── top3_comparison_radar.png
 ```
@@ -124,6 +126,23 @@ Generate visual radar charts:
 python plumatotm_radar.py
 ```
 
+### ChatGPT Interpretation
+
+The engine can generate AI-powered interpretations explaining why the top animal matches the subject's personality. This feature requires:
+
+1. **OpenAI API Key**: Set the environment variable `OPENAI_API_KEY`
+2. **OpenAI Library**: Install with `pip install openai>=1.0.0`
+
+The interpretation is automatically generated when running the main analysis and saved to `outputs/chatgpt_interpretation.json`.
+
+For testing the interpretation feature:
+
+```bash
+python test_chatgpt_interpretation.py
+```
+
+**Note**: If the OpenAI API key is not set, the interpretation will be skipped but the main analysis will continue normally.
+
 ## 🌍 Deployment
 
 ### Render Deployment
@@ -154,6 +173,7 @@ The engine generates several output files in the `outputs/` directory:
 - **animal_totals.json**: Total scores for each animal
 - **top3_percentage_strength.json**: Top 3 animals with percentage strengths
 - **top3_true_false.json**: Top 3 animals with true/false indicators
+- **chatgpt_interpretation.json**: AI interpretation of why the top animal matches the personality
 - **top_animal_radar.png**: Radar chart for the top animal
 - **top3_comparison_radar.png**: Comparison radar chart for top 3 animals
 

@@ -12,17 +12,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json
 import os
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
+from PIL import Image
 
 class RadarChartGenerator:
     """Generates radar charts for animal-planet correlations."""
     
-    def __init__(self):
+    def __init__(self, icons_folder: Optional[str] = None):
         # Define the planets in clockwise order starting with Sun at 12pm
         self.planets = [
             "Sun", "Ascendant", "Moon", "Mercury", "Venus", "Mars",
-            "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "North Node"
+            "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "North Node", "MC"
         ]
+        
+        # Icons folder for custom PNG icons
+        self.icons_folder = icons_folder
         
         # Planet symbols (Unicode)
         self.planet_symbols = {
@@ -63,6 +67,45 @@ class RadarChartGenerator:
             "Venus": 6.0, "Mars": 6.0, "Jupiter": 5.0, "Saturn": 5.0, 
             "Uranus": 3.0, "Neptune": 3.0, "Pluto": 2.0, "North Node": 2.0, "MC": 5.0
         }
+        
+        # Load custom icons if folder is provided
+        self.custom_icons = {}
+        if self.icons_folder and os.path.exists(self.icons_folder):
+            self._load_custom_icons()
+    
+    def _load_custom_icons(self):
+        """Load custom PNG icons for planets."""
+        icon_mapping = {
+            "Sun": ["sun.png", "Sun.png", "SUN.png"],
+            "Ascendant": ["AC.png", "ac.png", "ascendant.png", "Ascendant.png", "ASC.png", "asc.png"],
+            "Moon": ["moon.png", "Moon.png", "MOON.png"],
+            "Mercury": ["mercury.png", "Mercury.png", "MERCURY.png"],
+            "Venus": ["venus.png", "Venus.png", "VENUS.png"],
+            "Mars": ["mars.png", "Mars.png", "MARS.png"],
+            "Jupiter": ["jupiter.png", "Jupiter.png", "JUPITER.png"],
+            "Saturn": ["saturn.png", "Saturn.png", "SATURN.png"],
+            "Uranus": ["uranus.png", "Uranus.png", "URANUS.png"],
+            "Neptune": ["neptune.png", "Neptune.png", "NEPTUNE.png"],
+            "Pluto": ["pluto.png", "Pluto.png", "PLUTO.png"],
+            "North Node": ["north_node.png", "North_Node.png", "northnode.png", "node.png"],
+            "MC": ["MC.png", "mc.png", "midheaven.png", "Midheaven.png"]
+        }
+        
+        for planet, possible_names in icon_mapping.items():
+            for name in possible_names:
+                icon_path = os.path.join(self.icons_folder, name)
+                if os.path.exists(icon_path):
+                    try:
+                        # Load and resize the PNG icon (from 750x750 to 64x64)
+                        from PIL import Image
+                        icon = Image.open(icon_path)
+                        # Resize to a reasonable size for the radar chart
+                        icon = icon.resize((64, 64), Image.Resampling.LANCZOS)
+                        self.custom_icons[planet] = icon
+                        print(f"✅ Loaded custom PNG icon for {planet}: {name} (resized to 64x64)")
+                        break
+                    except Exception as e:
+                        print(f"⚠️  Could not load icon {name} for {planet}: {e}")
     
     def generate_top_animal_radar(self, result_data: Dict, output_path: str = "outputs/top_animal_radar.png"):
         """
@@ -94,14 +137,21 @@ class RadarChartGenerator:
                 value = animal_percentages[planet]
                 planet_values.append(value)
                 
-                # Create label with just planet symbol
-                planet_symbol = self.planet_symbols.get(planet, planet)
-                label = planet_symbol
+                # Use custom icon if available, otherwise use symbol
+                if planet in self.custom_icons:
+                    label = planet  # Will be replaced with icon in the chart
+                else:
+                    planet_symbol = self.planet_symbols.get(planet, planet)
+                    label = planet_symbol
                 planet_labels.append(label)
             else:
                 planet_values.append(0)
-                planet_symbol = self.planet_symbols.get(planet, planet)
-                label = planet_symbol
+                # Use custom icon if available, otherwise use symbol
+                if planet in self.custom_icons:
+                    label = planet  # Will be replaced with icon in the chart
+                else:
+                    planet_symbol = self.planet_symbols.get(planet, planet)
+                    label = planet_symbol
                 planet_labels.append(label)
         
         # Create the radar chart
@@ -147,10 +197,10 @@ class RadarChartGenerator:
         
         # Create the figure
         fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(projection='polar'), 
-                              facecolor='white')
+                              facecolor='none')
         
-        # Set background to white
-        ax.set_facecolor('white')
+        # Set background to transparent
+        ax.set_facecolor('none')
         
         # Configure theta (angle) direction and zero location
         ax.set_theta_zero_location('N')  # North (top) is 0 degrees
@@ -159,13 +209,17 @@ class RadarChartGenerator:
         # Remove all grid lines and labels
         ax.grid(False)
         ax.set_rticks([])  # Remove radial ticks
+        ax.set_thetagrids([])  # Remove degree labels
         
-        # Set the radial limits (0 to 100 for percentages)
-        ax.set_ylim(0, 100)
+        # Set the radial limits (0 to 110 for percentages - 10% smaller chart)
+        # Higher limit makes the chart appear smaller as points are closer to center
+        ax.set_ylim(0, 110)
         
-        # Draw radial lines from center to edge
+        # Draw radial lines from center to 100% radius (all same length)
+        max_radius = 100  # 100% radius
         for i, angle in enumerate(angles[:-1]):
-            ax.plot([angle, angle], [0, 100], color='black', linewidth=2, alpha=0.8)
+            # All lines go to the same radius (100%)
+            ax.plot([angle, angle], [0, max_radius], color='black', linewidth=2, alpha=0.8)
         
         # Plot the data polygon
         ax.plot(angles, values, 'o-', linewidth=3, color='black', 
@@ -183,9 +237,14 @@ class RadarChartGenerator:
             # Draw filled black circle
             ax.scatter(angle, value, s=node_size**2, color='black', zorder=5)
         
-        # Set the labels with larger font for planet symbols
-        ax.set_thetagrids([np.degrees(angle) for angle in angles[:-1]], 
-                         labels=labels, fontsize=20, fontweight='bold')
+        # Set the labels - use custom icons if available, otherwise use text
+        if any(planet in self.custom_icons for planet in self.planets):
+            # Use custom icons
+            self._add_custom_icons_to_chart(ax, angles[:-1], labels, values[:-1])
+        else:
+            # Use text labels
+            ax.set_thetagrids([np.degrees(angle) for angle in angles[:-1]], 
+                             labels=labels, fontsize=20, fontweight='bold')
         
         # Remove all spines
         ax.spines['polar'].set_visible(False)
@@ -195,17 +254,107 @@ class RadarChartGenerator:
         
         # Save the chart
         plt.tight_layout()
-        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='none', transparent=True)
         plt.close()
         
         print(f"✅ Radar chart saved to: {output_path}")
+    
+    def _load_rgba_icon(self, icon_path):
+        """Load PNG icon as RGBA to avoid colormap issues."""
+        from PIL import Image
+        img = Image.open(icon_path).convert("RGBA")
+        return np.asarray(img)
+    
+    def _add_icon_polar(self, ax, theta, r, img_rgba, px=64, pad=0.02, z=10):
+        """
+        Place une icône PNG (RGBA) au bout d'un rayon polaire.
+        - theta: angle en radians
+        - r: rayon (en unités de l'axe)
+        - px: taille souhaitée de l'icône en pixels (largeur)
+        - pad: décalage radial relatif (ex: 0.02 = 2% du rmax)
+        """
+        rmax = ax.get_rmax()
+        r_icon = r + pad * rmax  # petit décalage pour être "après" le bout du rayon
 
-def generate_radar_charts_from_results(result_file: str = "outputs/result.json"):
+        # Taille fixe en pixels, quel que soit le zoom de la figure
+        h, w = img_rgba.shape[:2]
+        zoom = px / float(w)
+
+        from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+        
+        oi = OffsetImage(img_rgba, zoom=zoom, interpolation='nearest')  # pas de cmap
+        ab = AnnotationBbox(
+            oi, (theta, r_icon),
+            xycoords='data', frameon=False, pad=0.0,
+            box_alignment=(0.5, 0.5),  # centre l'icône sur le point
+            bboxprops=dict(fc='none', ec='none')
+        )
+        ab.set_zorder(z)
+        ax.add_artist(ab)
+
+    def _add_custom_icons_to_chart(self, ax, angles, labels, values):
+        """Add custom PNG icons to the radar chart using the improved method."""
+        # Position icons at the end of each radial line (at 100% + small offset)
+        max_radius = 100  # 100% radius where lines end
+        
+        # Cache for RGBA icons to avoid reloading
+        rgba_cache = {}
+        
+        for i, (angle, label, data_value) in enumerate(zip(angles, labels, values)):
+            planet = self.planets[i]
+            
+            if planet in self.custom_icons:
+                # Get the icon path from the original mapping
+                icon_mapping = {
+                    "Sun": ["sun.png", "Sun.png", "SUN.png"],
+                    "Ascendant": ["AC.png", "ac.png", "ascendant.png", "Ascendant.png", "ASC.png", "asc.png"],
+                    "Moon": ["moon.png", "Moon.png", "MOON.png"],
+                    "Mercury": ["mercury.png", "Mercury.png", "MERCURY.png"],
+                    "Venus": ["venus.png", "Venus.png", "VENUS.png"],
+                    "Mars": ["mars.png", "Mars.png", "MARS.png"],
+                    "Jupiter": ["jupiter.png", "Jupiter.png", "JUPITER.png"],
+                    "Saturn": ["saturn.png", "Saturn.png", "SATURN.png"],
+                    "Uranus": ["uranus.png", "Uranus.png", "URANUS.png"],
+                    "Neptune": ["neptune.png", "Neptune.png", "NEPTUNE.png"],
+                    "Pluto": ["pluto.png", "Pluto.png", "PLUTO.png"],
+                    "North Node": ["north_node.png", "North_Node.png", "northnode.png", "node.png"],
+                    "MC": ["MC.png", "mc.png", "midheaven.png", "Midheaven.png"]
+                }
+                
+                # Find the actual icon path
+                icon_path = None
+                for name in icon_mapping.get(planet, []):
+                    full_path = os.path.join(self.icons_folder, name)
+                    if os.path.exists(full_path):
+                        icon_path = full_path
+                        break
+                
+                if icon_path and icon_path not in rgba_cache:
+                    try:
+                        rgba_cache[icon_path] = self._load_rgba_icon(icon_path)
+                    except Exception as e:
+                        print(f"⚠️  Error loading RGBA icon for {planet}: {e}")
+                        continue
+                
+                if icon_path in rgba_cache:
+                    # Use the improved positioning method
+                    self._add_icon_polar(ax, angle, max_radius, rgba_cache[icon_path], 
+                                       px=64, pad=0.03, z=10)
+                
+            else:
+                # Fallback to text if no custom icon
+                planet_symbol = self.planet_symbols.get(planet, planet)
+                icon_radius = max_radius + 12
+                ax.text(np.degrees(angle), icon_radius, planet_symbol, 
+                       ha='center', va='center', fontsize=20, fontweight='bold')
+
+def generate_radar_charts_from_results(result_file: str = "outputs/result.json", icons_folder: Optional[str] = None):
     """
     Generate radar chart from the analysis results.
     
     Args:
         result_file: Path to the result.json file
+        icons_folder: Optional path to folder containing custom PNG icons
     """
     
     try:
@@ -213,8 +362,8 @@ def generate_radar_charts_from_results(result_file: str = "outputs/result.json")
         with open(result_file, 'r', encoding='utf-8') as f:
             result_data = json.load(f)
         
-        # Initialize the generator
-        generator = RadarChartGenerator()
+        # Initialize the generator with custom icons folder
+        generator = RadarChartGenerator(icons_folder=icons_folder)
         
         # Extract top 3 animals and their percentage strengths
         animal_totals = result_data.get("animal_totals", [])

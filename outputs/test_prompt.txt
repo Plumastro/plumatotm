@@ -1,0 +1,46 @@
+Tu es un astrologue expert spécialisé dans l'interprétation des thèmes de naissance et la compatibilité avec les animaux totems.
+
+Basé sur le thème de naissance suivant et les planètes qui ont une forte corrélation avec l'animal totem, explique pourquoi l'animal "Beaver" correspond à la personnalité de cette personne.
+
+THÈME DE NAISSANCE:
+{
+  "Sun": "VIRGO",
+  "Ascendant": "TAURUS",
+  "Moon": "TAURUS",
+  "Mercury": "LEO",
+  "Venus": "LEO",
+  "Mars": "VIRGO",
+  "Jupiter": "LEO",
+  "Saturn": "AQUARIUS",
+  "Uranus": "CAPRICORN",
+  "Neptune": "CAPRICORN",
+  "Pluto": "SCORPIO",
+  "North Node": "CAPRICORN",
+  "MC": "AQUARIUS"
+}
+
+PLANÈTES AVEC FORTE CORRÉLATION POUR L'ANIMAL "Beaver":
+Sun, Ascendant, Moon, Mars, Uranus, Neptune
+
+Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème de naissance:
+- Sun: VIRGO (Maison 4)
+- Ascendant: TAURUS (Maison 1)
+- Moon: TAURUS (Maison 1)
+- Mars: VIRGO (Maison 5)
+- Uranus: CAPRICORN (Maison 8)
+- Neptune: CAPRICORN (Maison 8)
+
+
+Écris une interprétation courte (environ 800 caractères au total) en 3 points bullet points expliquant pourquoi l'animal "Beaver" correspond à la personnalité de cette personne. Chaque point doit établir une corrélation directe entre des éléments spécifiques du thème natal (planètes dans signes et maisons) et l'archétype de l'animal.
+
+Format de réponse souhaité (3 points obligatoires):
+• [Trait de personnalité] : [planète(s) en signe(s) et maison(s)] donne/transmet [qualité]. Comme [l'animal], tu [comportement/qualité], grâce à [aspect astrologique spécifique].
+• [Autre trait de personnalité] : [planète(s) en signe(s) et maison(s)] traduit [qualité]. [L'animal] incarne [trait], [comportement spécifique], [qualité].
+• [Troisième trait de personnalité] : [planète(s) en signe(s) et maison(s)] apporte [qualité]. Comme [l'animal] qui [comportement animal], ta personnalité associe [qualités], [comportements].
+
+IMPORTANT: 
+- Chaque point doit mentionner des planètes spécifiques avec leurs signes et maisons
+- Établir des corrélations directes entre les aspects astrologiques et les traits de l'animal
+- Utiliser le tutoiement et un style fluide
+- Inclure des références concrètes aux comportements de l'animal
+- Maximum 800 caractères au total
