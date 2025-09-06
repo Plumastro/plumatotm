@@ -260,7 +260,8 @@ class BirthChartAnalyzer:
             
             # Create chart with coordinates and explicit object list
             pos = GeoPos(lat, lon)
-            chart = Chart(dt, pos, hsys=house_system, IDs=const.LIST_OBJECTS)
+            # Use flatlib's built-in chart creation without Swiss Ephemeris dependency
+            chart = Chart(dt, pos, hsys=house_system)
             
             # Debug: Print exact house cusps from flatlib
             print(f"\n=== DEBUG: Exact House Cusps ===")
