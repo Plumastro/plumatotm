@@ -211,9 +211,9 @@ class RadarChartGenerator:
         ax.set_rticks([])  # Remove radial ticks
         ax.set_thetagrids([])  # Remove degree labels
         
-        # Set the radial limits (0 to 110 for percentages - 10% smaller chart)
+        # Set the radial limits (0 to 130 for percentages - chart appears smaller)
         # Higher limit makes the chart appear smaller as points are closer to center
-        ax.set_ylim(0, 110)
+        ax.set_ylim(0, 130)
         
         # Draw radial lines from center to 100% radius (all same length)
         max_radius = 100  # 100% radius
@@ -337,9 +337,10 @@ class RadarChartGenerator:
                         continue
                 
                 if icon_path in rgba_cache:
-                    # Use the improved positioning method
+                    # Use the improved positioning method with smaller icons (40% reduction: 64 -> 38)
+                    # Increased pad from 0.08 to 0.12 for maximum distance from the chart
                     self._add_icon_polar(ax, angle, max_radius, rgba_cache[icon_path], 
-                                       px=64, pad=0.03, z=10)
+                                       px=38, pad=0.12, z=10)
                 
             else:
                 # Fallback to text if no custom icon
