@@ -1,9 +1,10 @@
 # Requirements for PLUMATOTM Astrological Animal Compatibility Engine
-# Use with Python 3.11 for pre-compiled wheels
+# CRITICAL: Use with Python 3.11 ONLY - pyswisseph is not compatible with Python 3.13
+# Render will use Python 3.11 if runtime.txt is present
 
-# Core astrological library
+# Core astrological library (Python 3.11 compatible)
 pyswisseph==2.08.00-1
-flatlib>=0.2.3
+flatlib==0.2.3
 
 # Data processing
 pandas>=2.3.0
