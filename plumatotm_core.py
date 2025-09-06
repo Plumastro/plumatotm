@@ -256,28 +256,12 @@ class BirthChartAnalyzer:
             pos = GeoPos(lat, lon)
             chart = Chart(dt, pos, hsys=house_system, IDs=const.LIST_OBJECTS)
             
-            # Debug: Print exact house cusps from Swiss Ephemeris
+            # Debug: Print exact house cusps from flatlib
             print(f"\n=== DEBUG: Exact House Cusps ===")
-            try:
-                from flatlib.ephem import swe
-                hlist, ascmc = swe.sweHousesLon(dt.jd, lat, lon, house_system)
-            except Exception as e:
-                print(f"⚠️  Swiss Ephemeris error: {e}")
-                print("💡 Using flatlib's built-in house calculation instead")
-                # Use flatlib's built-in house calculation as fallback
-                hlist = [chart.houses[i].lon for i in range(12)]
-                ascmc = [chart.asc.lon, chart.mc.lon]
-            for i, cusp in enumerate(hlist):
-                # Convert to degrees and minutes
-                degrees = int(cusp)
-                minutes = (cusp - degrees) * 60
-                sign_num = int(cusp / 30)
-                sign_names = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
-                             "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
-                sign_name = sign_names[sign_num]
-                sign_degrees = degrees % 30
-                print(f"House {i+1}: {cusp:.3f}° ({sign_degrees}°{minutes:02.0f}' {sign_name})")
-            print(f"ASC: {ascmc[0]:.3f}°, MC: {ascmc[1]:.3f}°")
+            # Use flatlib's built-in house calculation (no Swiss Ephemeris dependency)
+            asc = chart.getAngle(const.ASC)
+            mc = chart.getAngle(const.MC)
+            print(f"ASC: {asc.lon:.3f}°, MC: {mc.lon:.3f}°")
             
             # Extract planet -> sign mapping and planet -> house mapping
             planet_signs = {}
