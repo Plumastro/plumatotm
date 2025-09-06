@@ -258,8 +258,15 @@ class BirthChartAnalyzer:
             
             # Debug: Print exact house cusps from Swiss Ephemeris
             print(f"\n=== DEBUG: Exact House Cusps ===")
-            from flatlib.ephem import swe
-            hlist, ascmc = swe.sweHousesLon(dt.jd, lat, lon, house_system)
+            try:
+                from flatlib.ephem import swe
+                hlist, ascmc = swe.sweHousesLon(dt.jd, lat, lon, house_system)
+            except Exception as e:
+                print(f"⚠️  Swiss Ephemeris error: {e}")
+                print("💡 Using flatlib's built-in house calculation instead")
+                # Use flatlib's built-in house calculation as fallback
+                hlist = [chart.houses[i].lon for i in range(12)]
+                ascmc = [chart.asc.lon, chart.mc.lon]
             for i, cusp in enumerate(hlist):
                 # Convert to degrees and minutes
                 degrees = int(cusp)
