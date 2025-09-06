@@ -27,6 +27,13 @@ cairosvg>=2.7.0
 # OpenAI API for ChatGPT interpretation
 openai>=1.0.0
 
+# Web framework for API
+flask>=3.0.0
+
+# Supabase integration
+supabase>=2.0.0
+python-dotenv>=1.0.0
+
 # Functional Requirements Specification:
 # - Generate ChatGPT interpretation of why the top1 animal matches the subject's personality
 # - Interpretation should be based on birth_chart.json and the 6 planets marked "TRUE" in top3_true_false.json for the top1 animal
