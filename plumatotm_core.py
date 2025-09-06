@@ -260,8 +260,10 @@ class BirthChartAnalyzer:
             
             # Create chart with coordinates and explicit object list
             pos = GeoPos(lat, lon)
-            # Use flatlib's built-in chart creation with all objects including outer planets
-            chart = Chart(dt, pos, hsys=house_system, IDs=const.LIST_OBJECTS)
+            # Use flatlib's built-in chart creation with custom object list (no Swiss Ephemeris dependency)
+            # Include outer planets but use flatlib's built-in calculations
+            custom_objects = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'North Node']
+            chart = Chart(dt, pos, hsys=house_system, IDs=custom_objects)
             
             # Debug: Print exact house cusps from flatlib
             print(f"\n=== DEBUG: Exact House Cusps ===")
