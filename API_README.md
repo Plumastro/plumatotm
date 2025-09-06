@@ -38,19 +38,25 @@ Cette API expose le moteur d'analyse astrologique PLUMATOTM via HTTP.
 **Body (JSON) :**
 ```json
 {
-  "date": "1998-12-22",
-  "time": "10:13",
-  "lat": 42.35843,
-  "lon": -71.05977,
+  "name": "Jean",
+  "date": "1995-11-17",
+  "time": "12:12",
+  "lat": 45.7578137,
+  "lon": 4.8320114,
+  "country": "France",
+  "state": "Auvergne-Rhône-Alpes",
   "openai_api_key": "sk-..." // optionnel
 }
 ```
 
 **Paramètres :**
+- `name` (optionnel) : Nom du client (défaut: "Anonymous")
 - `date` (requis) : Date de naissance au format YYYY-MM-DD
 - `time` (requis) : Heure de naissance au format HH:MM (24h)
 - `lat` (requis) : Latitude (-90 à 90)
 - `lon` (requis) : Longitude (-180 à 180)
+- `country` (optionnel) : Pays (défaut: "Unknown")
+- `state` (optionnel) : État/Région (défaut: "Unknown")
 - `openai_api_key` (optionnel) : Clé API OpenAI pour l'interprétation ChatGPT
 
 **Réponse de succès :**
@@ -59,11 +65,22 @@ Cette API expose le moteur d'analyse astrologique PLUMATOTM via HTTP.
   "status": "success",
   "message": "Analysis completed successfully",
   "timestamp": "2024-01-15T10:30:00",
+  "client_info": {
+    "name": "Jean",
+    "location": {
+      "country": "France",
+      "state": "Auvergne-Rhône-Alpes",
+      "coordinates": {
+        "lat": 45.7578137,
+        "lon": 4.8320114
+      }
+    }
+  },
   "input": {
-    "date": "1998-12-22",
-    "time": "10:13",
-    "lat": 42.35843,
-    "lon": -71.05977
+    "date": "1995-11-17",
+    "time": "12:12",
+    "lat": 45.7578137,
+    "lon": 4.8320114
   },
   "output_files": [
     "birth_chart.json",
@@ -129,14 +146,18 @@ import requests
 
 # Analyser un thème astral
 response = requests.post("https://your-app.onrender.com/analyze", json={
-    "date": "1998-12-22",
-    "time": "10:13", 
-    "lat": 42.35843,
-    "lon": -71.05977
+    "name": "Jean",
+    "date": "1995-11-17",
+    "time": "12:12",
+    "lat": 45.7578137,
+    "lon": 4.8320114,
+    "country": "France",
+    "state": "Auvergne-Rhône-Alpes"
 })
 
 result = response.json()
 print(f"Status: {result['status']}")
+print(f"Client: {result['client_info']['name']}")
 
 # Télécharger un fichier de sortie
 if result['status'] == 'success':

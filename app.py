@@ -78,10 +78,13 @@ def analyze():
     Main analysis endpoint
     Expected JSON payload:
     {
-        "date": "1998-12-22",
-        "time": "10:13", 
-        "lat": 42.35843,
-        "lon": -71.05977,
+        "name": "Jean",
+        "date": "1995-11-17",
+        "time": "12:12",
+        "lat": 45.7578137,
+        "lon": 4.8320114,
+        "country": "France",
+        "state": "Auvergne-Rhône-Alpes",
         "openai_api_key": "sk-..." (optional)
     }
     """
@@ -99,10 +102,13 @@ def analyze():
                 return jsonify({"error": f"Missing required field: {field}"}), 400
         
         # Extract parameters
+        name = data.get('name', 'Anonymous')
         date = data['date']
         time = data['time']
         lat = float(data['lat'])
         lon = float(data['lon'])
+        country = data.get('country', 'Unknown')
+        state = data.get('state', 'Unknown')
         openai_api_key = data.get('openai_api_key')
         
         # Validate date format
@@ -127,7 +133,7 @@ def analyze():
         if analyzer is None:
             return jsonify({"error": "Analyzer not initialized"}), 500
         
-        print(f"🔮 Starting analysis for {date} {time} at {lat}°N, {lon}°W")
+        print(f"🔮 Starting analysis for {name} ({date} {time} at {lat}°N, {lon}°W, {country}, {state})")
         
         # Run analysis using the analyzer's run_analysis method
         result = analyzer.run_analysis(
@@ -143,6 +149,17 @@ def analyze():
             "status": "success",
             "message": "Analysis completed successfully",
             "timestamp": datetime.now().isoformat(),
+            "client_info": {
+                "name": name,
+                "location": {
+                    "country": country,
+                    "state": state,
+                    "coordinates": {
+                        "lat": lat,
+                        "lon": lon
+                    }
+                }
+            },
             "input": {
                 "date": date,
                 "time": time,
