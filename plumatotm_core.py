@@ -15,6 +15,21 @@ from datetime import datetime, timezone
 from typing import Dict, List, Tuple, Any
 import sys
 import os
+
+# Charger les variables d'environnement depuis .env
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # Charge le fichier .env
+except ImportError:
+    pass  # python-dotenv non installé, continuer sans
+
+# Import des modules de statistiques
+try:
+    from animal_statistics import AnimalStatisticsGenerator
+    STATISTICS_AVAILABLE = True
+except ImportError:
+    STATISTICS_AVAILABLE = False
+    print("⚠️  Module de statistiques non disponible")
 from zoneinfo import ZoneInfo
 
 # OpenAI API for ChatGPT interpretation
@@ -756,7 +771,9 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
                         dynamic_weights: Dict[str, float], raw_scores: pd.DataFrame,
                         weighted_scores: pd.DataFrame, animal_totals: pd.DataFrame,
                         percentage_strength: pd.DataFrame, true_false_table: pd.DataFrame,
-                        utc_time: str = None, timezone_method: str = None, openai_api_key: str = None, planet_positions: Dict[str, Dict[str, float]] = None):
+                        utc_time: str = None, timezone_method: str = None, openai_api_key: str = None, 
+                        planet_positions: Dict[str, Dict[str, float]] = None,
+                        birth_date: str = None, birth_time: str = None, lat: float = None, lon: float = None):
         """Generate all output files in the outputs directory."""
         
         # Ensure outputs directory exists
@@ -905,6 +922,36 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
         except Exception as e:
             print(f"⚠️  ChatGPT interpretation generation failed: {e}")
         
+        # 10. Generate animal statistics if available and birth data provided
+        if STATISTICS_AVAILABLE and birth_date and birth_time and lat is not None and lon is not None:
+            try:
+                print("📊 Generating animal statistics...")
+                
+                # Get top 1 animal
+                top1_animal = animal_totals.iloc[0]['ANIMAL']
+                
+                # Generate statistics
+                stats_generator = AnimalStatisticsGenerator()
+                statistics = stats_generator.run_full_analysis(
+                    date=birth_date,
+                    time=birth_time,
+                    lat=lat,
+                    lon=lon,
+                    top1_animal=top1_animal
+                )
+                
+                print(f"📊 Animal statistics saved to: outputs/animal_proportion.json")
+                print(f"   User animal percentage: {statistics['user_animal_percentage']}%")
+                print(f"   Total animals tracked: {len(statistics['all_animals_percentages'])}")
+                
+            except Exception as e:
+                print(f"⚠️  Animal statistics generation failed: {e}")
+        else:
+            if not STATISTICS_AVAILABLE:
+                print("⚠️  Animal statistics module not available")
+            else:
+                print("⚠️  Birth data not provided for statistics")
+        
         # Print summary
         print(f"\n=== ANALYSIS SUMMARY ===")
         print(f"Top 3 animals:")
@@ -949,7 +996,9 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
         
         # 8. Generate outputs
         self.generate_outputs(planet_signs, planet_houses, dynamic_weights, raw_scores, 
-                            weighted_scores, animal_totals, percentage_strength, true_false_table, time, timezone_method, openai_api_key, planet_positions)
+                            weighted_scores, animal_totals, percentage_strength, true_false_table, 
+                            time, timezone_method, openai_api_key, planet_positions,
+                            date, time, lat, lon)
 
 
 def main():

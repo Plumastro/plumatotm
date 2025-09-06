@@ -1,0 +1,11 @@
+# Configuration Supabase pour PLUMATOTM
+# Créez un fichier .env avec ces variables
+
+# URL de votre projet Supabase
+SUPABASE_URL=https://your-project-id.supabase.co
+
+# Clé anonyme de votre projet Supabase
+SUPABASE_ANON_KEY=your-anon-key-here
+
+# Clé API OpenAI (optionnel, peut aussi être dans api_key.txt)
+OPENAI_API_KEY=your-openai-api-key-here
