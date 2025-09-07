@@ -291,7 +291,7 @@ class BirthChartAnalyzer:
             animals = []
             for row in data:
                 animal_entry = {
-                    "ANIMAL": row["ANIMAL UK"]
+                    "ANIMAL": row["AnimalEN"]
                 }
                 
                 # Add scores for each zodiac sign
@@ -351,20 +351,26 @@ class BirthChartAnalyzer:
         except Exception as e:
             raise ValueError(f"Error loading planet multipliers from {multipliers_csv_path}: {e}")
     
-    def _load_animal_translations(self, translations_csv_path: str) -> Dict[str, str]:
-        """Load animal translations from CSV file."""
+    def _load_animal_translations(self, translations_csv_path: str) -> Dict[str, Dict[str, str]]:
+        """Load animal translations from CSV file including new columns."""
         try:
             translations = {}
             data = read_csv_to_dict(translations_csv_path)
             
             for row in data:
                 # Handle NaN values and convert to string
-                animal_en = safe_str(row.get('ANIMAL UK', ''))
-                animal_fr = safe_str(row.get('ANIMAL FR', ''))
+                animal_en = safe_str(row.get('AnimalEN', ''))
+                animal_fr = safe_str(row.get('AnimalFR', ''))
+                determinant_fr = safe_str(row.get('DeterminantAnimalFR', ''))
+                article_fr = safe_str(row.get('ArticleAnimalFR', ''))
                 
                 # Skip if either name is empty
                 if animal_en and animal_fr:
-                    translations[animal_en] = animal_fr
+                    translations[animal_en] = {
+                        'AnimalFR': animal_fr,
+                        'DeterminantAnimalFR': determinant_fr,
+                        'ArticleAnimalFR': article_fr
+                    }
             
             print(f"✅ Loaded {len(translations)} animal translations from {translations_csv_path}")
             return translations
@@ -830,7 +836,8 @@ class BirthChartAnalyzer:
             
             # Get French animal name from CSV translations
             self._ensure_animal_translations_loaded()
-            animal_fr = self.animal_translations.get(top1_animal, top1_animal)
+            animal_translation = self.animal_translations.get(top1_animal, {})
+            animal_fr = animal_translation.get('AnimalFR', top1_animal)
             
             # Build the prompt for ChatGPT
             prompt = f"""Tu es un astrologue expert spécialisé dans l'interprétation des thèmes de naissance et la compatibilité avec les animaux totems.

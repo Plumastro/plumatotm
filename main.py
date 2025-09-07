@@ -115,15 +115,17 @@ def load_analysis_results():
                 analyzer._ensure_animal_translations_loaded()
                 translated_percentages = {}
                 for animal_en, percentage in animal_proportion_data.get('all_animals_percentages', {}).items():
-                    animal_fr = analyzer.animal_translations.get(animal_en, animal_en)
+                    animal_translation = analyzer.animal_translations.get(animal_en, {})
+                    animal_fr = animal_translation.get('AnimalFR', animal_en)
                     translated_percentages[animal_fr] = percentage
+                
+                # Get user current animal translations
+                user_current_animal_en = animal_proportion_data.get('user_current_animal', '')
+                user_animal_translation = analyzer.animal_translations.get(user_current_animal_en, {})
                 
                 results['animal_proportion'] = {
                     'user_plumid': animal_proportion_data.get('user_plumid', ''),
-                    'user_current_animal': analyzer.animal_translations.get(
-                        animal_proportion_data.get('user_current_animal', ''), 
-                        animal_proportion_data.get('user_current_animal', '')
-                    ),
+                    'user_current_animal': user_animal_translation.get('AnimalFR', user_current_animal_en),
                     'user_animal_percentage': animal_proportion_data.get('user_animal_percentage', 0),
                     'all_animals_percentages': translated_percentages
                 }
@@ -148,9 +150,15 @@ def load_analysis_results():
                 top3_summary = {}
                 analyzer._ensure_animal_translations_loaded()
                 for i, (animal_en, strength) in enumerate(top3_animals, 1):
-                    animal_fr = analyzer.animal_translations.get(animal_en, animal_en)
+                    animal_translation = analyzer.animal_translations.get(animal_en, {})
+                    animal_fr = animal_translation.get('AnimalFR', animal_en)
+                    determinant_fr = animal_translation.get('DeterminantAnimalFR', animal_fr)
+                    article_fr = animal_translation.get('ArticleAnimalFR', animal_fr)
+                    
                     top3_summary[f"Top{i}"] = {
                         "animal": animal_fr,
+                        "determinant_animal": determinant_fr,
+                        "article_animal": article_fr,
                         "overall_strength_adjust": strength
                     }
                 
