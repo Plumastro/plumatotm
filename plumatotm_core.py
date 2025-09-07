@@ -264,9 +264,9 @@ class BirthChartAnalyzer:
         self._planet_multipliers_loaded = False
         self._animal_translations_loaded = False
         
-        # Load only essential data at startup
-        self.scores_data = self._load_scores_from_csv(scores_csv_path)
-        self.animals = [animal["ANIMAL"] for animal in self.scores_data["animals"]]
+        # Load only essential data at startup - scores will be loaded on demand
+        self.scores_data = None  # Lazy loading
+        self.animals = None  # Will be loaded when needed
         
         # Load planet weights and multipliers (small files, keep at startup)
         self.planet_weights = self._load_planet_weights(weights_csv_path)
@@ -275,6 +275,13 @@ class BirthChartAnalyzer:
         
         # Animal translations will be loaded on demand
         self.animal_translations = {}
+    
+    def _ensure_scores_data_loaded(self):
+        """Load scores data on demand if not already loaded."""
+        if not self._scores_data_loaded:
+            self.scores_data = self._load_scores_from_csv(self.scores_csv_path)
+            self.animals = [animal["ANIMAL"] for animal in self.scores_data["animals"]]
+            self._scores_data_loaded = True
     
     def _ensure_animal_translations_loaded(self):
         """Load animal translations on demand if not already loaded."""
@@ -595,6 +602,9 @@ class BirthChartAnalyzer:
     
     def compute_raw_scores(self, planet_signs: Dict[str, str]) -> Dict[str, Dict[str, int]]:
         """Compute raw animal scores for each planet."""
+        # Ensure scores data is loaded
+        self._ensure_scores_data_loaded()
+        
         raw_scores = {}
         
         for animal_data in self.scores_data["animals"]:
@@ -985,36 +995,31 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
             json.dump(dynamic_weights, f, indent=2)
         print(f"Planet weights saved to: {output_files['planet_weights']}")
         
-        # 3. Raw Scores Table (CSV & JSON)
-        save_dict_to_csv(raw_scores, output_files["raw_scores_csv"])
+        # 3. Raw Scores Table (JSON only - CSV removed for memory optimization)
         with open(output_files["raw_scores_json"], 'w', encoding='utf-8') as f:
-            json.dump(raw_scores, f, indent=2)
-        print(f"Raw scores saved to: {output_files['raw_scores_csv']} and {output_files['raw_scores_json']}")
+            json.dump(raw_scores, f, separators=(',', ':'))
+        print(f"Raw scores saved to: {output_files['raw_scores_json']}")
         
-        # 4. Weighted Scores Table (CSV & JSON)
-        save_dict_to_csv(weighted_scores, output_files["weighted_scores_csv"])
+        # 4. Weighted Scores Table (JSON only - CSV removed for memory optimization)
         with open(output_files["weighted_scores_json"], 'w', encoding='utf-8') as f:
-            json.dump(weighted_scores, f, indent=2)
-        print(f"Weighted scores saved to: {output_files['weighted_scores_csv']} and {output_files['weighted_scores_json']}")
+            json.dump(weighted_scores, f, separators=(',', ':'))
+        print(f"Weighted scores saved to: {output_files['weighted_scores_json']}")
         
-        # 5. Animal Totals Table (CSV & JSON)
-        save_list_to_csv(animal_totals, output_files["animal_totals_csv"])
+        # 5. Animal Totals Table (JSON only - CSV removed for memory optimization)
         animal_totals_dict = [{"ANIMAL": animal, "TOTAL_SCORE": score} for animal, score in animal_totals]
         with open(output_files["animal_totals_json"], 'w', encoding='utf-8') as f:
-            json.dump(animal_totals_dict, f, indent=2)
-        print(f"Animal totals saved to: {output_files['animal_totals_csv']} and {output_files['animal_totals_json']}")
+            json.dump(animal_totals_dict, f, separators=(',', ':'))
+        print(f"Animal totals saved to: {output_files['animal_totals_json']}")
         
-        # 6. Top 3 % Strength Table (CSV & JSON)
-        save_dict_to_csv(percentage_strength, output_files["top3_percentage_strength_csv"])
+        # 6. Top 3 % Strength Table (JSON only - CSV removed for memory optimization)
         with open(output_files["top3_percentage_strength_json"], 'w', encoding='utf-8') as f:
-            json.dump(percentage_strength, f, indent=2)
-        print(f"Top 3 percentage strength saved to: {output_files['top3_percentage_strength_csv']} and {output_files['top3_percentage_strength_json']}")
+            json.dump(percentage_strength, f, separators=(',', ':'))
+        print(f"Top 3 percentage strength saved to: {output_files['top3_percentage_strength_json']}")
         
-        # 7. Top 3 TRUE/FALSE Table (CSV & JSON)
-        save_dict_to_csv(true_false_table, output_files["top3_true_false_csv"])
+        # 7. Top 3 TRUE/FALSE Table (JSON only - CSV removed for memory optimization)
         with open(output_files["top3_true_false_json"], 'w', encoding='utf-8') as f:
-            json.dump(true_false_table, f, indent=2)
-        print(f"Top 3 TRUE/FALSE table saved to: {output_files['top3_true_false_csv']} and {output_files['top3_true_false_json']}")
+            json.dump(true_false_table, f, separators=(',', ':'))
+        print(f"Top 3 TRUE/FALSE table saved to: {output_files['top3_true_false_json']}")
         
         # 8. Combined Results JSON
         combined_results = {
@@ -1159,8 +1164,16 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
         # 3. Compute raw scores
         raw_scores = self.compute_raw_scores(planet_signs)
         
+        # Memory cleanup after raw scores computation
+        import gc
+        gc.collect()
+        
         # 4. Apply dynamic weights
         weighted_scores = self.compute_weighted_scores(raw_scores, dynamic_weights)
+        
+        # Memory cleanup after weighted scores computation
+        del raw_scores  # Free memory immediately
+        gc.collect()
         
         # 5. Compute animal totals
         animal_totals = self.compute_animal_totals(weighted_scores)
