@@ -28,12 +28,7 @@ except ImportError as e:
     print(f"❌ flask import failed: {e}")
     sys.exit(1)
 
-try:
-    import pandas
-    print(f"✅ pandas: {pandas.__version__}")
-except ImportError as e:
-    print(f"❌ pandas import failed: {e}")
-    sys.exit(1)
+# pandas removed for memory optimization
 
 try:
     import numpy
