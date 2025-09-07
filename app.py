@@ -86,11 +86,24 @@ def load_analysis_results():
         birth_chart_path = "outputs/birth_chart.json"
         if os.path.exists(birth_chart_path):
             with open(birth_chart_path, 'r', encoding='utf-8') as f:
-                # Use object_pairs_hook to preserve exact order from JSON
+                birth_chart_data = json.load(f)
+                french_chart = birth_chart_data.get('french_birth_chart', {})
+                
+                # Define the exact order we want (matching the JSON file order)
+                planet_order = [
+                    "Soleil", "Ascendant", "Lune", "Mercure", "Vénus", "Mars", 
+                    "Jupiter", "Saturne", "Uranus", "Neptune", "Pluton", 
+                    "Nœud Nord", "MC"
+                ]
+                
+                # Create ordered dictionary with the exact order
                 from collections import OrderedDict
-                birth_chart_data = json.load(f, object_pairs_hook=OrderedDict)
-                french_chart = birth_chart_data.get('french_birth_chart', OrderedDict())
-                results['french_birth_chart'] = french_chart
+                ordered_french_chart = OrderedDict()
+                for planet in planet_order:
+                    if planet in french_chart:
+                        ordered_french_chart[planet] = french_chart[planet]
+                
+                results['french_birth_chart'] = ordered_french_chart
         
         # 2. Load animal proportion with French translations
         animal_proportion_path = "outputs/animal_proportion.json"
