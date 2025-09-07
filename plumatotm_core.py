@@ -1171,10 +1171,6 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
         # 4. Apply dynamic weights
         weighted_scores = self.compute_weighted_scores(raw_scores, dynamic_weights)
         
-        # Memory cleanup after weighted scores computation
-        del raw_scores  # Free memory immediately
-        gc.collect()
-        
         # 5. Compute animal totals
         animal_totals = self.compute_animal_totals(weighted_scores)
         
@@ -1189,6 +1185,10 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
                             weighted_scores, animal_totals, percentage_strength, true_false_table, 
                             utc_time, timezone_method, openai_api_key, planet_positions,
                             date, time, lat, lon)
+        
+        # Memory cleanup after all computations
+        del raw_scores  # Free memory after all uses
+        gc.collect()
 
 
 def main():

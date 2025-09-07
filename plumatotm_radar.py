@@ -370,7 +370,7 @@ class RadarChartGenerator:
         
         # Save the chart
         plt.tight_layout()
-        plt.savefig(output_path, dpi=100, bbox_inches='tight', facecolor='none', transparent=True, optimize=True)
+        plt.savefig(output_path, dpi=100, bbox_inches='tight', facecolor='none', transparent=True)
         plt.close()
         
         print(f"✅ Radar chart saved to: {output_path}")
