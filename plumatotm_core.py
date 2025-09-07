@@ -848,16 +848,17 @@ class BirthChartAnalyzer:
             self._ensure_animal_translations_loaded()
             animal_translation = self.animal_translations.get(top1_animal, {})
             animal_fr = animal_translation.get('AnimalFR', top1_animal)
+            animal_determinant = animal_translation.get('DeterminantAnimalFR', animal_fr)
             
             # Build the prompt for ChatGPT
             prompt = f"""Tu es un astrologue expert spécialisé dans l'interprétation des thèmes de naissance et la compatibilité avec les animaux totems.
 
-Basé sur le thème de naissance suivant et les planètes qui ont une forte corrélation avec l'animal totem, explique pourquoi l'animal "{animal_fr}" correspond à la personnalité de cette personne.
+Basé sur le thème de naissance suivant et les planètes qui ont une forte corrélation avec l'animal totem, explique pourquoi {animal_determinant} correspond à la personnalité de cette personne.
 
 THÈME DE NAISSANCE:
 {json.dumps(planet_signs, indent=2, ensure_ascii=False)}
 
-PLANÈTES AVEC FORTE CORRÉLATION POUR L'ANIMAL "{animal_fr}":
+PLANÈTES AVEC FORTE CORRÉLATION POUR {animal_determinant}:
 {', '.join(top1_true_planets)}
 Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème de naissance:
 """
@@ -872,12 +873,12 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
             
             prompt += f"""
 
-Écris une interprétation courte (environ 800 caractères au total) en 3 points bullet points expliquant pourquoi l'animal "{animal_fr}" correspond à la personnalité de cette personne. Chaque point doit établir une corrélation directe entre des éléments spécifiques du thème natal (planètes dans signes et maisons) et l'archétype de l'animal.
+Écris une interprétation courte (environ 800 caractères au total) en 3 points bullet points expliquant pourquoi {animal_determinant} correspond à la personnalité de cette personne. Chaque point doit établir une corrélation directe entre des éléments spécifiques du thème natal (planètes dans signes et maisons) et l'archétype de l'animal.
 
                 Format de réponse souhaité (3 points obligatoires):
-                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] donne/transmet [qualité]. Comme le {animal_fr}, tu [comportement/qualité], grâce à [aspect astrologique spécifique].
-                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] traduit [qualité]. Le {animal_fr} incarne [trait], [comportement spécifique], [qualité].
-                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] apporte [qualité]. Comme le {animal_fr} qui [comportement animal], ta personnalité associe [qualités], [comportements].
+                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] donne/transmet [qualité]. Comme {animal_determinant}, tu [comportement/qualité], grâce à [aspect astrologique spécifique].
+                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] traduit [qualité]. {animal_determinant} incarne [trait], [comportement spécifique], [qualité].
+                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] apporte [qualité]. Comme {animal_determinant} qui [comportement animal], ta personnalité associe [qualités], [comportements].
 
                 RÈGLES STRICTES:
                 - TOUJOURS utiliser "tu" et "ta" pour s'adresser directement à la personne
