@@ -16,6 +16,11 @@ pip install -r requirements.txt
 python start.py
 ```
 
+**Note:** The `Procfile` is also configured to use Gunicorn for production:
+```bash
+web: gunicorn main:app -c gunicorn.conf.py
+```
+
 ### Environment Variables
 ```
 OPENAI_API_KEY=sk-proj-...
@@ -51,7 +56,7 @@ Successful deployment should show:
 ✅ numpy: 2.3.2
 ✅ matplotlib: 3.10.5
 ✅ plumatotm_core imported successfully
-✅ app imported successfully
+✅ main imported successfully
 🎉 All imports successful! Starting Flask app...
 ✅ PLUMATOTM Analyzer initialized successfully
 ✅ API ready to serve requests

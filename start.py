@@ -58,20 +58,20 @@ except ImportError as e:
     print(f"❌ plumatotm_core import failed: {e}")
     sys.exit(1)
 
-# Test app import
-print("\n🔍 Testing app import...")
+# Test main import
+print("\n🔍 Testing main import...")
 try:
-    import app
-    print("✅ app imported successfully")
+    import main
+    print("✅ main imported successfully")
 except ImportError as e:
-    print(f"❌ app import failed: {e}")
+    print(f"❌ main import failed: {e}")
     sys.exit(1)
 
 print("\n🎉 All imports successful! Starting Flask app...")
 
 # Start the Flask app
 if __name__ == "__main__":
-    from app import app, initialize_analyzer
+    from main import app, initialize_analyzer
     
     # Initialize analyzer
     if initialize_analyzer():
