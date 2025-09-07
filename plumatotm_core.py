@@ -175,13 +175,18 @@ def convert_local_to_utc(date: str, local_time: str, lat: float, lon: float) -> 
 class BirthChartAnalyzer:
     """Main class for analyzing birth charts and computing animal scores."""
     
-    def __init__(self, scores_json_path: str, weights_csv_path: str, multipliers_csv_path: str):
+    def __init__(self, scores_json_path: str, weights_csv_path: str, multipliers_csv_path: str, translations_csv_path: str = None):
         """Initialize with the animal scores JSON file and planet weights/multipliers."""
         self.scores_data = self._load_scores_json(scores_json_path)
         self.animals = [animal["ANIMAL"] for animal in self.scores_data["animals"]]
         self.planet_weights = self._load_planet_weights(weights_csv_path)
         self.planet_multipliers = self._load_planet_multipliers(multipliers_csv_path)
         self.supported_planets = list(self.planet_weights.keys())
+        
+        # Load animal translations from CSV if provided
+        self.animal_translations = {}
+        if translations_csv_path and os.path.exists(translations_csv_path):
+            self.animal_translations = self._load_animal_translations(translations_csv_path)
         
     def _load_scores_json(self, scores_json_path: str) -> Dict:
         """Load and validate the animal scores JSON file."""
@@ -240,6 +245,41 @@ class BirthChartAnalyzer:
             return multipliers
         except Exception as e:
             raise ValueError(f"Error loading planet multipliers from {multipliers_csv_path}: {e}")
+    
+    def _load_animal_translations(self, translations_csv_path: str) -> Dict[str, str]:
+        """Load animal translations from CSV file."""
+        try:
+            translations = {}
+            # Try different encodings to handle special characters
+            encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+            df = None
+            
+            for encoding in encodings:
+                try:
+                    df = pd.read_csv(translations_csv_path, encoding=encoding)
+                    print(f"✅ Successfully loaded CSV with {encoding} encoding")
+                    break
+                except UnicodeDecodeError:
+                    continue
+            
+            if df is None:
+                raise ValueError("Could not read CSV with any supported encoding")
+            
+            for _, row in df.iterrows():
+                # Handle NaN values and convert to string
+                animal_en = str(row['ANIMAL UK']).strip() if pd.notna(row['ANIMAL UK']) else ""
+                animal_fr = str(row['ANIMAL FR']).strip() if pd.notna(row['ANIMAL FR']) else ""
+                
+                # Skip if either name is empty or NaN
+                if animal_en and animal_fr and animal_en != 'nan' and animal_fr != 'nan':
+                    translations[animal_en] = animal_fr
+            
+            print(f"✅ Loaded {len(translations)} animal translations from {translations_csv_path}")
+            return translations
+            
+        except Exception as e:
+            print(f"⚠️  Warning: Could not load animal translations from {translations_csv_path}: {e}")
+            return {}
     
     def compute_birth_chart(self, date: str, time: str, lat: float, lon: float) -> Tuple[Dict[str, str], Dict[str, int], Dict[str, Dict[str, float]]]:
         """Compute birth chart and return planet -> sign mapping and planet -> house mapping."""
@@ -689,40 +729,8 @@ class BirthChartAnalyzer:
                 "SAGITTARIUS": "Sagittaire", "CAPRICORN": "Capricorne", "AQUARIUS": "Verseau", "PISCES": "Poissons"
             }
             
-            animal_translations = {
-                # Animaux principaux utilisés dans PLUMATOTM
-                "Bear": "Ours", "Sheep": "Mouton", "Whale": "Baleine", "Swan": "Cygne", "Frog": "Grenouille",
-                "Koala": "Koala", "Jellyfish": "Méduse", "Rabbit": "Lapin", "Capybara": "Capybara",
-                "Seahorse": "Hippocampe", "Goose": "Oie", "Penguin": "Manchot", "Lynx": "Lynx",
-                "Gorillas": "Gorille", "Turtle": "Tortue", "Hedgehog": "Hérisson", "Otter": "Loutre",
-                "Crane": "Grue", "Swallow": "Hirondelle", "Stag": "Cerf", "Dolphin": "Dauphin",
-                "Panda": "Panda", "Hippopotamus": "Hippopotame", "Cow": "Vache", "Pelican": "Pélican",
-                "Bee": "Abeille", "Beaver": "Castor", "Elephant": "Éléphant", "Pig": "Cochon",
-                "Deer": "Cerf", "Wolf": "Loup", "Bat": "Chauve-souris", "Butterfly": "Papillon",
-                "Octopus": "Poulpe", "Tiger": "Tigre", "Polar Bear": "Ours polaire", "Giraffe": "Girafe",
-                "Caribou": "Caribou", "Kangaroo": "Kangourou", "Llama": "Lama", "Donkey": "Âne",
-                "Peacock": "Paon", "Hare": "Lièvre", "Chameleon": "Caméléon", "Cobra": "Cobra",
-                "Shark": "Requin", "Gazelle": "Gazelle", "Crocodile": "Crocodile", "Camel": "Chameau",
-                "Cat": "Chat", "Macaw": "Ara", "Elk": "Élan", "Squirrel": "Écureuil", "Parrot": "Perroquet",
-                "Monkey": "Singe", "Fox": "Renard", "Cheetah": "Guépard", "Jaguar": "Jaguar",
-                "Lemur": "Lémurien", "Raven": "Corbeau", "Panther": "Panthère", "Horse": "Cheval",
-                "Boa Constrictor": "Boa constricteur", "Owl": "Hibou", "Mountain Goat": "Bouquetin",
-                "Raccoon": "Ratons-laveurs", "Snake": "Serpent", "Eagle": "Aigle", "Falcon": "Faucon",
-                "Lizard": "Lézard", "Snow Leopard": "Léopard des neiges",
-                
-                # Chiens avec races spécifiques
-                "Dog (golden retriever)": "Chien (Golden Retriever)",
-                "Dog (bulldog)": "Chien (Bouledogue)",
-                "Dog (belgian malinois)": "Chien (Malinois belge)",
-                "Dog (great dane)": "Chien (Grand Danois)",
-                "Dog (rottweiler)": "Chien (Rottweiler)",
-                "Dog (dalmatian)": "Chien (Dalmatien)",
-                "Dog (border collie)": "Chien (Border Collie)",
-                "Dog (siberian husky)": "Chien (Husky sibérien)"
-            }
-            
-            # Get French animal name
-            animal_fr = animal_translations.get(top1_animal, top1_animal)
+            # Get French animal name from CSV translations
+            animal_fr = self.animal_translations.get(top1_animal, top1_animal)
             
             # Build the prompt for ChatGPT
             prompt = f"""Tu es un astrologue expert spécialisé dans l'interprétation des thèmes de naissance et la compatibilité avec les animaux totems.
@@ -1003,7 +1011,7 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
         for i, (_, row) in enumerate(animal_totals.head(3).iterrows(), 1):
             print(f"{i}. {row['ANIMAL']}: {row['TOTAL_SCORE']:.1f}")
     
-    def run_analysis(self, date: str, time: str, lat: float, lon: float, timezone_method: str = None, openai_api_key: str = None):
+    def run_analysis(self, date: str, time: str, lat: float, lon: float, timezone_method: str = None, openai_api_key: str = None, translations_csv_path: str = None):
         """Run the complete analysis pipeline."""
         # Format coordinates with proper signs
         lat_sign = "N" if lat >= 0 else "S"
@@ -1014,6 +1022,10 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
         print(f"Starting analysis for birth data: {date} {time}")
         print(f"Coordinates: {lat_abs:.5f}°{lat_sign}, {lon_abs:.5f}°{lon_sign}")
         print(f"Raw coordinates: ({lat:.5f}, {lon:.5f})")
+        
+        # Load animal translations if provided and not already loaded
+        if translations_csv_path and not self.animal_translations:
+            self.animal_translations = self._load_animal_translations(translations_csv_path)
         
         # Convert local time to UTC automatically
         utc_time, timezone_method = convert_local_to_utc(date, time, lat, lon)
