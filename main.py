@@ -23,14 +23,6 @@ CORS(app, resources={r"/analyze": {"origins": "https://plumastro.com"}})
 # Global analyzer instance
 analyzer = None
 
-# Initialize analyzer at startup
-print("🚀 Starting PLUMATOTM API...")
-if initialize_analyzer():
-    print("✅ API ready to serve requests")
-else:
-    print("❌ Failed to start API - analyzer initialization failed")
-    exit(1)
-
 def initialize_analyzer():
     """Initialize the analyzer with required files"""
     global analyzer
@@ -327,6 +319,14 @@ def list_files():
             return jsonify({"files": [], "count": 0})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# Initialize analyzer at module level (after function definition)
+print("🚀 Starting PLUMATOTM API...")
+if initialize_analyzer():
+    print("✅ API ready to serve requests")
+else:
+    print("❌ Failed to start API - analyzer initialization failed")
+    exit(1)
 
 if __name__ == '__main__':
     # Analyzer is already initialized at module level
