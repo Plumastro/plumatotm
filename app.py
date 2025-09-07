@@ -97,8 +97,8 @@ def load_analysis_results():
                 ]
                 
                 # Create ordered dictionary with the exact order
-                from collections import OrderedDict
-                ordered_french_chart = OrderedDict()
+                # Use a regular dict with Python 3.7+ order preservation
+                ordered_french_chart = {}
                 for planet in planet_order:
                     if planet in french_chart:
                         ordered_french_chart[planet] = french_chart[planet]
@@ -278,7 +278,10 @@ def analyze():
         # Add the additional data requested by the user
         response_data.update(analysis_results)
         
-        return jsonify(response_data)
+        # Use json.dumps to preserve order (especially for french_birth_chart)
+        from flask import Response
+        json_response = json.dumps(response_data, ensure_ascii=False, indent=None)
+        return Response(json_response, mimetype='application/json')
         
     except Exception as e:
         print(f"❌ Analysis error: {e}")
