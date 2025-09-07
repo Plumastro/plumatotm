@@ -229,17 +229,28 @@ def analyze():
         
         print(f"🔮 Starting analysis for {name} ({date} {time} at {lat}°N, {lon}°W, {country}, {state})")
         
-        # Run analysis using the analyzer's run_analysis method
-        result = analyzer.run_analysis(
-            date=date,
-            time=time, 
-            lat=lat,
-            lon=lon,
-            openai_api_key=openai_api_key
-        )
-        
-        # Load additional results for frontend
-        analysis_results = load_analysis_results()
+        try:
+            # Run analysis using the analyzer's run_analysis method
+            result = analyzer.run_analysis(
+                date=date,
+                time=time, 
+                lat=lat,
+                lon=lon,
+                openai_api_key=openai_api_key
+            )
+            
+            # Load additional results for frontend
+            analysis_results = load_analysis_results()
+            
+        except Exception as e:
+            print(f"❌ Analysis failed: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({
+                "error": "Analysis failed",
+                "details": str(e),
+                "timestamp": datetime.now().isoformat()
+            }), 500
         
         # Return success response with additional data
         response_data = {

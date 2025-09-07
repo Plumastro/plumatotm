@@ -6,15 +6,15 @@ bind = f"0.0.0.0:{os.environ.get('PORT', 5000)}"
 backlog = 2048
 
 # Worker processes
-workers = 2  # Optimized for Render's free tier (512MB RAM)
+workers = 1  # Single worker to avoid memory issues with heavy calculations
 worker_class = "sync"
 worker_connections = 1000
-timeout = 120  # Increased for astrological calculations
+timeout = 300  # Increased timeout for astrological calculations (5 minutes)
 keepalive = 2
 
 # Restart workers after this many requests, to prevent memory leaks
-max_requests = 1000
-max_requests_jitter = 100
+max_requests = 50  # Restart more frequently to prevent memory leaks
+max_requests_jitter = 10
 
 # Logging
 accesslog = "-"
