@@ -82,12 +82,15 @@ def load_analysis_results():
     results = {}
     
     try:
-        # 1. Load French birth chart
+        # 1. Load French birth chart (preserve exact order from JSON file)
         birth_chart_path = "outputs/birth_chart.json"
         if os.path.exists(birth_chart_path):
             with open(birth_chart_path, 'r', encoding='utf-8') as f:
-                birth_chart_data = json.load(f)
-                results['french_birth_chart'] = birth_chart_data.get('french_birth_chart', {})
+                # Use object_pairs_hook to preserve exact order from JSON
+                from collections import OrderedDict
+                birth_chart_data = json.load(f, object_pairs_hook=OrderedDict)
+                french_chart = birth_chart_data.get('french_birth_chart', OrderedDict())
+                results['french_birth_chart'] = french_chart
         
         # 2. Load animal proportion with French translations
         animal_proportion_path = "outputs/animal_proportion.json"
