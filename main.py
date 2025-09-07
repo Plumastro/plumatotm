@@ -23,6 +23,14 @@ CORS(app, resources={r"/analyze": {"origins": "https://plumastro.com"}})
 # Global analyzer instance
 analyzer = None
 
+# Initialize analyzer at startup
+print("🚀 Starting PLUMATOTM API...")
+if initialize_analyzer():
+    print("✅ API ready to serve requests")
+else:
+    print("❌ Failed to start API - analyzer initialization failed")
+    exit(1)
+
 def initialize_analyzer():
     """Initialize the analyzer with required files"""
     global analyzer
@@ -321,23 +329,16 @@ def list_files():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    print("🚀 Starting PLUMATOTM API...")
+    # Analyzer is already initialized at module level
+    # Get port from environment (Render sets PORT)
+    port = int(os.environ.get('PORT', 5000))
     
-    # Initialize analyzer
-    if initialize_analyzer():
-        print("✅ API ready to serve requests")
-        # Get port from environment (Render sets PORT)
-        port = int(os.environ.get('PORT', 5000))
-        
-        # Check if running in production (Render sets RENDER=true)
-        if os.environ.get('RENDER'):
-            print("🌐 Running in production mode - use Gunicorn via Procfile")
-            # In production, Gunicorn will handle the server
-            # This block is only for local development
-            app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
-        else:
-            print("🔧 Running in development mode")
-            app.run(host='0.0.0.0', port=port, debug=True, threaded=True)
+    # Check if running in production (Render sets RENDER=true)
+    if os.environ.get('RENDER'):
+        print("🌐 Running in production mode - use Gunicorn via Procfile")
+        # In production, Gunicorn will handle the server
+        # This block is only for local development
+        app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
     else:
-        print("❌ Failed to start API - analyzer initialization failed")
-        exit(1)
+        print("🔧 Running in development mode")
+        app.run(host='0.0.0.0', port=port, debug=True, threaded=True)
