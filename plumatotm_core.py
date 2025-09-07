@@ -690,33 +690,35 @@ class BirthChartAnalyzer:
             }
             
             animal_translations = {
-                "Deer": "Cerf", "Kangaroo": "Kangourou", "Swallow": "Hirondelle", "Whale": "Baleine",
-                "Lynx": "Lynx", "Wolf": "Loup", "Eagle": "Aigle", "Bear": "Ours", "Fox": "Renard",
-                "Owl": "Hibou", "Dolphin": "Dauphin", "Tiger": "Tigre", "Lion": "Lion", "Horse": "Cheval",
-                "Butterfly": "Papillon", "Snake": "Serpent", "Rabbit": "Lapin", "Cat": "Chat", "Dog": "Chien",
-                "Elephant": "Éléphant", "Giraffe": "Girafe", "Penguin": "Manchot", "Peacock": "Paon",
-                "Swan": "Cygne", "Falcon": "Faucon", "Hawk": "Épervier", "Raven": "Corbeau", "Crow": "Corneille",
-                "Sparrow": "Moineau", "Robin": "Rouge-gorge", "Cardinal": "Cardinal", "Hummingbird": "Colibri",
-                "Parrot": "Perroquet", "Toucan": "Toucan", "Flamingo": "Flamant", "Pelican": "Pélican",
-                "Seagull": "Mouette", "Albatross": "Albatros", "Ostrich": "Autruche", "Emu": "Émeu",
-                "Kiwi": "Kiwi", "Panda": "Panda", "Koala": "Koala", "Sloth": "Paresseux", "Anteater": "Fourmilier",
-                "Armadillo": "Tatou", "Platypus": "Ornithorynque", "Beaver": "Castor", "Squirrel": "Écureuil",
-                "Chipmunk": "Tamia", "Hedgehog": "Hérisson", "Porcupine": "Porc-épic", "Skunk": "Mouffette",
-                "Raccoon": "Ratons-laveurs", "Opossum": "Opossum", "Badger": "Blaireau", "Wolverine": "Carcajou",
-                "Mink": "Vison", "Ferret": "Furet", "Weasel": "Belette", "Stoat": "Hermine", "Marten": "Martre",
-                "Otter": "Loutre", "Seal": "Phoque", "Walrus": "Morse", "Polar Bear": "Ours polaire",
-                "Grizzly Bear": "Grizzli", "Black Bear": "Ours noir", "Brown Bear": "Ours brun",
-                "Panda Bear": "Panda", "Sun Bear": "Ours malais", "Spectacled Bear": "Ours à lunettes",
-                "Asiatic Black Bear": "Ours noir d'Asie", "Sloth Bear": "Ours paresseux", "Giant Panda": "Panda géant",
-                "Red Panda": "Panda roux", "Raccoon Dog": "Chien viverrin", "Civet": "Civette", "Genet": "Genette",
-                "Mongoose": "Mangouste", "Meerkat": "Suricate", "Fossa": "Fossa", "Binturong": "Binturong",
-                "Kinkajou": "Kinkajou", "Olingo": "Olingo", "Cacomistle": "Cacomistle", "Ringtail": "Chat à queue annelée",
-                "Coatimundi": "Coati", "Nasua": "Nasua", "Potos": "Potos", "Olinguito": "Olinguito",
-                "Bassariscus": "Bassariscus", "Bassaricyon": "Bassaricyon", "Nasuella": "Nasuella",
-                "Potos flavus": "Potos flavus", "Bassariscus astutus": "Bassariscus astutus",
-                "Bassaricyon gabbii": "Bassaricyon gabbii", "Nasuella olivacea": "Nasuella olivacea",
-                "Potos flavus": "Potos flavus", "Bassariscus astutus": "Bassariscus astutus",
-                "Bassaricyon gabbii": "Bassaricyon gabbii", "Nasuella olivacea": "Nasuella olivacea"
+                # Animaux principaux utilisés dans PLUMATOTM
+                "Bear": "Ours", "Sheep": "Mouton", "Whale": "Baleine", "Swan": "Cygne", "Frog": "Grenouille",
+                "Koala": "Koala", "Jellyfish": "Méduse", "Rabbit": "Lapin", "Capybara": "Capybara",
+                "Seahorse": "Hippocampe", "Goose": "Oie", "Penguin": "Manchot", "Lynx": "Lynx",
+                "Gorillas": "Gorille", "Turtle": "Tortue", "Hedgehog": "Hérisson", "Otter": "Loutre",
+                "Crane": "Grue", "Swallow": "Hirondelle", "Stag": "Cerf", "Dolphin": "Dauphin",
+                "Panda": "Panda", "Hippopotamus": "Hippopotame", "Cow": "Vache", "Pelican": "Pélican",
+                "Bee": "Abeille", "Beaver": "Castor", "Elephant": "Éléphant", "Pig": "Cochon",
+                "Deer": "Cerf", "Wolf": "Loup", "Bat": "Chauve-souris", "Butterfly": "Papillon",
+                "Octopus": "Poulpe", "Tiger": "Tigre", "Polar Bear": "Ours polaire", "Giraffe": "Girafe",
+                "Caribou": "Caribou", "Kangaroo": "Kangourou", "Llama": "Lama", "Donkey": "Âne",
+                "Peacock": "Paon", "Hare": "Lièvre", "Chameleon": "Caméléon", "Cobra": "Cobra",
+                "Shark": "Requin", "Gazelle": "Gazelle", "Crocodile": "Crocodile", "Camel": "Chameau",
+                "Cat": "Chat", "Macaw": "Ara", "Elk": "Élan", "Squirrel": "Écureuil", "Parrot": "Perroquet",
+                "Monkey": "Singe", "Fox": "Renard", "Cheetah": "Guépard", "Jaguar": "Jaguar",
+                "Lemur": "Lémurien", "Raven": "Corbeau", "Panther": "Panthère", "Horse": "Cheval",
+                "Boa Constrictor": "Boa constricteur", "Owl": "Hibou", "Mountain Goat": "Bouquetin",
+                "Raccoon": "Ratons-laveurs", "Snake": "Serpent", "Eagle": "Aigle", "Falcon": "Faucon",
+                "Lizard": "Lézard", "Snow Leopard": "Léopard des neiges",
+                
+                # Chiens avec races spécifiques
+                "Dog (golden retriever)": "Chien (Golden Retriever)",
+                "Dog (bulldog)": "Chien (Bouledogue)",
+                "Dog (belgian malinois)": "Chien (Malinois belge)",
+                "Dog (great dane)": "Chien (Grand Danois)",
+                "Dog (rottweiler)": "Chien (Rottweiler)",
+                "Dog (dalmatian)": "Chien (Dalmatien)",
+                "Dog (border collie)": "Chien (Border Collie)",
+                "Dog (siberian husky)": "Chien (Husky sibérien)"
             }
             
             # Get French animal name
