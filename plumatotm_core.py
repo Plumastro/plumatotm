@@ -1067,7 +1067,7 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
                 print("📊 Generating animal statistics...")
                 
                 # Get top 1 animal
-                top1_animal = animal_totals.iloc[0]['ANIMAL']
+                top1_animal = animal_totals[0][0]  # First tuple, first element (animal name)
                 
                 # Generate statistics
                 stats_generator = AnimalStatisticsGenerator()

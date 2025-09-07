@@ -6,7 +6,7 @@ Génère l'output animal_proportion.json avec les pourcentages d'occurrence.
 
 import json
 import os
-import pandas as pd
+import csv
 from typing import Dict, List, Optional
 from plumid_generator import PlumIDGenerator
 from supabase_manager import supabase_manager
@@ -22,9 +22,13 @@ class AnimalStatisticsGenerator:
         """Charge la liste de tous les animaux disponibles."""
         try:
             if os.path.exists(self.raw_scores_file):
-                df = pd.read_csv(self.raw_scores_file)
-                if 'ANIMAL' in df.columns:
-                    return sorted(df['ANIMAL'].unique().tolist())
+                animals = set()
+                with open(self.raw_scores_file, 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        if 'ANIMAL' in row and row['ANIMAL']:
+                            animals.add(row['ANIMAL'])
+                return sorted(list(animals))
             
             # Fallback: liste des animaux les plus communs
             return [
