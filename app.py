@@ -77,6 +77,79 @@ def health():
         "analyzer_ready": analyzer is not None
     })
 
+def load_analysis_results():
+    """Load and format analysis results for API response."""
+    results = {}
+    
+    try:
+        # 1. Load French birth chart
+        birth_chart_path = "outputs/birth_chart.json"
+        if os.path.exists(birth_chart_path):
+            with open(birth_chart_path, 'r', encoding='utf-8') as f:
+                birth_chart_data = json.load(f)
+                results['french_birth_chart'] = birth_chart_data.get('french_birth_chart', {})
+        
+        # 2. Load animal proportion with French translations
+        animal_proportion_path = "outputs/animal_proportion.json"
+        if os.path.exists(animal_proportion_path):
+            with open(animal_proportion_path, 'r', encoding='utf-8') as f:
+                animal_proportion_data = json.load(f)
+                
+                # Translate animal names in all_animals_percentages
+                translated_percentages = {}
+                for animal_en, percentage in animal_proportion_data.get('all_animals_percentages', {}).items():
+                    animal_fr = analyzer.animal_translations.get(animal_en, animal_en)
+                    translated_percentages[animal_fr] = percentage
+                
+                results['animal_proportion'] = {
+                    'user_plumid': animal_proportion_data.get('user_plumid', ''),
+                    'user_current_animal': analyzer.animal_translations.get(
+                        animal_proportion_data.get('user_current_animal', ''), 
+                        animal_proportion_data.get('user_current_animal', '')
+                    ),
+                    'user_animal_percentage': animal_proportion_data.get('user_animal_percentage', 0),
+                    'all_animals_percentages': translated_percentages
+                }
+        
+        # 3. Load top 3 animals with French translations and strength
+        top3_strength_path = "outputs/top3_percentage_strength.json"
+        if os.path.exists(top3_strength_path):
+            with open(top3_strength_path, 'r', encoding='utf-8') as f:
+                top3_data = json.load(f)
+                
+                # Sort animals by OVERALL_STRENGTH_ADJUST to get top 3
+                animals_with_strength = []
+                for animal_en, data in top3_data.items():
+                    if 'OVERALL_STRENGTH_ADJUST' in data:
+                        animals_with_strength.append((animal_en, data['OVERALL_STRENGTH_ADJUST']))
+                
+                # Sort by strength (descending) and take top 3
+                animals_with_strength.sort(key=lambda x: x[1], reverse=True)
+                top3_animals = animals_with_strength[:3]
+                
+                # Create top3_summary
+                top3_summary = {}
+                for i, (animal_en, strength) in enumerate(top3_animals, 1):
+                    animal_fr = analyzer.animal_translations.get(animal_en, animal_en)
+                    top3_summary[f"Top{i}"] = {
+                        "animal": animal_fr,
+                        "overall_strength_adjust": strength
+                    }
+                
+                results['top3_summary'] = top3_summary
+        
+        # 4. Load ChatGPT interpretation
+        interpretation_path = "outputs/chatgpt_interpretation.json"
+        if os.path.exists(interpretation_path):
+            with open(interpretation_path, 'r', encoding='utf-8') as f:
+                interpretation_data = json.load(f)
+                results['chatgpt_interpretation'] = interpretation_data.get('interpretation', '')
+        
+    except Exception as e:
+        print(f"⚠️  Warning: Could not load some analysis results: {e}")
+    
+    return results
+
 @app.route('/analyze', methods=['POST'])
 def analyze():
     """
@@ -149,8 +222,11 @@ def analyze():
             openai_api_key=openai_api_key
         )
         
-        # Return success response
-        return jsonify({
+        # Load additional results for frontend
+        analysis_results = load_analysis_results()
+        
+        # Return success response with additional data
+        response_data = {
             "status": "success",
             "message": "Analysis completed successfully",
             "timestamp": datetime.now().isoformat(),
@@ -181,7 +257,12 @@ def analyze():
                 "top2_animal_radar.png", 
                 "top3_animal_radar.png"
             ]
-        })
+        }
+        
+        # Add the additional data requested by the user
+        response_data.update(analysis_results)
+        
+        return jsonify(response_data)
         
     except Exception as e:
         print(f"❌ Analysis error: {e}")
