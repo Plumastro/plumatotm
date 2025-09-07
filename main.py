@@ -112,6 +112,7 @@ def load_analysis_results():
                 animal_proportion_data = json.load(f)
                 
                 # Translate animal names in all_animals_percentages
+                analyzer._ensure_animal_translations_loaded()
                 translated_percentages = {}
                 for animal_en, percentage in animal_proportion_data.get('all_animals_percentages', {}).items():
                     animal_fr = analyzer.animal_translations.get(animal_en, animal_en)
@@ -145,6 +146,7 @@ def load_analysis_results():
                 
                 # Create top3_summary
                 top3_summary = {}
+                analyzer._ensure_animal_translations_loaded()
                 for i, (animal_en, strength) in enumerate(top3_animals, 1):
                     animal_fr = analyzer.animal_translations.get(animal_en, animal_en)
                     top3_summary[f"Top{i}"] = {

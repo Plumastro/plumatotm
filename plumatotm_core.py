@@ -252,16 +252,35 @@ class BirthChartAnalyzer:
     
     def __init__(self, scores_json_path: str, weights_csv_path: str, multipliers_csv_path: str, translations_csv_path: str = None):
         """Initialize with the animal scores JSON file and planet weights/multipliers."""
+        # Store file paths for lazy loading
+        self.scores_json_path = scores_json_path
+        self.weights_csv_path = weights_csv_path
+        self.multipliers_csv_path = multipliers_csv_path
+        self.translations_csv_path = translations_csv_path
+        
+        # Initialize lazy loading flags
+        self._scores_data_loaded = False
+        self._planet_weights_loaded = False
+        self._planet_multipliers_loaded = False
+        self._animal_translations_loaded = False
+        
+        # Load only essential data at startup
         self.scores_data = self._load_scores_json(scores_json_path)
         self.animals = [animal["ANIMAL"] for animal in self.scores_data["animals"]]
+        
+        # Load planet weights and multipliers (small files, keep at startup)
         self.planet_weights = self._load_planet_weights(weights_csv_path)
         self.planet_multipliers = self._load_planet_multipliers(multipliers_csv_path)
         self.supported_planets = list(self.planet_weights.keys())
         
-        # Load animal translations from CSV if provided
+        # Animal translations will be loaded on demand
         self.animal_translations = {}
-        if translations_csv_path and os.path.exists(translations_csv_path):
-            self.animal_translations = self._load_animal_translations(translations_csv_path)
+    
+    def _ensure_animal_translations_loaded(self):
+        """Load animal translations on demand if not already loaded."""
+        if not self._animal_translations_loaded and self.translations_csv_path and os.path.exists(self.translations_csv_path):
+            self.animal_translations = self._load_animal_translations(self.translations_csv_path)
+            self._animal_translations_loaded = True
         
     def _load_scores_json(self, scores_json_path: str) -> Dict:
         """Load and validate the animal scores JSON file."""
@@ -810,6 +829,7 @@ class BirthChartAnalyzer:
             }
             
             # Get French animal name from CSV translations
+            self._ensure_animal_translations_loaded()
             animal_fr = self.animal_translations.get(top1_animal, top1_animal)
             
             # Build the prompt for ChatGPT
@@ -1110,8 +1130,7 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
         print(f"Raw coordinates: ({lat:.5f}, {lon:.5f})")
         
         # Load animal translations if provided and not already loaded
-        if translations_csv_path and not self.animal_translations:
-            self.animal_translations = self._load_animal_translations(translations_csv_path)
+        self._ensure_animal_translations_loaded()
         
         # Convert local time to UTC automatically
         utc_time, timezone_method = convert_local_to_utc(date, time, lat, lon)
