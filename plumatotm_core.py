@@ -1,133 +1,285 @@
 #!/usr/bin/env python3
 """
-PLUMATOTM Core Engine - Lightweight Version
-Memory-optimized version without pandas dependency
+PLUMATOTM Animal × Planet Scoring System (Final Working Version)
+
+This program computes animal scores based on birth chart data using astrological
+planets and their zodiac signs, applying predefined weights and scoring tables.
+
+This version uses flatlib for accurate astrological calculations.
 """
 
 import argparse
 import json
+import pandas as pd
 from datetime import datetime, timezone
 from typing import Dict, List, Tuple, Any
 import sys
 import os
 
-# Import flatlib for astrological calculations
-import flatlib
-from flatlib import const
-from flatlib.datetime import Datetime
-from flatlib.geopos import GeoPos
-from flatlib.chart import Chart
-# Object is not needed for this implementation
-# aspects and angle not needed for this implementation
+# Charger les variables d'environnement depuis .env
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # Charge le fichier .env
+except ImportError:
+    pass  # python-dotenv non installé, continuer sans
 
-# Import timezone handling
-from timezonefinderL import TimezoneFinder
+# Import des modules de statistiques
+try:
+    from animal_statistics import AnimalStatisticsGenerator
+    STATISTICS_AVAILABLE = True
+except ImportError:
+    STATISTICS_AVAILABLE = False
+    print("⚠️  Module de statistiques non disponible")
 from zoneinfo import ZoneInfo
 
-# Import Supabase
-from supabase import create_client, Client
+# OpenAI API for ChatGPT interpretation
+try:
+    import openai
+    HAS_OPENAI = True
+except ImportError:
+    HAS_OPENAI = False
+    print("Warning: openai library not available, ChatGPT interpretation will be skipped")
+
+# Try to import timezonefinderL (lightweight version), fall back to manual detection if not available
+try:
+    from timezonefinderL import TimezoneFinder
+    HAS_TIMEZONEFINDER = True
+except ImportError:
+    HAS_TIMEZONEFINDER = False
+    print("Warning: timezonefinderL not available. Please install it with: pip install timezonefinderL")
+
+# Import flatlib for astrological calculations
+try:
+    from flatlib import const
+    from flatlib.chart import Chart
+    from flatlib.datetime import Datetime
+    from flatlib.geopos import GeoPos
+    from flatlib.object import Object
+except ImportError as e:
+    print(f"Error: flatlib is required. Install with: pip install flatlib")
+    print(f"Import error details: {e}")
+    sys.exit(1)
+
+# Zodiac signs for validation
+ZODIAC_SIGNS = [
+    "ARIES", "TAURUS", "GEMINI", "CANCER", "LEO", "VIRGO",
+    "LIBRA", "SCORPIO", "SAGITTARIUS", "CAPRICORN", "AQUARIUS", "PISCES"
+]
+
+
+def _get_corrected_house_number(planet_lon: float, houses) -> int:
+    """Get house number without the problematic -5° offset used by flatlib."""
+    # Convert to 0-360 range
+    planet_lon = planet_lon % 360
+    
+    # Convert HouseList to list for easier indexing
+    house_list = list(houses)
+    
+    # Find the house by checking which house cusp the planet is closest to
+    # without the -5° offset
+    for i, house in enumerate(house_list, 1):
+        house_cusp = house.lon % 360
+        next_house_cusp = house_list[i % 12].lon % 360 if i < 12 else house_list[0].lon % 360
+        
+        # Handle the case where we cross 0°
+        if next_house_cusp < house_cusp:
+            # We're crossing 0°, so the house spans from house_cusp to 360° and from 0° to next_house_cusp
+            if planet_lon >= house_cusp or planet_lon < next_house_cusp:
+                return i
+        else:
+            # Normal case, house spans from house_cusp to next_house_cusp
+            # Use < for the upper bound (exclusive) as the next house starts at the next cusp
+            if house_cusp <= planet_lon < next_house_cusp:
+                return i
+    
+    # If we get here, the planet is exactly on a cusp, return the next house
+    # Find the closest house cusp
+    min_distance = float('inf')
+    correct_house = 1
+    
+    for i, house in enumerate(house_list, 1):
+        house_cusp = house.lon % 360
+        distance = abs(planet_lon - house_cusp)
+        if distance > 180:
+            distance = 360 - distance
+        
+        if distance < min_distance:
+            min_distance = distance
+            correct_house = i
+    
+    return correct_house
+
+def convert_local_to_utc(date: str, local_time: str, lat: float, lon: float) -> tuple[str, str]:
+    """
+    Convert local time to UTC based on coordinates.
+    
+    Args:
+        date: Date in YYYY-MM-DD format
+        local_time: Local time in HH:MM format
+        lat: Latitude
+        lon: Longitude
+    
+    Returns:
+        Tuple of (UTC time in HH:MM format, timezone detection method)
+    """
+    try:
+        # Force timezonefinderL usage - no manual fallback
+        if not HAS_TIMEZONEFINDER:
+            raise ValueError("timezonefinderL is required but not available. Please install it with: pip install timezonefinderL")
+        
+        # Use timezonefinderL for accurate timezone detection
+        tf = TimezoneFinder()
+        timezone_name = tf.timezone_at(lat=lat, lng=lon)
+        
+        if not timezone_name:
+            raise ValueError(f"timezonefinderL could not determine timezone for coordinates ({lat}, {lon}). Please check coordinates or install timezonefinderL with: pip install timezonefinderL")
+        
+        # Special correction for Israel coordinates
+        # timezonefinderL sometimes returns Asia/Hebron instead of Asia/Jerusalem for Israeli coordinates
+        if timezone_name == "Asia/Hebron" and 31.0 <= lat <= 33.5 and 34.0 <= lon <= 35.5:
+            timezone_name = "Asia/Jerusalem"
+            detection_method = "timezonefinder_corrected_israel"
+        else:
+            detection_method = "timezonefinder_automatic"
+        
+        # Parse date and time components
+        y, m, d = map(int, date.split("-"))
+        hh, mm = map(int, local_time.split(":"))
+        
+        # Build naive datetime
+        local_naive = datetime(y, m, d, hh, mm)
+        
+        # Attach timezone
+        local_dt = local_naive.replace(tzinfo=ZoneInfo(timezone_name))
+        
+        # Convert to UTC
+        utc_dt = local_dt.astimezone(ZoneInfo("UTC"))
+        
+        # Format as HH:MM
+        utc_time = utc_dt.strftime("%H:%M")
+        
+        # Check if DST is active
+        dst_offset = local_dt.dst().total_seconds() / 3600 if local_dt.dst() else 0
+        dst_status = "DST ON" if dst_offset > 0 else "DST OFF"
+        
+        print(f"Timezone detected: {timezone_name} (method: {detection_method})")
+        print(f"Local time: {local_time} → Timezone: {timezone_name} → {dst_status} → UTC time: {utc_time}")
+        print(f"DST offset: {dst_offset:.1f} hours")
+        
+        return utc_time, detection_method
+        
+    except Exception as e:
+        raise ValueError(f"Error converting local time to UTC: {e}")
+
 
 class BirthChartAnalyzer:
-    """Lightweight birth chart analyzer without pandas dependency."""
+    """Main class for analyzing birth charts and computing animal scores."""
     
-    def __init__(self, scores_trad_json_path: str, weights_json_path: str, multipliers_json_path: str):
-        """Initialize the analyzer with required JSON files."""
-        self.scores_trad_json_path = scores_trad_json_path
-        self.weights_json_path = weights_json_path
-        self.multipliers_json_path = multipliers_json_path
+    def __init__(self, scores_json_path: str, weights_csv_path: str, multipliers_csv_path: str, translations_csv_path: str = None):
+        """Initialize with the animal scores JSON file and planet weights/multipliers."""
+        self.scores_data = self._load_scores_json(scores_json_path)
+        self.animals = [animal["ANIMAL"] for animal in self.scores_data["animals"]]
+        self.planet_weights = self._load_planet_weights(weights_csv_path)
+        self.planet_multipliers = self._load_planet_multipliers(multipliers_csv_path)
+        self.supported_planets = list(self.planet_weights.keys())
         
-        # Load data
-        self.animal_scores, self.animal_translations = self._load_animal_scores_and_translations()
-        self.planet_weights = self._load_planet_weights()
-        self.planet_multipliers = self._load_planet_multipliers()
+        # Load animal translations from CSV if provided
+        self.animal_translations = {}
+        if translations_csv_path and os.path.exists(translations_csv_path):
+            self.animal_translations = self._load_animal_translations(translations_csv_path)
         
-        # Initialize Supabase
-        self.supabase = self._init_supabase()
-        
-        # Supported planets
-        self.supported_planets = ['Sun', 'Ascendant', 'Moon', 'Mercury', 'Venus', 'Mars', 
-                                 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'North Node', 'MC']
-    
-    def _init_supabase(self) -> Client:
-        """Initialize Supabase client."""
+    def _load_scores_json(self, scores_json_path: str) -> Dict:
+        """Load and validate the animal scores JSON file."""
         try:
-            url = os.environ.get("SUPABASE_URL")
-            key = os.environ.get("SUPABASE_ANON_KEY")
-            
-            if not url or not key:
-                print("⚠️  Supabase credentials not found in environment variables")
-                return None
-            
-            supabase = create_client(url, key)
-            print("✅ Client Supabase initialisé")
-            return supabase
-        except Exception as e:
-            print(f"⚠️  Warning: Could not initialize Supabase: {e}")
-            return None
-    
-    def _load_animal_scores_and_translations(self) -> Tuple[Dict[str, Dict[str, int]], Dict[str, str]]:
-        """Load animal scores and translations from the trad JSON file."""
-        try:
-            with open(self.scores_trad_json_path, 'r', encoding='utf-8') as f:
+            with open(scores_json_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
-            # Extract animal scores (without the translation columns)
-            animal_scores = {}
-            animal_translations = {}
+            # Validate structure
+            if "animals" not in data:
+                raise ValueError("JSON must contain 'animals' key")
             
-            for animal_data in data:
-                animal_en = animal_data.get('ANIMAL UK', '')
-                animal_fr = animal_data.get('ANIMAL FR', '')
+            # Validate each animal entry
+            for animal in data["animals"]:
+                if "ANIMAL" not in animal:
+                    raise ValueError("Each animal must have 'ANIMAL' key")
                 
-                if animal_en and animal_fr:
-                    # Store translation
-                    animal_translations[animal_en] = animal_fr
-                    
-                    # Store scores (excluding translation columns)
-                    scores = {}
-                    for key, value in animal_data.items():
-                        if key not in ['ANIMAL UK', 'ANIMAL FR'] and value is not None:
-                            try:
-                                scores[key] = int(value)
-                            except (ValueError, TypeError):
-                                scores[key] = 0
-                    
-                    animal_scores[animal_en] = scores
+                # Check for all zodiac signs
+                missing_signs = [sign for sign in ZODIAC_SIGNS if sign not in animal]
+                if missing_signs:
+                    raise ValueError(f"Animal {animal['ANIMAL']} missing scores for: {missing_signs}")
+                
+                # Validate score ranges
+                for sign in ZODIAC_SIGNS:
+                    score = animal[sign]
+                    if not isinstance(score, (int, float)) or score < 0 or score > 100:
+                        raise ValueError(f"Invalid score for {animal['ANIMAL']} - {sign}: {score}")
             
-            print(f"✅ Loaded {len(animal_scores)} animal scores and {len(animal_translations)} translations from {self.scores_trad_json_path}")
-            return animal_scores, animal_translations
+            return data
             
         except FileNotFoundError:
-            raise FileNotFoundError(f"Scores trad JSON file not found: {self.scores_trad_json_path}")
+            raise FileNotFoundError(f"Scores JSON file not found: {scores_json_path}")
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON format: {e}")
     
-    def _load_planet_weights(self) -> Dict[str, float]:
-        """Load planet weights from JSON file."""
+    def _load_planet_weights(self, weights_csv_path: str) -> Dict[str, float]:
+        """Load planet weights from CSV file."""
         try:
-            with open(self.weights_json_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+            df = pd.read_csv(weights_csv_path)
+            weights = {}
+            for planet in df.columns[1:]:  # Skip first column (Planet)
+                weights[planet] = float(df[df['Planet'] == 'PlanetWeight'][planet].iloc[0])
+            return weights
+        except Exception as e:
+            raise ValueError(f"Error loading planet weights from {weights_csv_path}: {e}")
+    
+    def _load_planet_multipliers(self, multipliers_csv_path: str) -> Dict[str, Dict[str, float]]:
+        """Load planet multipliers from CSV file."""
+        try:
+            df = pd.read_csv(multipliers_csv_path)
+            multipliers = {}
+            for _, row in df.iterrows():
+                sign = row['Planet'].upper()
+                multipliers[sign] = {}
+                for planet in df.columns[1:]:  # Skip first column (Planet)
+                    multipliers[sign][planet] = float(row[planet])
+            return multipliers
+        except Exception as e:
+            raise ValueError(f"Error loading planet multipliers from {multipliers_csv_path}: {e}")
+    
+    def _load_animal_translations(self, translations_csv_path: str) -> Dict[str, str]:
+        """Load animal translations from CSV file."""
+        try:
+            translations = {}
+            # Try different encodings to handle special characters
+            encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+            df = None
             
-            # Handle list format
-            if isinstance(data, list) and len(data) > 0:
-                weights = data[0]
-                # Remove the 'Planet' key and return the weights
-                weights.pop('Planet', None)
-                return weights
-            else:
-                return data
+            for encoding in encodings:
+                try:
+                    df = pd.read_csv(translations_csv_path, encoding=encoding)
+                    print(f"✅ Successfully loaded CSV with {encoding} encoding")
+                    break
+                except UnicodeDecodeError:
+                    continue
+            
+            if df is None:
+                raise ValueError("Could not read CSV with any supported encoding")
+            
+            for _, row in df.iterrows():
+                # Handle NaN values and convert to string
+                animal_en = str(row['ANIMAL UK']).strip() if pd.notna(row['ANIMAL UK']) else ""
+                animal_fr = str(row['ANIMAL FR']).strip() if pd.notna(row['ANIMAL FR']) else ""
+                
+                # Skip if either name is empty or NaN
+                if animal_en and animal_fr and animal_en != 'nan' and animal_fr != 'nan':
+                    translations[animal_en] = animal_fr
+            
+            print(f"✅ Loaded {len(translations)} animal translations from {translations_csv_path}")
+            return translations
+            
         except Exception as e:
-            raise ValueError(f"Error loading planet weights from {self.weights_json_path}: {e}")
-    
-    def _load_planet_multipliers(self) -> Dict[str, Dict[str, float]]:
-        """Load planet multipliers from JSON file."""
-        try:
-            with open(self.multipliers_json_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception as e:
-            raise ValueError(f"Error loading planet multipliers from {self.multipliers_json_path}: {e}")
-    
-# _load_animal_translations function removed - now handled in _load_animal_scores_and_translations
+            print(f"⚠️  Warning: Could not load animal translations from {translations_csv_path}: {e}")
+            return {}
     
     def compute_birth_chart(self, date: str, time: str, lat: float, lon: float) -> Tuple[Dict[str, str], Dict[str, int], Dict[str, Dict[str, float]]]:
         """Compute birth chart and return planet -> sign mapping and planet -> house mapping."""
@@ -135,29 +287,34 @@ class BirthChartAnalyzer:
             # Parse date and time - flatlib expects YYYY/MM/DD format
             date_formatted = date.replace('-', '/')
             
-            # Convert local time to UTC
-            tf = TimezoneFinder()
-            timezone_str = tf.timezone_at(lat=lat, lng=lon)
-            
-            if not timezone_str:
-                print(f"⚠️  Could not detect timezone for coordinates {lat}, {lon}")
-                timezone_str = "UTC"
-            
-            print(f"Timezone detected: {timezone_str} (method: timezonefinder_automatic)")
-            
-            # Create timezone-aware datetime
-            local_dt = datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M")
-            local_dt = local_dt.replace(tzinfo=ZoneInfo(timezone_str))
-            
-            # Convert to UTC
-            utc_dt = local_dt.astimezone(ZoneInfo("UTC"))
-            utc_time = utc_dt.strftime("%H:%M")
-            
-            print(f"Local time: {time} → Timezone: {timezone_str} → UTC time: {utc_time}")
+            # Get UTC offset for the coordinates
+            utc_time, timezone_method = convert_local_to_utc(date, time, lat, lon)
             
             # Calculate UTC offset in hours
+            from datetime import datetime, timezone as tz
+            y, m, d = map(int, date.split("-"))
+            hh, mm = map(int, time.split(":"))
+            local_naive = datetime(y, m, d, hh, mm)
+            
+            # Get timezone info
+            if not HAS_TIMEZONEFINDER:
+                raise ValueError("timezonefinderL is required but not available")
+            
+            tf = TimezoneFinder()
+            timezone_name = tf.timezone_at(lat=lat, lng=lon)
+            if not timezone_name:
+                raise ValueError(f"Could not determine timezone for coordinates ({lat}, {lon})")
+            
+            # Special correction for Israel coordinates
+            if timezone_name == "Asia/Hebron" and 31.0 <= lat <= 33.5 and 34.0 <= lon <= 35.5:
+                timezone_name = "Asia/Jerusalem"
+            
+            # Attach timezone and get UTC offset
+            local_dt = local_naive.replace(tzinfo=ZoneInfo(timezone_name))
+            utc_dt = local_dt.astimezone(ZoneInfo("UTC"))
+            
+            # Calculate UTC offset in hours (negative for west of UTC)
             utc_offset_hours = (local_dt - utc_dt).total_seconds() / 3600
-            print(f"UTC Offset: {utc_offset_hours} hours")
             
             # Check if date changed during UTC conversion
             utc_date = utc_dt.strftime("%Y/%m/%d")
@@ -173,390 +330,824 @@ class BirthChartAnalyzer:
             print(f"  UTC Offset: 0 (using UTC time directly)")
             dt = Datetime(utc_date, utc_time, 0)
             
-            # Create position and chart
-            pos = GeoPos(lat, lon)
-            print(f"Creating chart with {len(const.LIST_OBJECTS)} objects...")
-            chart = Chart(dt, pos, IDs=const.LIST_OBJECTS, hsys=const.HOUSES_PLACIDUS)
-            print(f"Chart created with {len(list(chart.objects))} objects")
+            # Check for high latitude and adjust house system if necessary
+            if abs(lat) > 66.0:
+                print(f"⚠️  High latitude detected ({lat:.2f}°). Checking if Placidus is valid...")
+                # For high latitudes, some systems fallback to Porphyry
+                house_system = const.HOUSES_PORPHYRIUS
+                print(f"Using Porphyry house system for high latitude")
+            else:
+                house_system = const.HOUSES_PLACIDUS
+                print(f"Using Placidus house system")
             
-            # Extract planet positions
+            # Create chart with coordinates and explicit object list
+            pos = GeoPos(lat, lon)
+            # Use flatlib's built-in chart creation with custom object list (no Swiss Ephemeris dependency)
+            # Include outer planets but use flatlib's built-in calculations
+            custom_objects = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'North Node']
+            chart = Chart(dt, pos, hsys=house_system, IDs=custom_objects)
+            
+            # Debug: Print exact house cusps from flatlib
+            print(f"\n=== DEBUG: Exact House Cusps ===")
+            # Use flatlib's built-in house calculation (no Swiss Ephemeris dependency)
+            asc = chart.getAngle(const.ASC)
+            mc = chart.getAngle(const.MC)
+            print(f"ASC: {asc.lon:.3f}°, MC: {mc.lon:.3f}°")
+            
+            # Extract planet -> sign mapping and planet -> house mapping
             planet_signs = {}
             planet_houses = {}
             
-            # Define planet mapping (using string IDs directly)
-            planet_mapping = {
-                'Sun': 'Sun',
-                'Moon': 'Moon',
-                'Mercury': 'Mercury',
-                'Venus': 'Venus',
-                'Mars': 'Mars',
-                'Jupiter': 'Jupiter',
-                'Saturn': 'Saturn',
-                'Uranus': 'Uranus',
-                'Neptune': 'Neptune',
-                'Pluto': 'Pluto',
-                'North Node': 'North Node'
-            }
+            # Print house system and cusps for debugging
+            house_system_name = "Placidus" if house_system == const.HOUSES_PLACIDUS else "Porphyry"
+            print(f"\nHouse system: {house_system_name}")
+            print(f"Zodiac: Tropical (Western)")
+            print(f"Node: Mean Node")
+            print(f"Topocentric: OFF")
+            print(f"\nHouse cusps ({house_system_name} system):")
+            for i, house in enumerate(chart.houses, 1):
+                print(f"House {i}: {house.lon:.1f}°")
             
-            # Get planet positions
-            print(f"Available objects in chart: {[obj.id for obj in chart.objects]}")
-            for planet_name, planet_id in planet_mapping.items():
-                print(f"Looking for {planet_name} (ID: {planet_id})")
+            for planet_name in self.supported_planets:
                 try:
-                    obj = chart.getObject(planet_id)
-                    print(f"  Object attributes: {dir(obj)}")
-                    print(f"  Object: {obj}, sign: {obj.sign}")
-                    sign_name = obj.sign  # obj.sign is already the sign name
+                    if planet_name == "Ascendant":
+                        obj = chart.get("Asc")
+                    elif planet_name == "North Node":
+                        obj = chart.get("North Node")
+                    elif planet_name == "MC":
+                        obj = chart.get("MC")
+                    elif planet_name == "Uranus":
+                        obj = chart.get(const.URANUS)
+                    elif planet_name == "Neptune":
+                        obj = chart.get(const.NEPTUNE)
+                    elif planet_name == "Pluto":
+                        obj = chart.get(const.PLUTO)
+                    else:
+                        obj = chart.get(planet_name)
                     
-                    # Calculate house using longitude
-                    house = self._calculate_house(obj.lon, chart)
+                    # Get sign name and convert to uppercase
+                    sign = obj.sign.upper()
+                    planet_signs[planet_name] = sign
                     
-                    planet_signs[planet_name] = sign_name
-                    planet_houses[planet_name] = house
+                    # Get house number for this planet using corrected calculation
+                    house_num = _get_corrected_house_number(obj.lon, chart.houses)
+                    planet_houses[planet_name] = house_num
                     
-                    print(f"✅ {planet_name}: {sign_name} {obj.lon:.0f}°{obj.lon%1*60:.0f}' (Maison {house}) - Longitude: {obj.lon:.3f}°")
+                    # Debug: Check house calculation with offset
+                    if planet_name in ['Sun', 'Moon', 'Mercury', 'Venus']:
+                        print(f"\n=== DEBUG: {planet_name} House Calculation ===")
+                        print(f"Planet longitude: {obj.lon:.3f}°")
+                        
+                        # Show flatlib's calculation with offset
+                        flatlib_house = chart.houses.getHouseByLon(obj.lon)
+                        flatlib_house_num = flatlib_house.num() if flatlib_house else 0
+                        
+                        for i, house in enumerate(chart.houses, 1):
+                            offset_lon = house.lon + house._OFFSET
+                            dist = abs(obj.lon - offset_lon)
+                            if dist > 180:
+                                dist = 360 - dist
+                            in_house = dist < house.size
+                            print(f"House {i}: cusp={house.lon:.3f}°, offset_cusp={offset_lon:.3f}°, distance={dist:.3f}°, in_house={in_house}")
+                        
+                        print(f"Flatlib house (with offset): {flatlib_house_num}")
+                        print(f"Corrected house (no offset): {house_num}")
+                    
+                    # Convert longitude to degrees and minutes
+                    degrees = int(obj.lon)
+                    minutes = (obj.lon - degrees) * 60
+                    
+                    # Print detailed information for debugging
+                    print(f"{planet_name}: {obj.sign} {degrees}°{minutes:02.0f}' (Maison {house_num}) - Longitude: {obj.lon:.3f}°")
+                    
                 except Exception as e:
-                    print(f"❌ {planet_name} not found: {e}")
+                    print(f"Warning: Could not get {planet_name}: {e}")
+                    continue
             
-            # Add Ascendant and MC from houses
-            try:
-                # Get house cusps
-                houses_list = list(chart.houses)
-                print(f"House cusps: {[house.lon for house in houses_list]}")
-                
-                # Get Ascendant (1st house cusp)
-                asc_house = houses_list[0]  # First house cusp
-                asc_longitude = asc_house.lon
-                asc_sign = self._longitude_to_sign(asc_longitude)
-                planet_signs['Ascendant'] = asc_sign
-                planet_houses['Ascendant'] = 1
-                print(f"✅ Ascendant: {asc_sign} {asc_longitude:.0f}°{asc_longitude%1*60:.0f}' (Maison 1) - Longitude: {asc_longitude:.3f}°")
-                
-                # Get MC (10th house cusp)
-                mc_house = houses_list[9]  # 10th house cusp (index 9)
-                mc_longitude = mc_house.lon
-                mc_sign = self._longitude_to_sign(mc_longitude)
-                planet_signs['MC'] = mc_sign
-                planet_houses['MC'] = 10
-                print(f"✅ MC: {mc_sign} {mc_longitude:.0f}°{mc_longitude%1*60:.0f}' (Maison 10) - Longitude: {mc_longitude:.3f}°")
-                
-            except Exception as e:
-                print(f"❌ Error getting Ascendant/MC: {e}")
+            # Create detailed planet positions for French formatting
+            planet_positions = {}
+            for planet_name in self.supported_planets:
+                try:
+                    if planet_name in ["Ascendant", "MC"]:
+                        # Handle Ascendant and MC specially - get from chart angles
+                        if planet_name == "Ascendant":
+                            asc = chart.getAngle(const.ASC)
+                            total_degrees = asc.lon
+                            sign_degrees = total_degrees % 30
+                            degrees = int(sign_degrees)
+                            minutes = (sign_degrees - degrees) * 60
+                            
+                            planet_positions[planet_name] = {
+                                "sign": asc.sign,
+                                "degrees": degrees,
+                                "minutes": minutes,
+                                "total_longitude": total_degrees
+                            }
+                        elif planet_name == "MC":
+                            mc = chart.getAngle(const.MC)
+                            total_degrees = mc.lon
+                            sign_degrees = total_degrees % 30
+                            degrees = int(sign_degrees)
+                            minutes = (sign_degrees - degrees) * 60
+                            
+                            planet_positions[planet_name] = {
+                                "sign": mc.sign,
+                                "degrees": degrees,
+                                "minutes": minutes,
+                                "total_longitude": total_degrees
+                            }
+                    else:
+                        # Handle regular planets
+                        obj = chart.getObject(planet_name)
+                        if obj:
+                            # Calculate degrees and minutes within the sign
+                            total_degrees = obj.lon
+                            sign_degrees = total_degrees % 30  # Degrees within the sign (0-29)
+                            degrees = int(sign_degrees)
+                            minutes = (sign_degrees - degrees) * 60
+                            
+                            planet_positions[planet_name] = {
+                                "sign": obj.sign,
+                                "degrees": degrees,
+                                "minutes": minutes,
+                                "total_longitude": total_degrees
+                            }
+                except Exception as e:
+                    print(f"Warning: Could not get position for {planet_name}: {e}")
+                    continue
             
-            # Calculate dynamic weights based on house positions
-            dynamic_weights = self._calculate_dynamic_weights(planet_houses)
-            
-            return planet_signs, planet_houses, dynamic_weights
+            return planet_signs, planet_houses, planet_positions
             
         except Exception as e:
-            print(f"Error computing birth chart: {e}")
-            raise
+            raise ValueError(f"Error computing birth chart: {e}")
     
-    def _calculate_dynamic_weights(self, planet_houses: Dict[str, int]) -> Dict[str, float]:
-        """Calculate dynamic weights based on house positions."""
+    def compute_dynamic_planet_weights(self, planet_signs: Dict[str, str]) -> Dict[str, float]:
+        """Compute dynamic planet weights based on zodiac sign positions."""
         dynamic_weights = {}
         
-        for planet, house in planet_houses.items():
-            base_weight = self.planet_weights.get(planet, 1.0)
+        for planet, sign in planet_signs.items():
+            base_weight = self.planet_weights[planet]
+            multiplier = self.planet_multipliers[sign][planet]
+            dynamic_weight = base_weight * multiplier
+            dynamic_weights[planet] = dynamic_weight
             
-            # House multipliers (simplified)
-            house_multipliers = {
-                1: 1.0,   # Ascendant house
-                4: 1.0,   # IC house  
-                7: 1.0,   # Descendant house
-                10: 1.0,  # MC house
-                5: 1.33,  # Creative house
-                9: 1.33,  # Philosophy house
-                11: 1.0,  # Friends house
-                2: 0.8,   # Money house
-                6: 0.66,  # Work house
-                8: 1.5,   # Transformation house
-                12: 0.75, # Subconscious house
-                3: 0.8    # Communication house
-            }
-            
-            multiplier = house_multipliers.get(house, 1.0)
-            dynamic_weights[planet] = base_weight * multiplier
-            
-            print(f"{planet} weight: {base_weight} × {multiplier} = {dynamic_weights[planet]:.2f}")
+            print(f"{planet} weight: {base_weight} × {multiplier} = {dynamic_weight:.2f}")
         
-        print("Dynamic planet weights calculated")
         return dynamic_weights
     
-    def compute_raw_scores(self, planet_signs: Dict[str, str]) -> Dict[str, Dict[str, int]]:
-        """Compute raw scores for each animal based on planet signs."""
-        raw_scores = {}
+    def compute_raw_scores(self, planet_signs: Dict[str, str]) -> pd.DataFrame:
+        """Compute raw animal scores for each planet."""
+        raw_scores = []
         
-        for animal, scores in self.animal_scores.items():
-            raw_scores[animal] = {}
-            for planet in self.supported_planets:
-                if planet in planet_signs:
-                    sign = planet_signs[planet]
-                    score = scores.get(sign, 0)
-                    raw_scores[animal][planet] = score
+        for animal_data in self.scores_data["animals"]:
+            animal_name = animal_data["ANIMAL"]
+            scores = {}
+            
+            for planet, sign in planet_signs.items():
+                if sign in animal_data:
+                    scores[planet] = animal_data[sign]
+                else:
+                    print(f"Warning: No score found for {animal_name} - {sign}")
+                    scores[planet] = 0
+            
+            scores["ANIMAL"] = animal_name
+            raw_scores.append(scores)
         
-        return raw_scores
+        df = pd.DataFrame(raw_scores)
+        df.set_index("ANIMAL", inplace=True)
+        return df
     
-    def compute_weighted_scores(self, raw_scores: Dict[str, Dict[str, int]], dynamic_weights: Dict[str, float]) -> Dict[str, Dict[str, float]]:
-        """Compute weighted scores by applying planet weights."""
-        weighted_scores = {}
+    def compute_weighted_scores(self, raw_scores: pd.DataFrame, dynamic_weights: Dict[str, float]) -> pd.DataFrame:
+        """Apply dynamic planet weights to raw scores."""
+        weighted_scores = raw_scores.copy()
         
-        for animal, scores in raw_scores.items():
-            weighted_scores[animal] = {}
-            for planet, score in scores.items():
-                weight = dynamic_weights.get(planet, 1.0)
-                weighted_scores[animal][planet] = score * weight
+        for planet in self.supported_planets:
+            if planet in weighted_scores.columns:
+                weighted_scores[planet] = weighted_scores[planet] * dynamic_weights[planet]
         
         return weighted_scores
     
-    def compute_animal_totals(self, weighted_scores: Dict[str, Dict[str, float]]) -> Dict[str, float]:
-        """Compute total scores for each animal."""
-        animal_totals = {}
-        
-        for animal, scores in weighted_scores.items():
-            total = sum(scores.values())
-            animal_totals[animal] = total
-        
-        return animal_totals
+    def compute_animal_totals(self, weighted_scores: pd.DataFrame) -> pd.DataFrame:
+        """Compute total weighted scores for each animal."""
+        totals = weighted_scores.sum(axis=1)
+        totals_df = pd.DataFrame({
+            'ANIMAL': totals.index,
+            'TOTAL_SCORE': totals.values
+        })
+        totals_df = totals_df.sort_values('TOTAL_SCORE', ascending=False)
+        return totals_df
     
-    def compute_top3_percentage_strength(self, weighted_scores: Dict[str, Dict[str, float]], animal_totals: Dict[str, float], dynamic_weights: Dict[str, float]) -> Dict[str, Dict[str, Any]]:
-        """Compute percentage strength for top 3 animals."""
-        # Get top 3 animals
-        sorted_animals = sorted(animal_totals.items(), key=lambda x: x[1], reverse=True)
-        top3_animals = [animal for animal, _ in sorted_animals[:3]]
+    def compute_top3_percentage_strength(self, weighted_scores: pd.DataFrame, animal_totals: pd.DataFrame, dynamic_weights: Dict[str, float]) -> pd.DataFrame:
+        """Compute percentage strength of top 3 animals for each planet and overall strength percentage."""
+        top3_animals = animal_totals.head(3)['ANIMAL'].tolist()
         
-        percentage_strength = {}
+        # Get top 3 animals' weighted scores
+        top3_scores = weighted_scores.loc[top3_animals]
+        
+        # Calculate percentage strength
+        percentage_strength = pd.DataFrame(index=top3_animals, columns=self.supported_planets)
+        
+        for planet in self.supported_planets:
+            if planet in weighted_scores.columns:
+                max_score = weighted_scores[planet].max()
+                if max_score > 0:
+                    percentage_strength[planet] = (top3_scores[planet] / max_score) * 100
+                else:
+                    percentage_strength[planet] = 0
+        
+        # Calculate overall strength percentage (weighted average)
+        percentage_strength['OVERALL_STRENGTH'] = 0.0
         
         for animal in top3_animals:
-            percentage_strength[animal] = {}
-            for planet in self.supported_planets:
-                if planet in weighted_scores[animal]:
-                    score = weighted_scores[animal][planet]
-                    weight = dynamic_weights.get(planet, 1.0)
-                    percentage = (score / weight) if weight > 0 else 0
-                    percentage_strength[animal][planet] = percentage
+            total_weighted_strength = 0.0
+            total_weight = 0.0
             
-            # Add overall strength
-            percentage_strength[animal]['OVERALL_STRENGTH_ADJUST'] = animal_totals[animal]
+            for planet in self.supported_planets:
+                if planet in dynamic_weights and planet in percentage_strength.columns:
+                    planet_weight = dynamic_weights[planet]
+                    planet_strength = percentage_strength.loc[animal, planet]
+                    
+                    total_weighted_strength += planet_strength * planet_weight
+                    total_weight += planet_weight
+            
+            if total_weight > 0:
+                overall_strength = total_weighted_strength / total_weight
+                percentage_strength.loc[animal, 'OVERALL_STRENGTH'] = overall_strength
+        
+        # Calculate OVERALL_STRENGTH_ADJUST based on ranking
+        percentage_strength['OVERALL_STRENGTH_ADJUST'] = 0.0
+        
+        for i, animal in enumerate(top3_animals):
+            overall_strength = percentage_strength.loc[animal, 'OVERALL_STRENGTH']
+            
+            if i == 0:  # Top 1 (Penguin)
+                # OVERALL_STRENGTH + (100 - OVERALL_STRENGTH) * 0.4
+                strength_adjust = overall_strength + (100 - overall_strength) * 0.4
+            elif i == 1:  # Top 2 (Mountain Goat)
+                # OVERALL_STRENGTH + (100 - OVERALL_STRENGTH) * 0.15
+                strength_adjust = overall_strength + (100 - overall_strength) * 0.15
+            else:  # Top 3 (Donkey)
+                # OVERALL_STRENGTH_ADJUST = OVERALL_STRENGTH (no change)
+                strength_adjust = overall_strength
+            
+            # Round to 1 decimal place
+            percentage_strength.loc[animal, 'OVERALL_STRENGTH_ADJUST'] = round(strength_adjust, 1)
         
         return percentage_strength
     
-    def _compute_top3_true_false(self, weighted_scores: Dict[str, Dict[str, float]], animal_totals: Dict[str, float]) -> Dict[str, Dict[str, bool]]:
-        """Compute top 3 true/false table."""
-        # Get top 3 animals
-        sorted_animals = sorted(animal_totals.items(), key=lambda x: x[1], reverse=True)
-        top3_animals = [animal for animal, _ in sorted_animals[:3]]
+    def compute_top3_true_false(self, weighted_scores: pd.DataFrame, animal_totals: pd.DataFrame) -> pd.DataFrame:
+        """Compute TRUE/FALSE table for top 3 animals' top 6 planets."""
+        top3_animals = animal_totals.head(3)['ANIMAL'].tolist()
         
-        true_false_table = {}
+        true_false_table = pd.DataFrame(index=top3_animals, columns=self.supported_planets)
         
         for animal in top3_animals:
-            true_false_table[animal] = {}
+            # Get this animal's weighted scores for all planets
+            animal_scores = weighted_scores.loc[animal]
+            
+            # Sort planets by score (descending) and get top 6
+            sorted_planets = animal_scores.sort_values(ascending=False).head(6).index.tolist()
+            
+            # Mark TRUE for top 6, FALSE for others
             for planet in self.supported_planets:
-                if planet in weighted_scores[animal]:
-                    score = weighted_scores[animal][planet]
-                    # TRUE if score > 0, FALSE otherwise
-                    true_false_table[animal][planet] = score > 0
+                true_false_table.loc[animal, planet] = planet in sorted_planets
         
         return true_false_table
     
-    def _calculate_house(self, longitude: float, chart) -> int:
-        """Calculate house number for a given longitude."""
+    def _format_birth_chart_french(self, planet_signs: Dict[str, str], planet_houses: Dict[str, int], planet_positions: Dict[str, Dict[str, float]] = None) -> Dict[str, str]:
+        """Format birth chart in French with degrees and minutes."""
+        
+        # French planet names
+        planet_names_fr = {
+            "Sun": "Soleil",
+            "Moon": "Lune", 
+            "Mercury": "Mercure",
+            "Venus": "Vénus",
+            "Mars": "Mars",
+            "Jupiter": "Jupiter",
+            "Saturn": "Saturne",
+            "Uranus": "Uranus",
+            "Neptune": "Neptune",
+            "Pluto": "Pluton",
+            "North Node": "Nœud Nord",
+            "Ascendant": "Ascendant",
+            "MC": "MC"
+        }
+        
+        # French sign names
+        sign_names_fr = {
+            "ARIES": "Bélier",
+            "TAURUS": "Taureau", 
+            "GEMINI": "Gémeaux",
+            "CANCER": "Cancer",
+            "LEO": "Lion",
+            "VIRGO": "Vierge",
+            "LIBRA": "Balance",
+            "SCORPIO": "Scorpion",
+            "SAGITTARIUS": "Sagittaire",
+            "CAPRICORN": "Capricorne",
+            "AQUARIUS": "Verseau",
+            "PISCES": "Poissons"
+        }
+        
         try:
-            # Get house cusps
-            houses = chart.houses
-            for i, cusp in enumerate(houses):
-                if longitude >= cusp and longitude < houses[(i + 1) % 12]:
-                    return i + 1
-            return 1  # Default to house 1
-        except:
-            return 1  # Default to house 1 if calculation fails
+            french_chart = {}
+            
+            for planet, sign in planet_signs.items():
+                if planet in planet_names_fr:
+                    planet_fr = planet_names_fr[planet]
+                    sign_fr = sign_names_fr.get(sign, sign)
+                    
+                    # Get exact degrees and minutes if available
+                    if planet_positions and planet in planet_positions:
+                        pos_data = planet_positions[planet]
+                        degrees = int(pos_data["degrees"])
+                        minutes = int(pos_data["minutes"])
+                        
+                        # Get house number if available
+                        house_number = planet_houses.get(planet, "")
+                        if house_number:
+                            french_chart[planet_fr] = f"en {degrees}° {minutes}' {sign_fr} en Maison {house_number}"
+                        else:
+                            french_chart[planet_fr] = f"en {degrees}° {minutes}' {sign_fr}"
+                    else:
+                        # Fallback to just sign if no position data
+                        house_number = planet_houses.get(planet, "")
+                        if house_number:
+                            french_chart[planet_fr] = f"en {sign_fr} en Maison {house_number}"
+                        else:
+                            french_chart[planet_fr] = f"en {sign_fr}"
+            
+            return french_chart
+            
+        except Exception as e:
+            print(f"Error formatting French birth chart: {e}")
+            return {}
     
-    def _longitude_to_sign(self, longitude: float) -> str:
-        """Convert longitude to zodiac sign name."""
-        signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 
-                'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
-        sign_index = int(longitude // 30)
-        return signs[sign_index]
-    
-    def run_analysis(self, date: str, time: str, lat: float, lon: float, openai_api_key: str = None) -> Dict[str, Any]:
-        """Run complete analysis and return results."""
-        print(f"Starting analysis for birth data: {date} {time}")
-        print(f"Coordinates: {lat}°N, {lon}°E")
+    def generate_chatgpt_interpretation(self, planet_signs: Dict[str, str], 
+                                      planet_houses: Dict[str, int],
+                                      true_false_table: pd.DataFrame, 
+                                      animal_totals: pd.DataFrame,
+                                      api_key: str = None) -> Dict[str, str]:
+        """
+        Generate ChatGPT interpretation of why the top1 animal matches the subject's personality.
         
-        # Compute birth chart
-        planet_signs, planet_houses, dynamic_weights = self.compute_birth_chart(date, time, lat, lon)
+        Args:
+            planet_signs: Birth chart data with planet signs
+            planet_houses: Birth chart data with planet houses
+            true_false_table: TRUE/FALSE table for top 3 animals
+            animal_totals: Animal totals with rankings
+            
+        Returns:
+            Dictionary containing the interpretation or None if failed
+        """
+        if not HAS_OPENAI:
+            print("⚠️  OpenAI library not available, skipping ChatGPT interpretation")
+            return None
         
-        # Compute scores
-        raw_scores = self.compute_raw_scores(planet_signs)
-        weighted_scores = self.compute_weighted_scores(raw_scores, dynamic_weights)
-        animal_totals = self.compute_animal_totals(weighted_scores)
-        percentage_strength = self.compute_top3_percentage_strength(weighted_scores, animal_totals, dynamic_weights)
-        
-        # Get top 3 animals (with safety check)
-        sorted_animals = sorted(animal_totals.items(), key=lambda x: x[1], reverse=True)
-        top1_animal = sorted_animals[0][0] if len(sorted_animals) > 0 else "Unknown"
-        top2_animal = sorted_animals[1][0] if len(sorted_animals) > 1 else "Unknown"
-        top3_animal = sorted_animals[2][0] if len(sorted_animals) > 2 else "Unknown"
-        
-        # Save results
-        self._save_results(planet_signs, planet_houses, dynamic_weights, raw_scores, 
-                          weighted_scores, animal_totals, percentage_strength, 
-                          top1_animal, top2_animal, top3_animal)
-        
-        # Generate ChatGPT interpretation (simplified)
-        if openai_api_key:
-            self._generate_chatgpt_interpretation(top1_animal, openai_api_key)
-        
-        # Generate animal statistics
-        self._generate_animal_statistics(date, time, lat, lon, top1_animal)
-        
-        return {
-            "status": "success",
-            "top1_animal": top1_animal,
-            "top2_animal": top2_animal,
-            "top3_animal": top3_animal,
-            "animal_totals": animal_totals
-        }
-    
-    def _save_results(self, planet_signs, planet_houses, dynamic_weights, raw_scores, 
-                     weighted_scores, animal_totals, percentage_strength, 
-                     top1_animal, top2_animal, top3_animal):
-        """Save analysis results to files."""
-        # Create outputs directory
-        os.makedirs("outputs", exist_ok=True)
-        
-        # Save birth chart
-        birth_chart_data = {
-            "planet_signs": planet_signs,
-            "planet_houses": planet_houses,
-            "dynamic_weights": dynamic_weights,
-            "french_birth_chart": self._create_french_birth_chart(planet_signs, planet_houses)
-        }
-        
-        with open("outputs/birth_chart.json", 'w', encoding='utf-8') as f:
-            json.dump(birth_chart_data, f, indent=2, ensure_ascii=False)
-        
-        # Save other results (JSON only - no CSV files)
-        with open("outputs/animal_totals.json", 'w', encoding='utf-8') as f:
-            json.dump(animal_totals, f, indent=2, ensure_ascii=False)
-        
-        with open("outputs/top3_percentage_strength.json", 'w', encoding='utf-8') as f:
-            json.dump(percentage_strength, f, indent=2, ensure_ascii=False)
-        
-        # Save raw scores and weighted scores as JSON
-        with open("outputs/raw_scores.json", 'w', encoding='utf-8') as f:
-            json.dump(raw_scores, f, indent=2, ensure_ascii=False)
-        
-        with open("outputs/weighted_scores.json", 'w', encoding='utf-8') as f:
-            json.dump(weighted_scores, f, indent=2, ensure_ascii=False)
-        
-        # Save top3 true/false as JSON
-        top3_true_false = self._compute_top3_true_false(weighted_scores, animal_totals)
-        with open("outputs/top3_true_false.json", 'w', encoding='utf-8') as f:
-            json.dump(top3_true_false, f, indent=2, ensure_ascii=False)
-        
-        print("✅ Results saved successfully (JSON format only)")
-    
-    def _create_french_birth_chart(self, planet_signs: Dict[str, str], planet_houses: Dict[str, int]) -> Dict[str, str]:
-        """Create French birth chart with translated planet and sign names."""
-        # French translations
-        planet_translations = {
-            'Sun': 'Soleil',
-            'Moon': 'Lune', 
-            'Mercury': 'Mercure',
-            'Venus': 'Vénus',
-            'Mars': 'Mars',
-            'Jupiter': 'Jupiter',
-            'Saturn': 'Saturne',
-            'Uranus': 'Uranus',
-            'Neptune': 'Neptune',
-            'Pluto': 'Pluton',
-            'North Node': 'Nœud Nord',
-            'Ascendant': 'Ascendant',
-            'MC': 'MC'
-        }
-        
-        sign_translations = {
-            'ARIES': 'Bélier',
-            'TAURUS': 'Taureau',
-            'GEMINI': 'Gémeaux',
-            'CANCER': 'Cancer',
-            'LEO': 'Lion',
-            'VIRGO': 'Vierge',
-            'LIBRA': 'Balance',
-            'SCORPIO': 'Scorpion',
-            'SAGITTARIUS': 'Sagittaire',
-            'CAPRICORN': 'Capricorne',
-            'AQUARIUS': 'Verseau',
-            'PISCES': 'Poissons'
-        }
-        
-        french_chart = {}
-        for planet, sign in planet_signs.items():
-            if planet in planet_houses:
-                house = planet_houses[planet]
+        try:
+            # Get the top1 animal
+            top1_animal = animal_totals.iloc[0]['ANIMAL']
+            
+            # Get the planets marked TRUE for the top1 animal
+            top1_true_planets = []
+            for planet in self.supported_planets:
+                if true_false_table.loc[top1_animal, planet]:
+                    top1_true_planets.append(planet)
+            
+            # Translation dictionaries
+            planet_translations = {
+                "Sun": "Soleil", "Moon": "Lune", "Mercury": "Mercure", "Venus": "Vénus",
+                "Mars": "Mars", "Jupiter": "Jupiter", "Saturn": "Saturne", "Uranus": "Uranus",
+                "Neptune": "Neptune", "Pluto": "Pluton", "North Node": "Nœud Nord", "MC": "Milieu du Ciel",
+                "Ascendant": "Ascendant"
+            }
+            
+            sign_translations = {
+                "ARIES": "Bélier", "TAURUS": "Taureau", "GEMINI": "Gémeaux", "CANCER": "Cancer",
+                "LEO": "Lion", "VIRGO": "Vierge", "LIBRA": "Balance", "SCORPIO": "Scorpion",
+                "SAGITTARIUS": "Sagittaire", "CAPRICORN": "Capricorne", "AQUARIUS": "Verseau", "PISCES": "Poissons"
+            }
+            
+            # Get French animal name from CSV translations
+            animal_fr = self.animal_translations.get(top1_animal, top1_animal)
+            
+            # Build the prompt for ChatGPT
+            prompt = f"""Tu es un astrologue expert spécialisé dans l'interprétation des thèmes de naissance et la compatibilité avec les animaux totems.
+
+Basé sur le thème de naissance suivant et les planètes qui ont une forte corrélation avec l'animal totem, explique pourquoi l'animal "{animal_fr}" correspond à la personnalité de cette personne.
+
+THÈME DE NAISSANCE:
+{json.dumps(planet_signs, indent=2, ensure_ascii=False)}
+
+PLANÈTES AVEC FORTE CORRÉLATION POUR L'ANIMAL "{animal_fr}":
+{', '.join(top1_true_planets)}
+Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème de naissance:
+"""
+            
+            # Add planet-sign-house combinations for TRUE planets
+            for planet in top1_true_planets:
+                sign = planet_signs.get(planet, "Non défini")
+                house = planet_houses.get(planet, 0)
                 planet_fr = planet_translations.get(planet, planet)
                 sign_fr = sign_translations.get(sign, sign)
-                french_chart[planet_fr] = f"en {sign_fr} en Maison {house}"
+                prompt += f"- {planet_fr}: {sign_fr} (Maison {house})\n"
+            
+            prompt += f"""
+
+Écris une interprétation courte (environ 800 caractères au total) en 3 points bullet points expliquant pourquoi l'animal "{animal_fr}" correspond à la personnalité de cette personne. Chaque point doit établir une corrélation directe entre des éléments spécifiques du thème natal (planètes dans signes et maisons) et l'archétype de l'animal.
+
+                Format de réponse souhaité (3 points obligatoires):
+                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] donne/transmet [qualité]. Comme le {animal_fr}, tu [comportement/qualité], grâce à [aspect astrologique spécifique].
+                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] traduit [qualité]. Le {animal_fr} incarne [trait], [comportement spécifique], [qualité].
+                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] apporte [qualité]. Comme le {animal_fr} qui [comportement animal], ta personnalité associe [qualités], [comportements].
+
+                RÈGLES STRICTES:
+                - TOUJOURS utiliser "tu" et "ta" pour s'adresser directement à la personne
+                - JAMAIS utiliser "l'individu", "la personne", "il/elle" ou "son/sa"
+                - Chaque point DOIT commencer par un titre court suivi de " : " (ex: "Curiosité et liberté intellectuelle : ")
+                - Chaque point doit mentionner des planètes spécifiques avec leurs signes et maisons
+                - Établir des corrélations directes entre les aspects astrologiques et les traits de l'animal
+                - Inclure des références concrètes aux comportements de l'animal
+                - ÉCRIRE ENTIÈREMENT EN FRANÇAIS : utiliser Soleil, Lune, Mercure, Vénus, Mars, Jupiter, Saturne, Uranus, Neptune, Pluton (pas Sun, Moon, etc.)
+                - Utiliser les signes en français : Bélier, Taureau, Gémeaux, Cancer, Lion, Vierge, Balance, Scorpion, Sagittaire, Capricorne, Verseau, Poissons
+                - JAMAIS de mots en anglais ou en majuscules
+                - Maximum 800 caractères au total"""
+            
+            # Get OpenAI API key from parameter, environment, or file
+            if not api_key:
+                api_key = os.getenv('OPENAI_API_KEY')
+            if not api_key:
+                # Try to load from api_key.txt file
+                try:
+                    if os.path.exists('api_key.txt'):
+                        with open('api_key.txt', 'r') as f:
+                            api_key = f.read().strip()
+                        print("✅ OpenAI API key loaded from api_key.txt")
+                except Exception as e:
+                    print(f"⚠️  Could not load API key from file: {e}")
+            if not api_key:
+                print("⚠️  OpenAI API key not provided (use --openai_api_key, set OPENAI_API_KEY env var, or create api_key.txt), skipping ChatGPT interpretation")
+                return None
+            
+            # Initialize OpenAI client
+            client = openai.OpenAI(api_key=api_key)
+            
+            # Call ChatGPT
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "Tu es un astrologue expert spécialisé dans l'interprétation des thèmes de naissance et la compatibilité avec les animaux totems. Tu t'adresses TOUJOURS directement à la personne en utilisant 'tu' et 'ta', jamais 'l'individu' ou 'la personne'. Tu écris ENTIÈREMENT en français, y compris les noms des planètes (Soleil, Lune, Mercure, Vénus, Mars, Jupiter, Saturne, Uranus, Neptune, Pluton) et des signes astrologiques (Bélier, Taureau, Gémeaux, Cancer, Lion, Vierge, Balance, Scorpion, Sagittaire, Capricorne, Verseau, Poissons). JAMAIS de mots en anglais ou en majuscules."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=500,
+                temperature=0.7
+            )
+            
+            interpretation_text = response.choices[0].message.content.strip()
+            
+            # Convert \n to actual line breaks
+            formatted_interpretation = interpretation_text.replace("\\n", "\n")
+            
+            return {
+                "top1_animal": top1_animal,
+                "true_planets": top1_true_planets,
+                "interpretation": formatted_interpretation,
+                "character_count": len(formatted_interpretation)
+            }
+            
+        except Exception as e:
+            print(f"Error generating ChatGPT interpretation: {e}")
+            return None
+    
+    def generate_outputs(self, planet_signs: Dict[str, str], planet_houses: Dict[str, int],
+                        dynamic_weights: Dict[str, float], raw_scores: pd.DataFrame,
+                        weighted_scores: pd.DataFrame, animal_totals: pd.DataFrame,
+                        percentage_strength: pd.DataFrame, true_false_table: pd.DataFrame,
+                        utc_time: str = None, timezone_method: str = None, openai_api_key: str = None, 
+                        planet_positions: Dict[str, Dict[str, float]] = None,
+                        birth_date: str = None, birth_time: str = None, lat: float = None, lon: float = None):
+        """Generate all output files in the outputs directory."""
         
-        return french_chart
-    
-    def _generate_chatgpt_interpretation(self, top1_animal: str, openai_api_key: str):
-        """Generate ChatGPT interpretation (simplified version)."""
+        # Ensure outputs directory exists
+        os.makedirs("outputs", exist_ok=True)
+        
+        # Define output file paths
+        output_files = {
+            "birth_chart": "outputs/birth_chart.json",
+            "planet_weights": "outputs/planet_weights.json",
+            "raw_scores_csv": "outputs/raw_scores.csv",
+            "raw_scores_json": "outputs/raw_scores.json",
+            "weighted_scores_csv": "outputs/weighted_scores.csv",
+            "weighted_scores_json": "outputs/weighted_scores.json",
+            "animal_totals_csv": "outputs/animal_totals.csv",
+            "animal_totals_json": "outputs/animal_totals.json",
+            "top3_percentage_strength_csv": "outputs/top3_percentage_strength.csv",
+            "top3_percentage_strength_json": "outputs/top3_percentage_strength.json",
+            "top3_true_false_csv": "outputs/top3_true_false.csv",
+            "top3_true_false_json": "outputs/top3_true_false.json",
+            "result": "outputs/result.json"
+        }
+        
+        # Remove existing output files if they exist
+        for file_path in output_files.values():
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                print(f"Removed existing file: {file_path}")
+        
+        # 1. Birth Chart Data (JSON) - includes both signs and houses
+        birth_chart_data = {
+            "planet_signs": planet_signs,
+            "planet_houses": planet_houses
+        }
+
+        # Add UTC time and timezone detection method if provided
+        if utc_time:
+            birth_chart_data["utc_time"] = utc_time
+        if timezone_method:
+            birth_chart_data["timezone_detection_method"] = timezone_method
+        
+        # Add French formatted birth chart
+        birth_chart_data["french_birth_chart"] = self._format_birth_chart_french(planet_signs, planet_houses, planet_positions)
+        with open(output_files["birth_chart"], 'w', encoding='utf-8') as f:
+            json.dump(birth_chart_data, f, indent=2, ensure_ascii=False)
+        print(f"Birth chart data saved to: {output_files['birth_chart']}")
+        
+        # 2. Planet Weights (JSON)
+        with open(output_files["planet_weights"], 'w', encoding='utf-8') as f:
+            json.dump(dynamic_weights, f, indent=2)
+        print(f"Planet weights saved to: {output_files['planet_weights']}")
+        
+        # 3. Raw Scores Table (CSV & JSON)
+        raw_scores.to_csv(output_files["raw_scores_csv"])
+        raw_scores.to_json(output_files["raw_scores_json"], orient='index', indent=2)
+        print(f"Raw scores saved to: {output_files['raw_scores_csv']} and {output_files['raw_scores_json']}")
+        
+        # 4. Weighted Scores Table (CSV & JSON)
+        weighted_scores.to_csv(output_files["weighted_scores_csv"])
+        weighted_scores.to_json(output_files["weighted_scores_json"], orient='index', indent=2)
+        print(f"Weighted scores saved to: {output_files['weighted_scores_csv']} and {output_files['weighted_scores_json']}")
+        
+        # 5. Animal Totals Table (CSV & JSON)
+        animal_totals.to_csv(output_files["animal_totals_csv"], index=False)
+        animal_totals.to_json(output_files["animal_totals_json"], orient='records', indent=2)
+        print(f"Animal totals saved to: {output_files['animal_totals_csv']} and {output_files['animal_totals_json']}")
+        
+        # 6. Top 3 % Strength Table (CSV & JSON)
+        percentage_strength.to_csv(output_files["top3_percentage_strength_csv"])
+        percentage_strength.to_json(output_files["top3_percentage_strength_json"], orient='index', indent=2)
+        print(f"Top 3 percentage strength saved to: {output_files['top3_percentage_strength_csv']} and {output_files['top3_percentage_strength_json']}")
+        
+        # 7. Top 3 TRUE/FALSE Table (CSV & JSON)
+        true_false_table.to_csv(output_files["top3_true_false_csv"])
+        true_false_table.to_json(output_files["top3_true_false_json"], orient='index', indent=2)
+        print(f"Top 3 TRUE/FALSE table saved to: {output_files['top3_true_false_csv']} and {output_files['top3_true_false_json']}")
+        
+        # 8. Combined Results JSON
+        combined_results = {
+            "birth_chart": {
+                "planet_signs": planet_signs,
+                "planet_houses": planet_houses
+            },
+            "planet_weights": dynamic_weights,
+            "raw_scores": raw_scores.to_dict('index'),
+            "weighted_scores": weighted_scores.to_dict('index'),
+            "animal_totals": animal_totals.to_dict('records'),
+            "top3_percentage_strength": percentage_strength.to_dict('index'),
+            "top3_true_false": true_false_table.to_dict('index')
+        }
+        
+        with open(output_files["result"], 'w', encoding='utf-8') as f:
+            json.dump(combined_results, f, indent=2)
+        print(f"Combined results saved to: {output_files['result']}")
+        
+        # 9. Generate radar chart automatically
         try:
-            interpretation = f"• Analyse de l'animal {top1_animal} basée sur votre thème astral.\n• Votre personnalité reflète les caractéristiques de cet animal.\n• Cette correspondance révèle des aspects profonds de votre nature."
+            from plumatotm_radar import generate_radar_charts_from_results
+            print("🎨 Generating radar chart...")
+            # Check if icons folder exists
+            icons_folder = "icons" if os.path.exists("icons") else None
+            if icons_folder:
+                print(f"🎨 Using custom icons from: {icons_folder}")
+            else:
+                print("🎨 Using default planet symbols")
             
-            result = {
-                "interpretation": interpretation,
-                "animal": top1_animal,
-                "timestamp": datetime.now().isoformat()
-            }
-            
-            with open("outputs/chatgpt_interpretation.json", 'w', encoding='utf-8') as f:
-                json.dump(result, f, indent=2, ensure_ascii=False)
-            
-            print("✅ ChatGPT interpretation saved")
-            
+            radar_result = generate_radar_charts_from_results(output_files["result"], icons_folder)
+            if radar_result:
+                print(f"📊 Top 1 radar chart saved: {radar_result['top1_animal_chart']}")
+                print(f"📊 Top 2 radar chart saved: {radar_result['top2_animal_chart']}")
+                print(f"📊 Top 3 radar chart saved: {radar_result['top3_animal_chart']}")
+            else:
+                print("⚠️  Radar chart generation failed")
+        except ImportError:
+            print("⚠️  Radar chart module not available")
         except Exception as e:
-            print(f"⚠️  Warning: Could not generate ChatGPT interpretation: {e}")
-    
-    def _generate_animal_statistics(self, date: str, time: str, lat: float, lon: float, top1_animal: str):
-        """Generate animal statistics (simplified version)."""
+            print(f"⚠️  Radar chart generation failed: {e}")
+        
+        # 10. Generate ChatGPT interpretation
         try:
-            # Generate PlumID
-            plumid = f"{date.replace('-', '_')}_{time.replace(':', '_')}_{lat:.5f}_{lon:.5f}"
-            
-            # Create animal proportion data
-            animal_proportion = {
-                "user_plumid": plumid,
-                "user_current_animal": top1_animal,
-                "user_animal_percentage": 5.0,  # Simplified
-                "all_animals_percentages": {top1_animal: 5.0}  # Simplified
-            }
-            
-            with open("outputs/animal_proportion.json", 'w', encoding='utf-8') as f:
-                json.dump(animal_proportion, f, indent=2, ensure_ascii=False)
-            
-            print("✅ Animal statistics saved")
-            
+            interpretation = self.generate_chatgpt_interpretation(
+                planet_signs, planet_houses, true_false_table, animal_totals, openai_api_key
+            )
+            if interpretation:
+                interpretation_file = "outputs/chatgpt_interpretation.json"
+                interpretation_txt_file = "outputs/chatgpt_interpretation.txt"
+                
+                # Create a copy with properly formatted interpretation
+                formatted_interpretation = interpretation.copy()
+                formatted_interpretation["interpretation"] = formatted_interpretation["interpretation"].replace("\\n", "\n")
+                
+                # Save JSON file
+                with open(interpretation_file, 'w', encoding='utf-8') as f:
+                    json.dump(formatted_interpretation, f, indent=2, ensure_ascii=False)
+                
+                # Save text file with proper line breaks
+                with open(interpretation_txt_file, 'w', encoding='utf-8') as f:
+                    f.write(f"Animal totem: {formatted_interpretation['top1_animal']}\n")
+                    f.write(f"Planètes corrélées: {', '.join(formatted_interpretation['true_planets'])}\n\n")
+                    f.write("Interprétation:\n")
+                    f.write(formatted_interpretation["interpretation"])
+                
+                print(f"🤖 ChatGPT interpretation saved to: {interpretation_file}")
+                print(f"📝 Formatted interpretation saved to: {interpretation_txt_file}")
+            else:
+                print("⚠️  ChatGPT interpretation generation failed")
         except Exception as e:
-            print(f"⚠️  Warning: Could not generate animal statistics: {e}")
+            print(f"⚠️  ChatGPT interpretation generation failed: {e}")
+        
+        # 10. Generate animal statistics if available and birth data provided
+        if STATISTICS_AVAILABLE and birth_date and birth_time and lat is not None and lon is not None:
+            try:
+                print("📊 Generating animal statistics...")
+                
+                # Get top 1 animal
+                top1_animal = animal_totals.iloc[0]['ANIMAL']
+                
+                # Generate statistics
+                stats_generator = AnimalStatisticsGenerator()
+                statistics = stats_generator.run_full_analysis(
+                    date=birth_date,
+                    time=birth_time,
+                    lat=lat,
+                    lon=lon,
+                    top1_animal=top1_animal
+                )
+                
+                print(f"📊 Animal statistics saved to: outputs/animal_proportion.json")
+                print(f"   User animal percentage: {statistics['user_animal_percentage']}%")
+                print(f"   Total animals tracked: {len(statistics['all_animals_percentages'])}")
+                
+            except Exception as e:
+                print(f"⚠️  Animal statistics generation failed: {e}")
+        else:
+            if not STATISTICS_AVAILABLE:
+                print("⚠️  Animal statistics module not available")
+            else:
+                print("⚠️  Birth data not provided for statistics")
+        
+        # Print summary
+        print(f"\n=== ANALYSIS SUMMARY ===")
+        print(f"Top 3 animals:")
+        for i, (_, row) in enumerate(animal_totals.head(3).iterrows(), 1):
+            print(f"{i}. {row['ANIMAL']}: {row['TOTAL_SCORE']:.1f}")
+    
+    def run_analysis(self, date: str, time: str, lat: float, lon: float, timezone_method: str = None, openai_api_key: str = None, translations_csv_path: str = None):
+        """Run the complete analysis pipeline."""
+        # Format coordinates with proper signs
+        lat_sign = "N" if lat >= 0 else "S"
+        lon_sign = "E" if lon >= 0 else "W"
+        lat_abs = abs(lat)
+        lon_abs = abs(lon)
+        
+        print(f"Starting analysis for birth data: {date} {time}")
+        print(f"Coordinates: {lat_abs:.5f}°{lat_sign}, {lon_abs:.5f}°{lon_sign}")
+        print(f"Raw coordinates: ({lat:.5f}, {lon:.5f})")
+        
+        # Load animal translations if provided and not already loaded
+        if translations_csv_path and not self.animal_translations:
+            self.animal_translations = self._load_animal_translations(translations_csv_path)
+        
+        # Convert local time to UTC automatically
+        utc_time, timezone_method = convert_local_to_utc(date, time, lat, lon)
+        print(f"Converted to UTC: {utc_time}")
+        
+        # 1. Compute birth chart with LOCAL time (flatlib expects local time, not UTC)
+        planet_signs, planet_houses, planet_positions = self.compute_birth_chart(date, time, lat, lon)
+        print(f"\nBirth chart computed: {planet_signs}")
+        print(f"Planet houses: {planet_houses}")
+        
+        # 2. Compute dynamic planet weights
+        dynamic_weights = self.compute_dynamic_planet_weights(planet_signs)
+        print(f"\nDynamic planet weights calculated")
+        
+        # 3. Compute raw scores
+        raw_scores = self.compute_raw_scores(planet_signs)
+        
+        # 4. Apply dynamic weights
+        weighted_scores = self.compute_weighted_scores(raw_scores, dynamic_weights)
+        
+        # 5. Compute animal totals
+        animal_totals = self.compute_animal_totals(weighted_scores)
+        
+        # 6. Compute top 3 percentage strength
+        percentage_strength = self.compute_top3_percentage_strength(weighted_scores, animal_totals, dynamic_weights)
+        
+        # 7. Compute top 3 TRUE/FALSE table
+        true_false_table = self.compute_top3_true_false(weighted_scores, animal_totals)
+        
+        # 8. Generate outputs
+        self.generate_outputs(planet_signs, planet_houses, dynamic_weights, raw_scores, 
+                            weighted_scores, animal_totals, percentage_strength, true_false_table, 
+                            utc_time, timezone_method, openai_api_key, planet_positions,
+                            date, time, lat, lon)
+
+
+def main():
+    """Main CLI function."""
+    parser = argparse.ArgumentParser(
+        description="PLUMATOTM Animal × Planet Scoring System (Final Working Version)",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # For Suzanna (September 1, 1991, 22:45 local time, Basse-Terre, Guadeloupe):
+  python plumatotm_core.py \\
+    --scores_json "plumatotm_raw_scores.json" \\
+    --weights_csv "plumatotm_planets_weights.csv" \\
+    --multipliers_csv "plumatotm_planets_multiplier.csv" \\
+    --date 1991-09-01 --time 22:45 \\
+    --lat 16.0167 --lon -61.7500
+
+  # For Cindy (April 13, 1995, 11:30 local time, Suresnes, France):
+  python plumatotm_core.py \\
+    --scores_json "plumatotm_raw_scores.json" \\
+    --weights_csv "plumatotm_planets_weights.csv" \\
+    --multipliers_csv "plumatotm_planets_multiplier.csv" \\
+    --date 1995-04-13 --time 11:30 \\
+    --lat 48.8667 --lon 2.2333
+
+  # For new person (August 31, 1990, 18:35 local time, France):
+  python plumatotm_core.py \\
+    --scores_json "plumatotm_raw_scores.json" \\
+    --weights_csv "plumatotm_planets_weights.csv" \\
+    --multipliers_csv "plumatotm_planets_multiplier.csv" \\
+    --date 1990-08-31 --time 18:35 \\
+    --lat 47.4000 --lon 0.7000
+
+Note: This version automatically converts local time to UTC based on coordinates.
+        """
+    )
+    
+    parser.add_argument("--scores_json", required=True,
+                       help="Path to the animal scores JSON file")
+    parser.add_argument("--weights_csv", required=True,
+                       help="Path to the planet weights CSV file")
+    parser.add_argument("--multipliers_csv", required=True,
+                       help="Path to the planet weight multipliers CSV file")
+    parser.add_argument("--date", required=True,
+                       help="Date of birth (YYYY-MM-DD)")
+    parser.add_argument("--time", required=True,
+                       help="Local time of birth (HH:MM 24h format)")
+    parser.add_argument("--lat", required=True, type=float,
+                       help="Latitude of birth place")
+    parser.add_argument("--lon", required=True, type=float,
+                       help="Longitude of birth place")
+    parser.add_argument("--openai_api_key", type=str,
+                       help="OpenAI API key for ChatGPT interpretation (optional, can also use OPENAI_API_KEY env var)")
+    
+    args = parser.parse_args()
+    
+    try:
+        # Validate date format
+        datetime.strptime(args.date, "%Y-%m-%d")
+        
+        # Validate time format
+        datetime.strptime(args.time, "%H:%M")
+        
+        # Validate coordinates
+        if not -90 <= args.lat <= 90:
+            raise ValueError("Latitude must be between -90 and 90")
+        if not -180 <= args.lon <= 180:
+            raise ValueError("Longitude must be between -180 and 180")
+        
+        # Convert local time to UTC
+        utc_time, timezone_method = convert_local_to_utc(args.date, args.time, args.lat, args.lon)
+        
+        # Initialize analyzer
+        analyzer = BirthChartAnalyzer(args.scores_json, args.weights_csv, args.multipliers_csv)
+        
+        # Run analysis with UTC time (includes radar chart generation)
+        analyzer.run_analysis(args.date, utc_time, args.lat, args.lon, timezone_method, args.openai_api_key)
+        
+        print("\nAnalysis completed successfully!")
+        print("All output files have been saved to the 'outputs' directory.")
+        
+    except ValueError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        sys.exit(1)
+
 
 if __name__ == "__main__":
-    # Test the lightweight analyzer
-    analyzer = BirthChartAnalyzer(
-        scores_json_path="plumatotm_raw_scores.json",
-        weights_json_path="plumatotm_planets_weights.json",
-        multipliers_json_path="plumatotm_planets_multiplier.json",
-        translations_json_path="plumatotm_raw_scores_trad.json"
-    )
-    
-    result = analyzer.run_analysis(
-        date="1990-01-01",
-        time="12:00",
-        lat=48.8566,
-        lon=2.3522
-    )
-    
-    print("Analysis completed successfully!")
-    print(f"Top 3 animals: {result['top1_animal']}, {result['top2_animal']}, {result['top3_animal']}")
+    main()

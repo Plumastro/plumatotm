@@ -15,9 +15,6 @@ import traceback
 # Import the core engine
 import plumatotm_core
 
-# Import queue system
-from queue_system import submit_analysis_job, get_job_status, get_job_result, get_queue_stats
-
 app = Flask(__name__)
 
 # Configure CORS to allow requests from plumastro.com
@@ -40,9 +37,10 @@ def initialize_analyzer():
         
         print("🔍 Initializing analyzer...")
         analyzer = BirthChartAnalyzer(
-            scores_trad_json_path="plumatotm_raw_scores_trad.json",
-            weights_json_path="plumatotm_planets_weights.json", 
-            multipliers_json_path="plumatotm_planets_multiplier.json"
+            scores_json_path="plumatotm_raw_scores.json",
+            weights_csv_path="plumatotm_planets_weights.csv", 
+            multipliers_csv_path="plumatotm_planets_multiplier.csv",
+            translations_csv_path="plumatotm_raw_scores_trad.csv"
         )
         print("✅ PLUMATOTM Analyzer initialized successfully")
         return True
@@ -78,56 +76,6 @@ def health():
         "timestamp": datetime.now().isoformat(),
         "analyzer_ready": analyzer is not None
     })
-
-@app.route('/job/<job_id>/status')
-def job_status(job_id):
-    """Check the status of an analysis job"""
-    try:
-        status = get_job_status(job_id)
-        return jsonify({
-            "job_id": job_id,
-            "status": status,
-            "timestamp": datetime.now().isoformat()
-        })
-    except Exception as e:
-        return jsonify({
-            "error": "Failed to get job status",
-            "details": str(e)
-        }), 500
-
-@app.route('/job/<job_id>/result')
-def job_result(job_id):
-    """Get the result of a completed analysis job"""
-    try:
-        result = get_job_result(job_id)
-        if result is None:
-            return jsonify({
-                "job_id": job_id,
-                "status": "not_ready",
-                "message": "Job not completed yet"
-            }), 202
-        else:
-            return jsonify(result)
-    except Exception as e:
-        return jsonify({
-            "error": "Failed to get job result",
-            "details": str(e)
-        }), 500
-
-@app.route('/queue/stats')
-def queue_stats():
-    """Get queue statistics"""
-    try:
-        stats = get_queue_stats()
-        return jsonify({
-            "queue_stats": stats,
-            "timestamp": datetime.now().isoformat()
-        })
-    except Exception as e:
-        return jsonify({
-            "error": "Failed to get queue stats",
-            "details": str(e)
-        }), 500
 
 def load_analysis_results():
     """Load and format analysis results for API response."""
@@ -279,55 +227,72 @@ def analyze():
         if analyzer is None:
             return jsonify({"error": "Analyzer not initialized"}), 500
         
-        print(f"🔮 Submitting analysis job for {name} ({date} {time} at {lat}°N, {lon}°W, {country}, {state})")
+        print(f"🔮 Starting analysis for {name} ({date} {time} at {lat}°N, {lon}°W, {country}, {state})")
         
         try:
-            # Submit analysis job to queue
-            job_id = submit_analysis_job(
-                name=name,
+            # Run analysis using the analyzer's run_analysis method
+            result = analyzer.run_analysis(
                 date=date,
-                time=time,
+                time=time, 
                 lat=lat,
                 lon=lon,
-                country=country,
-                state=state,
                 openai_api_key=openai_api_key
             )
             
-            # Return job ID for client to check status
-            return jsonify({
-                "status": "queued",
-                "message": "Analysis job submitted successfully",
-                "job_id": job_id,
-                "timestamp": datetime.now().isoformat(),
-                "client_info": {
-                    "name": name,
-                    "location": {
-                        "country": country,
-                        "state": state,
-                        "coordinates": {
-                            "lat": lat,
-                            "lon": lon
-                        }
-                    }
-                },
-                "input": {
-                    "date": date,
-                    "time": time,
-                    "lat": lat,
-                    "lon": lon
-                }
-            })
+            # Load additional results for frontend
+            analysis_results = load_analysis_results()
             
         except Exception as e:
-            print(f"❌ Failed to submit analysis job: {e}")
+            print(f"❌ Analysis failed: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({
-                "error": "Failed to submit analysis job",
+                "error": "Analysis failed",
                 "details": str(e),
                 "timestamp": datetime.now().isoformat()
             }), 500
+        
+        # Return success response with additional data
+        response_data = {
+            "status": "success",
+            "message": "Analysis completed successfully",
+            "timestamp": datetime.now().isoformat(),
+            "client_info": {
+                "name": name,
+                "location": {
+                    "country": country,
+                    "state": state,
+                    "coordinates": {
+                        "lat": lat,
+                        "lon": lon
+                    }
+                }
+            },
+            "input": {
+                "date": date,
+                "time": time,
+                "lat": lat,
+                "lon": lon
+            },
+            "output_files": [
+                "birth_chart.json",
+                "animal_totals.json", 
+                "top3_percentage_strength.json",
+                "animal_proportion.json",
+                "chatgpt_interpretation.json",
+                "top1_animal_radar.png",
+                "top2_animal_radar.png", 
+                "top3_animal_radar.png"
+            ]
+        }
+        
+        # Add the additional data requested by the user
+        response_data.update(analysis_results)
+        
+        # Use json.dumps to preserve order (especially for french_birth_chart)
+        from flask import Response
+        json_response = json.dumps(response_data, ensure_ascii=False, indent=None)
+        return Response(json_response, mimetype='application/json')
         
     except Exception as e:
         print(f"❌ Analysis error: {e}")
