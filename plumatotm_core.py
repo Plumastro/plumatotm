@@ -106,7 +106,16 @@ class BirthChartAnalyzer:
         """Load planet weights from JSON file."""
         try:
             with open(self.weights_json_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                data = json.load(f)
+            
+            # Handle list format
+            if isinstance(data, list) and len(data) > 0:
+                weights = data[0]
+                # Remove the 'Planet' key and return the weights
+                weights.pop('Planet', None)
+                return weights
+            else:
+                return data
         except Exception as e:
             raise ValueError(f"Error loading planet weights from {self.weights_json_path}: {e}")
     
@@ -166,40 +175,73 @@ class BirthChartAnalyzer:
             
             # Create position and chart
             pos = GeoPos(lat, lon)
+            print(f"Creating chart with {len(const.LIST_OBJECTS)} objects...")
             chart = Chart(dt, pos, IDs=const.LIST_OBJECTS, hsys=const.HOUSES_PLACIDUS)
+            print(f"Chart created with {len(list(chart.objects))} objects")
             
             # Extract planet positions
             planet_signs = {}
             planet_houses = {}
             
-            # Define planet mapping
+            # Define planet mapping (using string IDs directly)
             planet_mapping = {
-                'Sun': const.SUN,
-                'Moon': const.MOON,
-                'Mercury': const.MERCURY,
-                'Venus': const.VENUS,
-                'Mars': const.MARS,
-                'Jupiter': const.JUPITER,
-                'Saturn': const.SATURN,
-                'Uranus': const.URANUS,
-                'Neptune': const.NEPTUNE,
-                'Pluto': const.PLUTO,
-                'North Node': const.NORTH_NODE,
-                'Ascendant': const.ASC,
-                'MC': const.MC
+                'Sun': 'Sun',
+                'Moon': 'Moon',
+                'Mercury': 'Mercury',
+                'Venus': 'Venus',
+                'Mars': 'Mars',
+                'Jupiter': 'Jupiter',
+                'Saturn': 'Saturn',
+                'Uranus': 'Uranus',
+                'Neptune': 'Neptune',
+                'Pluto': 'Pluto',
+                'North Node': 'North Node'
             }
             
             # Get planet positions
+            print(f"Available objects in chart: {[obj.id for obj in chart.objects]}")
             for planet_name, planet_id in planet_mapping.items():
-                if planet_id in chart.objects:
-                    obj = chart.objects[planet_id]
-                    sign_name = const.SIGN_NAMES[obj.sign]
-                    house = obj.house
+                print(f"Looking for {planet_name} (ID: {planet_id})")
+                try:
+                    obj = chart.getObject(planet_id)
+                    print(f"  Object attributes: {dir(obj)}")
+                    print(f"  Object: {obj}, sign: {obj.sign}")
+                    sign_name = obj.sign  # obj.sign is already the sign name
+                    
+                    # Calculate house using longitude
+                    house = self._calculate_house(obj.lon, chart)
                     
                     planet_signs[planet_name] = sign_name
                     planet_houses[planet_name] = house
                     
-                    print(f"{planet_name}: {sign_name} {obj.lon:.0f}°{obj.lon%1*60:.0f}' (Maison {house}) - Longitude: {obj.lon:.3f}°")
+                    print(f"✅ {planet_name}: {sign_name} {obj.lon:.0f}°{obj.lon%1*60:.0f}' (Maison {house}) - Longitude: {obj.lon:.3f}°")
+                except Exception as e:
+                    print(f"❌ {planet_name} not found: {e}")
+            
+            # Add Ascendant and MC from houses
+            try:
+                # Get house cusps
+                houses_list = list(chart.houses)
+                print(f"House cusps: {[house.lon for house in houses_list]}")
+                
+                # Get Ascendant (1st house cusp)
+                asc_house = houses_list[0]  # First house cusp
+                asc_longitude = asc_house.lon
+                asc_sign = self._longitude_to_sign(asc_longitude)
+                planet_signs['Ascendant'] = asc_sign
+                planet_houses['Ascendant'] = 1
+                print(f"✅ Ascendant: {asc_sign} {asc_longitude:.0f}°{asc_longitude%1*60:.0f}' (Maison 1) - Longitude: {asc_longitude:.3f}°")
+                
+                # Get MC (10th house cusp)
+                mc_house = houses_list[9]  # 10th house cusp (index 9)
+                mc_longitude = mc_house.lon
+                mc_sign = self._longitude_to_sign(mc_longitude)
+                planet_signs['MC'] = mc_sign
+                planet_houses['MC'] = 10
+                print(f"✅ MC: {mc_sign} {mc_longitude:.0f}°{mc_longitude%1*60:.0f}' (Maison 10) - Longitude: {mc_longitude:.3f}°")
+                
+            except Exception as e:
+                print(f"❌ Error getting Ascendant/MC: {e}")
             
             # Calculate dynamic weights based on house positions
             dynamic_weights = self._calculate_dynamic_weights(planet_houses)
@@ -316,6 +358,25 @@ class BirthChartAnalyzer:
                     true_false_table[animal][planet] = score > 0
         
         return true_false_table
+    
+    def _calculate_house(self, longitude: float, chart) -> int:
+        """Calculate house number for a given longitude."""
+        try:
+            # Get house cusps
+            houses = chart.houses
+            for i, cusp in enumerate(houses):
+                if longitude >= cusp and longitude < houses[(i + 1) % 12]:
+                    return i + 1
+            return 1  # Default to house 1
+        except:
+            return 1  # Default to house 1 if calculation fails
+    
+    def _longitude_to_sign(self, longitude: float) -> str:
+        """Convert longitude to zodiac sign name."""
+        signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 
+                'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
+        sign_index = int(longitude // 30)
+        return signs[sign_index]
     
     def run_analysis(self, date: str, time: str, lat: float, lon: float, openai_api_key: str = None) -> Dict[str, Any]:
         """Run complete analysis and return results."""
