@@ -76,9 +76,31 @@ if __name__ == "__main__":
     # Initialize analyzer
     if initialize_analyzer():
         print("✅ API ready to serve requests")
-        # Get port from environment (Render sets PORT)
-        port = int(os.environ.get('PORT', 5000))
-        app.run(host='0.0.0.0', port=port, debug=False)
+        
+        # Check if running in production (Render sets RENDER=true)
+        if os.environ.get('RENDER'):
+            print("🌐 Running in production mode - starting Gunicorn...")
+            # Import and start Gunicorn
+            import subprocess
+            import sys
+            
+            # Get port from environment (Render sets PORT)
+            port = os.environ.get('PORT', '5000')
+            
+            # Start Gunicorn with our configuration
+            gunicorn_cmd = [
+                'gunicorn', 'main:app',
+                '-c', 'gunicorn.conf.py',
+                '--bind', f'0.0.0.0:{port}'
+            ]
+            
+            print(f"🚀 Starting Gunicorn: {' '.join(gunicorn_cmd)}")
+            subprocess.run(gunicorn_cmd)
+        else:
+            print("🔧 Running in development mode - starting Flask dev server...")
+            # Get port from environment (Render sets PORT)
+            port = int(os.environ.get('PORT', 5000))
+            app.run(host='0.0.0.0', port=port, debug=False)
     else:
         print("❌ Failed to start API - analyzer initialization failed")
         sys.exit(1)
