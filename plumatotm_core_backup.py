@@ -10,7 +10,7 @@ This version uses flatlib for accurate astrological calculations.
 
 import argparse
 import json
-import csv
+import pandas as pd
 from datetime import datetime, timezone
 from typing import Dict, List, Tuple, Any
 import sys
@@ -65,81 +65,6 @@ ZODIAC_SIGNS = [
     "ARIES", "TAURUS", "GEMINI", "CANCER", "LEO", "VIRGO",
     "LIBRA", "SCORPIO", "SAGITTARIUS", "CAPRICORN", "AQUARIUS", "PISCES"
 ]
-
-# Utility functions to replace pandas functionality
-def read_csv_to_dict(csv_path: str, encoding: str = 'utf-8') -> List[Dict[str, Any]]:
-    """Read CSV file and return list of dictionaries."""
-    data = []
-    try:
-        with open(csv_path, 'r', encoding=encoding) as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                data.append(dict(row))
-    except UnicodeDecodeError:
-        # Try with latin-1 encoding
-        with open(csv_path, 'r', encoding='latin-1') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                data.append(dict(row))
-    return data
-
-def safe_float(value: Any) -> float:
-    """Safely convert value to float, handling NaN and empty strings."""
-    if value is None or value == '' or str(value).lower() in ['nan', 'none']:
-        return 0.0
-    try:
-        return float(value)
-    except (ValueError, TypeError):
-        return 0.0
-
-def safe_str(value: Any) -> str:
-    """Safely convert value to string, handling NaN."""
-    if value is None or str(value).lower() in ['nan', 'none']:
-        return ""
-    return str(value).strip()
-
-def sort_dict_by_value(data: Dict[str, float], reverse: bool = True) -> List[Tuple[str, float]]:
-    """Sort dictionary by values and return list of tuples."""
-    return sorted(data.items(), key=lambda x: x[1], reverse=reverse)
-
-def get_top_n(data: List[Tuple[str, float]], n: int = 3) -> List[Tuple[str, float]]:
-    """Get top N items from sorted list."""
-    return data[:n]
-
-def save_dict_to_csv(data: Dict[str, Dict[str, Any]], filepath: str):
-    """Save dictionary data to CSV file."""
-    import csv
-    if not data:
-        return
-    
-    # Get all unique keys from all dictionaries
-    all_keys = set()
-    for animal_data in data.values():
-        all_keys.update(animal_data.keys())
-    
-    # Sort keys for consistent output
-    sorted_keys = sorted(all_keys)
-    
-    with open(filepath, 'w', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
-        # Write header
-        writer.writerow(['ANIMAL'] + sorted_keys)
-        
-        # Write data rows
-        for animal, animal_data in data.items():
-            row = [animal]
-            for key in sorted_keys:
-                row.append(animal_data.get(key, 0))
-            writer.writerow(row)
-
-def save_list_to_csv(data: List[Tuple[str, float]], filepath: str):
-    """Save list of tuples to CSV file."""
-    import csv
-    with open(filepath, 'w', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
-        writer.writerow(['ANIMAL', 'TOTAL_SCORE'])
-        for animal, score in data:
-            writer.writerow([animal, score])
 
 
 def _get_corrected_house_number(planet_lon: float, houses) -> int:
@@ -299,17 +224,10 @@ class BirthChartAnalyzer:
     def _load_planet_weights(self, weights_csv_path: str) -> Dict[str, float]:
         """Load planet weights from CSV file."""
         try:
-            data = read_csv_to_dict(weights_csv_path)
+            df = pd.read_csv(weights_csv_path)
             weights = {}
-            
-            # Find the row with 'PlanetWeight'
-            for row in data:
-                if row.get('Planet', '').strip() == 'PlanetWeight':
-                    for key, value in row.items():
-                        if key != 'Planet':  # Skip first column
-                            weights[key] = safe_float(value)
-                    break
-            
+            for planet in df.columns[1:]:  # Skip first column (Planet)
+                weights[planet] = float(df[df['Planet'] == 'PlanetWeight'][planet].iloc[0])
             return weights
         except Exception as e:
             raise ValueError(f"Error loading planet weights from {weights_csv_path}: {e}")
@@ -317,17 +235,13 @@ class BirthChartAnalyzer:
     def _load_planet_multipliers(self, multipliers_csv_path: str) -> Dict[str, Dict[str, float]]:
         """Load planet multipliers from CSV file."""
         try:
-            data = read_csv_to_dict(multipliers_csv_path)
+            df = pd.read_csv(multipliers_csv_path)
             multipliers = {}
-            
-            for row in data:
-                sign = row.get('Planet', '').upper().strip()
-                if sign:
-                    multipliers[sign] = {}
-                    for key, value in row.items():
-                        if key != 'Planet':  # Skip first column
-                            multipliers[sign][key] = safe_float(value)
-            
+            for _, row in df.iterrows():
+                sign = row['Planet'].upper()
+                multipliers[sign] = {}
+                for planet in df.columns[1:]:  # Skip first column (Planet)
+                    multipliers[sign][planet] = float(row[planet])
             return multipliers
         except Exception as e:
             raise ValueError(f"Error loading planet multipliers from {multipliers_csv_path}: {e}")
@@ -336,15 +250,28 @@ class BirthChartAnalyzer:
         """Load animal translations from CSV file."""
         try:
             translations = {}
-            data = read_csv_to_dict(translations_csv_path)
+            # Try different encodings to handle special characters
+            encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+            df = None
             
-            for row in data:
+            for encoding in encodings:
+                try:
+                    df = pd.read_csv(translations_csv_path, encoding=encoding)
+                    print(f"✅ Successfully loaded CSV with {encoding} encoding")
+                    break
+                except UnicodeDecodeError:
+                    continue
+            
+            if df is None:
+                raise ValueError("Could not read CSV with any supported encoding")
+            
+            for _, row in df.iterrows():
                 # Handle NaN values and convert to string
-                animal_en = safe_str(row.get('ANIMAL UK', ''))
-                animal_fr = safe_str(row.get('ANIMAL FR', ''))
+                animal_en = str(row['ANIMAL UK']).strip() if pd.notna(row['ANIMAL UK']) else ""
+                animal_fr = str(row['ANIMAL FR']).strip() if pd.notna(row['ANIMAL FR']) else ""
                 
-                # Skip if either name is empty
-                if animal_en and animal_fr:
+                # Skip if either name is empty or NaN
+                if animal_en and animal_fr and animal_en != 'nan' and animal_fr != 'nan':
                     translations[animal_en] = animal_fr
             
             print(f"✅ Loaded {len(translations)} animal translations from {translations_csv_path}")
@@ -568,9 +495,9 @@ class BirthChartAnalyzer:
         
         return dynamic_weights
     
-    def compute_raw_scores(self, planet_signs: Dict[str, str]) -> Dict[str, Dict[str, int]]:
+    def compute_raw_scores(self, planet_signs: Dict[str, str]) -> pd.DataFrame:
         """Compute raw animal scores for each planet."""
-        raw_scores = {}
+        raw_scores = []
         
         for animal_data in self.scores_data["animals"]:
             animal_name = animal_data["ANIMAL"]
@@ -578,119 +505,112 @@ class BirthChartAnalyzer:
             
             for planet, sign in planet_signs.items():
                 if sign in animal_data:
-                    scores[planet] = int(animal_data[sign])
+                    scores[planet] = animal_data[sign]
                 else:
                     print(f"Warning: No score found for {animal_name} - {sign}")
                     scores[planet] = 0
             
-            raw_scores[animal_name] = scores
+            scores["ANIMAL"] = animal_name
+            raw_scores.append(scores)
         
-        return raw_scores
+        df = pd.DataFrame(raw_scores)
+        df.set_index("ANIMAL", inplace=True)
+        return df
     
-    def compute_weighted_scores(self, raw_scores: Dict[str, Dict[str, int]], dynamic_weights: Dict[str, float]) -> Dict[str, Dict[str, float]]:
+    def compute_weighted_scores(self, raw_scores: pd.DataFrame, dynamic_weights: Dict[str, float]) -> pd.DataFrame:
         """Apply dynamic planet weights to raw scores."""
-        weighted_scores = {}
+        weighted_scores = raw_scores.copy()
         
-        for animal, scores in raw_scores.items():
-            weighted_scores[animal] = {}
-            for planet in self.supported_planets:
-                if planet in scores:
-                    weighted_scores[animal][planet] = scores[planet] * dynamic_weights[planet]
-                else:
-                    weighted_scores[animal][planet] = 0.0
+        for planet in self.supported_planets:
+            if planet in weighted_scores.columns:
+                weighted_scores[planet] = weighted_scores[planet] * dynamic_weights[planet]
         
         return weighted_scores
     
-    def compute_animal_totals(self, weighted_scores: Dict[str, Dict[str, float]]) -> List[Tuple[str, float]]:
+    def compute_animal_totals(self, weighted_scores: pd.DataFrame) -> pd.DataFrame:
         """Compute total weighted scores for each animal."""
-        totals = {}
-        
-        for animal, scores in weighted_scores.items():
-            total = sum(scores.values())
-            totals[animal] = total
-        
-        # Sort by total score (descending)
-        sorted_totals = sort_dict_by_value(totals, reverse=True)
-        return sorted_totals
+        totals = weighted_scores.sum(axis=1)
+        totals_df = pd.DataFrame({
+            'ANIMAL': totals.index,
+            'TOTAL_SCORE': totals.values
+        })
+        totals_df = totals_df.sort_values('TOTAL_SCORE', ascending=False)
+        return totals_df
     
-    def compute_top3_percentage_strength(self, weighted_scores: Dict[str, Dict[str, float]], animal_totals: List[Tuple[str, float]], dynamic_weights: Dict[str, float]) -> Dict[str, Dict[str, float]]:
+    def compute_top3_percentage_strength(self, weighted_scores: pd.DataFrame, animal_totals: pd.DataFrame, dynamic_weights: Dict[str, float]) -> pd.DataFrame:
         """Compute percentage strength of top 3 animals for each planet and overall strength percentage."""
-        top3_animals = [animal for animal, _ in get_top_n(animal_totals, 3)]
+        top3_animals = animal_totals.head(3)['ANIMAL'].tolist()
+        
+        # Get top 3 animals' weighted scores
+        top3_scores = weighted_scores.loc[top3_animals]
         
         # Calculate percentage strength
-        percentage_strength = {}
+        percentage_strength = pd.DataFrame(index=top3_animals, columns=self.supported_planets)
         
-        # First, find max scores for each planet
-        max_scores = {}
         for planet in self.supported_planets:
-            max_score = 0.0
-            for animal_scores in weighted_scores.values():
-                if planet in animal_scores:
-                    max_score = max(max_score, animal_scores[planet])
-            max_scores[planet] = max_score
-        
-        # Calculate percentage strength for top 3 animals
-        for animal in top3_animals:
-            percentage_strength[animal] = {}
-            
-            for planet in self.supported_planets:
-                if planet in weighted_scores.get(animal, {}) and max_scores[planet] > 0:
-                    percentage_strength[animal][planet] = (weighted_scores[animal][planet] / max_scores[planet]) * 100
+            if planet in weighted_scores.columns:
+                max_score = weighted_scores[planet].max()
+                if max_score > 0:
+                    percentage_strength[planet] = (top3_scores[planet] / max_score) * 100
                 else:
-                    percentage_strength[animal][planet] = 0.0
+                    percentage_strength[planet] = 0
         
         # Calculate overall strength percentage (weighted average)
+        percentage_strength['OVERALL_STRENGTH'] = 0.0
+        
         for animal in top3_animals:
             total_weighted_strength = 0.0
             total_weight = 0.0
             
             for planet in self.supported_planets:
-                if planet in dynamic_weights and planet in percentage_strength[animal]:
+                if planet in dynamic_weights and planet in percentage_strength.columns:
                     planet_weight = dynamic_weights[planet]
-                    planet_strength = percentage_strength[animal][planet]
+                    planet_strength = percentage_strength.loc[animal, planet]
                     
                     total_weighted_strength += planet_strength * planet_weight
                     total_weight += planet_weight
             
             if total_weight > 0:
                 overall_strength = total_weighted_strength / total_weight
-                percentage_strength[animal]['OVERALL_STRENGTH'] = overall_strength
-            else:
-                percentage_strength[animal]['OVERALL_STRENGTH'] = 0.0
+                percentage_strength.loc[animal, 'OVERALL_STRENGTH'] = overall_strength
         
         # Calculate OVERALL_STRENGTH_ADJUST based on ranking
+        percentage_strength['OVERALL_STRENGTH_ADJUST'] = 0.0
+        
         for i, animal in enumerate(top3_animals):
-            overall_strength = percentage_strength[animal]['OVERALL_STRENGTH']
+            overall_strength = percentage_strength.loc[animal, 'OVERALL_STRENGTH']
             
-            if i == 0:  # Top 1
+            if i == 0:  # Top 1 (Penguin)
+                # OVERALL_STRENGTH + (100 - OVERALL_STRENGTH) * 0.4
                 strength_adjust = overall_strength + (100 - overall_strength) * 0.4
-            elif i == 1:  # Top 2
+            elif i == 1:  # Top 2 (Mountain Goat)
+                # OVERALL_STRENGTH + (100 - OVERALL_STRENGTH) * 0.15
                 strength_adjust = overall_strength + (100 - overall_strength) * 0.15
-            else:  # Top 3
+            else:  # Top 3 (Donkey)
+                # OVERALL_STRENGTH_ADJUST = OVERALL_STRENGTH (no change)
                 strength_adjust = overall_strength
             
-            percentage_strength[animal]['OVERALL_STRENGTH_ADJUST'] = round(strength_adjust, 1)
+            # Round to 1 decimal place
+            percentage_strength.loc[animal, 'OVERALL_STRENGTH_ADJUST'] = round(strength_adjust, 1)
         
         return percentage_strength
     
-    def compute_top3_true_false(self, weighted_scores: Dict[str, Dict[str, float]], animal_totals: List[Tuple[str, float]]) -> Dict[str, Dict[str, bool]]:
+    def compute_top3_true_false(self, weighted_scores: pd.DataFrame, animal_totals: pd.DataFrame) -> pd.DataFrame:
         """Compute TRUE/FALSE table for top 3 animals' top 6 planets."""
-        top3_animals = [animal for animal, _ in get_top_n(animal_totals, 3)]
+        top3_animals = animal_totals.head(3)['ANIMAL'].tolist()
         
-        true_false_table = {}
+        true_false_table = pd.DataFrame(index=top3_animals, columns=self.supported_planets)
         
         for animal in top3_animals:
             # Get this animal's weighted scores for all planets
-            animal_scores = weighted_scores.get(animal, {})
+            animal_scores = weighted_scores.loc[animal]
             
             # Sort planets by score (descending) and get top 6
-            sorted_planets = sort_dict_by_value(animal_scores, reverse=True)
-            top6_planets = [planet for planet, _ in sorted_planets[:6]]
+            sorted_planets = animal_scores.sort_values(ascending=False).head(6).index.tolist()
             
             # Mark TRUE for top 6, FALSE for others
-            true_false_table[animal] = {}
             for planet in self.supported_planets:
-                true_false_table[animal][planet] = planet in top6_planets
+                true_false_table.loc[animal, planet] = planet in sorted_planets
         
         return true_false_table
     
@@ -766,8 +686,8 @@ class BirthChartAnalyzer:
     
     def generate_chatgpt_interpretation(self, planet_signs: Dict[str, str], 
                                       planet_houses: Dict[str, int],
-                                      true_false_table: Dict[str, Dict[str, bool]], 
-                                      animal_totals: List[Tuple[str, float]],
+                                      true_false_table: pd.DataFrame, 
+                                      animal_totals: pd.DataFrame,
                                       api_key: str = None) -> Dict[str, str]:
         """
         Generate ChatGPT interpretation of why the top1 animal matches the subject's personality.
@@ -787,12 +707,12 @@ class BirthChartAnalyzer:
         
         try:
             # Get the top1 animal
-            top1_animal = animal_totals[0][0]  # First animal from sorted list
+            top1_animal = animal_totals.iloc[0]['ANIMAL']
             
             # Get the planets marked TRUE for the top1 animal
             top1_true_planets = []
             for planet in self.supported_planets:
-                if true_false_table.get(top1_animal, {}).get(planet, False):
+                if true_false_table.loc[top1_animal, planet]:
                     top1_true_planets.append(planet)
             
             # Translation dictionaries
@@ -901,9 +821,9 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
             return None
     
     def generate_outputs(self, planet_signs: Dict[str, str], planet_houses: Dict[str, int],
-                        dynamic_weights: Dict[str, float], raw_scores: Dict[str, Dict[str, int]],
-                        weighted_scores: Dict[str, Dict[str, float]], animal_totals: List[Tuple[str, float]],
-                        percentage_strength: Dict[str, Dict[str, float]], true_false_table: Dict[str, Dict[str, bool]],
+                        dynamic_weights: Dict[str, float], raw_scores: pd.DataFrame,
+                        weighted_scores: pd.DataFrame, animal_totals: pd.DataFrame,
+                        percentage_strength: pd.DataFrame, true_false_table: pd.DataFrame,
                         utc_time: str = None, timezone_method: str = None, openai_api_key: str = None, 
                         planet_positions: Dict[str, Dict[str, float]] = None,
                         birth_date: str = None, birth_time: str = None, lat: float = None, lon: float = None):
@@ -959,34 +879,28 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
         print(f"Planet weights saved to: {output_files['planet_weights']}")
         
         # 3. Raw Scores Table (CSV & JSON)
-        save_dict_to_csv(raw_scores, output_files["raw_scores_csv"])
-        with open(output_files["raw_scores_json"], 'w', encoding='utf-8') as f:
-            json.dump(raw_scores, f, indent=2)
+        raw_scores.to_csv(output_files["raw_scores_csv"])
+        raw_scores.to_json(output_files["raw_scores_json"], orient='index', indent=2)
         print(f"Raw scores saved to: {output_files['raw_scores_csv']} and {output_files['raw_scores_json']}")
         
         # 4. Weighted Scores Table (CSV & JSON)
-        save_dict_to_csv(weighted_scores, output_files["weighted_scores_csv"])
-        with open(output_files["weighted_scores_json"], 'w', encoding='utf-8') as f:
-            json.dump(weighted_scores, f, indent=2)
+        weighted_scores.to_csv(output_files["weighted_scores_csv"])
+        weighted_scores.to_json(output_files["weighted_scores_json"], orient='index', indent=2)
         print(f"Weighted scores saved to: {output_files['weighted_scores_csv']} and {output_files['weighted_scores_json']}")
         
         # 5. Animal Totals Table (CSV & JSON)
-        save_list_to_csv(animal_totals, output_files["animal_totals_csv"])
-        animal_totals_dict = [{"ANIMAL": animal, "TOTAL_SCORE": score} for animal, score in animal_totals]
-        with open(output_files["animal_totals_json"], 'w', encoding='utf-8') as f:
-            json.dump(animal_totals_dict, f, indent=2)
+        animal_totals.to_csv(output_files["animal_totals_csv"], index=False)
+        animal_totals.to_json(output_files["animal_totals_json"], orient='records', indent=2)
         print(f"Animal totals saved to: {output_files['animal_totals_csv']} and {output_files['animal_totals_json']}")
         
         # 6. Top 3 % Strength Table (CSV & JSON)
-        save_dict_to_csv(percentage_strength, output_files["top3_percentage_strength_csv"])
-        with open(output_files["top3_percentage_strength_json"], 'w', encoding='utf-8') as f:
-            json.dump(percentage_strength, f, indent=2)
+        percentage_strength.to_csv(output_files["top3_percentage_strength_csv"])
+        percentage_strength.to_json(output_files["top3_percentage_strength_json"], orient='index', indent=2)
         print(f"Top 3 percentage strength saved to: {output_files['top3_percentage_strength_csv']} and {output_files['top3_percentage_strength_json']}")
         
         # 7. Top 3 TRUE/FALSE Table (CSV & JSON)
-        save_dict_to_csv(true_false_table, output_files["top3_true_false_csv"])
-        with open(output_files["top3_true_false_json"], 'w', encoding='utf-8') as f:
-            json.dump(true_false_table, f, indent=2)
+        true_false_table.to_csv(output_files["top3_true_false_csv"])
+        true_false_table.to_json(output_files["top3_true_false_json"], orient='index', indent=2)
         print(f"Top 3 TRUE/FALSE table saved to: {output_files['top3_true_false_csv']} and {output_files['top3_true_false_json']}")
         
         # 8. Combined Results JSON
@@ -996,11 +910,11 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
                 "planet_houses": planet_houses
             },
             "planet_weights": dynamic_weights,
-            "raw_scores": raw_scores,
-            "weighted_scores": weighted_scores,
-            "animal_totals": [{"ANIMAL": animal, "TOTAL_SCORE": score} for animal, score in animal_totals],
-            "top3_percentage_strength": percentage_strength,
-            "top3_true_false": true_false_table
+            "raw_scores": raw_scores.to_dict('index'),
+            "weighted_scores": weighted_scores.to_dict('index'),
+            "animal_totals": animal_totals.to_dict('records'),
+            "top3_percentage_strength": percentage_strength.to_dict('index'),
+            "top3_true_false": true_false_table.to_dict('index')
         }
         
         with open(output_files["result"], 'w', encoding='utf-8') as f:
@@ -1094,8 +1008,8 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
         # Print summary
         print(f"\n=== ANALYSIS SUMMARY ===")
         print(f"Top 3 animals:")
-        for i, (animal, score) in enumerate(get_top_n(animal_totals, 3), 1):
-            print(f"{i}. {animal}: {score:.1f}")
+        for i, (_, row) in enumerate(animal_totals.head(3).iterrows(), 1):
+            print(f"{i}. {row['ANIMAL']}: {row['TOTAL_SCORE']:.1f}")
     
     def run_analysis(self, date: str, time: str, lat: float, lon: float, timezone_method: str = None, openai_api_key: str = None, translations_csv_path: str = None):
         """Run the complete analysis pipeline."""
