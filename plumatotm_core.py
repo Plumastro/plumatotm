@@ -1123,6 +1123,10 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
         print(f"Top 3 animals:")
         for i, (animal, score) in enumerate(get_top_n(animal_totals, 3), 1):
             print(f"{i}. {animal}: {score:.1f}")
+        
+        # Explicit memory cleanup after analysis
+        import gc
+        gc.collect()
     
     def run_analysis(self, date: str, time: str, lat: float, lon: float, timezone_method: str = None, openai_api_key: str = None, translations_csv_path: str = None):
         """Run the complete analysis pipeline."""

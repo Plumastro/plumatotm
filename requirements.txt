@@ -13,16 +13,12 @@ numpy>=2.3.0
 python-dateutil>=2.9.0
 pytz>=2025.0
 
-# Geocoding (optional - for place name to coordinates conversion)
-geopy>=2.4.0
-
 # Timezone detection (for local to UTC conversion)
 timezonefinderL>=4.0.0
 
 # Visualization (for radar charts)
 matplotlib>=3.10.0
 Pillow>=10.0.0
-cairosvg>=2.7.0
 
 # OpenAI API for ChatGPT interpretation
 openai>=1.0.0

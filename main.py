@@ -302,6 +302,11 @@ def analyze():
         # Use json.dumps to preserve order (especially for french_birth_chart)
         from flask import Response
         json_response = json.dumps(response_data, ensure_ascii=False, indent=None)
+        
+        # Explicit memory cleanup after analysis
+        import gc
+        gc.collect()
+        
         return Response(json_response, mimetype='application/json')
         
     except Exception as e:
