@@ -246,7 +246,49 @@ class BirthChartAnalyzer:
         try:
             # Parse date and time - flatlib expects YYYY/MM/DD format
             date_formatted = date.replace('-', '/')
-            dt = Datetime(date_formatted, time)
+            
+            # Get UTC offset for the coordinates
+            utc_time, timezone_method = convert_local_to_utc(date, time, lat, lon)
+            
+            # Calculate UTC offset in hours
+            from datetime import datetime, timezone as tz
+            y, m, d = map(int, date.split("-"))
+            hh, mm = map(int, time.split(":"))
+            local_naive = datetime(y, m, d, hh, mm)
+            
+            # Get timezone info
+            if not HAS_TIMEZONEFINDER:
+                raise ValueError("timezonefinderL is required but not available")
+            
+            tf = TimezoneFinder()
+            timezone_name = tf.timezone_at(lat=lat, lng=lon)
+            if not timezone_name:
+                raise ValueError(f"Could not determine timezone for coordinates ({lat}, {lon})")
+            
+            # Special correction for Israel coordinates
+            if timezone_name == "Asia/Hebron" and 31.0 <= lat <= 33.5 and 34.0 <= lon <= 35.5:
+                timezone_name = "Asia/Jerusalem"
+            
+            # Attach timezone and get UTC offset
+            local_dt = local_naive.replace(tzinfo=ZoneInfo(timezone_name))
+            utc_dt = local_dt.astimezone(ZoneInfo("UTC"))
+            
+            # Calculate UTC offset in hours (negative for west of UTC)
+            utc_offset_hours = (local_dt - utc_dt).total_seconds() / 3600
+            
+            # Check if date changed during UTC conversion
+            utc_date = utc_dt.strftime("%Y/%m/%d")
+            print(f"Date conversion check:")
+            print(f"  Local date: {date_formatted}")
+            print(f"  UTC date: {utc_date}")
+            print(f"  Date changed: {date_formatted != utc_date}")
+            
+            # Use the correct UTC date and time
+            print(f"Creating flatlib Datetime with UTC time:")
+            print(f"  Date: {utc_date}")
+            print(f"  UTC Time: {utc_time}")
+            print(f"  UTC Offset: 0 (using UTC time directly)")
+            dt = Datetime(utc_date, utc_time, 0)
             
             # Check for high latitude and adjust house system if necessary
             if abs(lat) > 66.0:
@@ -975,8 +1017,8 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
         utc_time, timezone_method = convert_local_to_utc(date, time, lat, lon)
         print(f"Converted to UTC: {utc_time}")
         
-        # 1. Compute birth chart with UTC time
-        planet_signs, planet_houses, planet_positions = self.compute_birth_chart(date, utc_time, lat, lon)
+        # 1. Compute birth chart with LOCAL time (flatlib expects local time, not UTC)
+        planet_signs, planet_houses, planet_positions = self.compute_birth_chart(date, time, lat, lon)
         print(f"\nBirth chart computed: {planet_signs}")
         print(f"Planet houses: {planet_houses}")
         
