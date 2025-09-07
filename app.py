@@ -309,7 +309,16 @@ if __name__ == '__main__':
         print("✅ API ready to serve requests")
         # Get port from environment (Render sets PORT)
         port = int(os.environ.get('PORT', 5000))
-        app.run(host='0.0.0.0', port=port, debug=False)
+        
+        # Check if running in production (Render sets RENDER=true)
+        if os.environ.get('RENDER'):
+            print("🌐 Running in production mode - use Gunicorn via Procfile")
+            # In production, Gunicorn will handle the server
+            # This block is only for local development
+            app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
+        else:
+            print("🔧 Running in development mode")
+            app.run(host='0.0.0.0', port=port, debug=True, threaded=True)
     else:
         print("❌ Failed to start API - analyzer initialization failed")
         exit(1)
