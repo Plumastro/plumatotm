@@ -858,9 +858,7 @@ Basé sur le thème de naissance suivant et les planètes qui ont une forte corr
 THÈME DE NAISSANCE:
 {json.dumps(planet_signs, indent=2, ensure_ascii=False)}
 
-PLANÈTES AVEC FORTE CORRÉLATION POUR {animal_determinant}:
-{', '.join(top1_true_planets)}
-Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème de naissance:
+Voici les planetes pour lesquelles tu dois concentrer ton analyse:
 """
             
             # Add planet-sign-house combinations for TRUE planets
