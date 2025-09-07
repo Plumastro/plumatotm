@@ -30,6 +30,7 @@ openai>=1.0.0
 
 # Web framework for API
 flask>=3.0.0
+flask-cors>=4.0.0
 
 # Supabase integration
 supabase>=2.0.0

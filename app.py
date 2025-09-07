@@ -5,6 +5,7 @@ Expose the astrological animal compatibility engine via HTTP API
 """
 
 from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 import os
 import json
 import tempfile
@@ -15,6 +16,9 @@ import traceback
 import plumatotm_core
 
 app = Flask(__name__)
+
+# Configure CORS to allow requests from plumastro.com
+CORS(app, resources={r"/analyze": {"origins": "https://plumastro.com"}})
 
 # Global analyzer instance
 analyzer = None
