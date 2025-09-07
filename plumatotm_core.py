@@ -250,10 +250,10 @@ def convert_local_to_utc(date: str, local_time: str, lat: float, lon: float) -> 
 class BirthChartAnalyzer:
     """Main class for analyzing birth charts and computing animal scores."""
     
-    def __init__(self, scores_json_path: str, weights_csv_path: str, multipliers_csv_path: str, translations_csv_path: str = None):
-        """Initialize with the animal scores JSON file and planet weights/multipliers."""
+    def __init__(self, scores_csv_path: str, weights_csv_path: str, multipliers_csv_path: str, translations_csv_path: str = None):
+        """Initialize with the animal scores CSV file and planet weights/multipliers."""
         # Store file paths for lazy loading
-        self.scores_json_path = scores_json_path
+        self.scores_csv_path = scores_csv_path
         self.weights_csv_path = weights_csv_path
         self.multipliers_csv_path = multipliers_csv_path
         self.translations_csv_path = translations_csv_path
@@ -265,7 +265,7 @@ class BirthChartAnalyzer:
         self._animal_translations_loaded = False
         
         # Load only essential data at startup
-        self.scores_data = self._load_scores_json(scores_json_path)
+        self.scores_data = self._load_scores_from_csv(scores_csv_path)
         self.animals = [animal["ANIMAL"] for animal in self.scores_data["animals"]]
         
         # Load planet weights and multipliers (small files, keep at startup)
@@ -282,38 +282,38 @@ class BirthChartAnalyzer:
             self.animal_translations = self._load_animal_translations(self.translations_csv_path)
             self._animal_translations_loaded = True
         
-    def _load_scores_json(self, scores_json_path: str) -> Dict:
-        """Load and validate the animal scores JSON file."""
+    def _load_scores_from_csv(self, scores_csv_path: str) -> Dict:
+        """Load and validate the animal scores from CSV file."""
         try:
-            with open(scores_json_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+            data = read_csv_to_dict(scores_csv_path)
             
-            # Validate structure
-            if "animals" not in data:
-                raise ValueError("JSON must contain 'animals' key")
-            
-            # Validate each animal entry
-            for animal in data["animals"]:
-                if "ANIMAL" not in animal:
-                    raise ValueError("Each animal must have 'ANIMAL' key")
+            # Convert CSV data to the expected JSON structure
+            animals = []
+            for row in data:
+                animal_entry = {
+                    "ANIMAL": row["ANIMAL UK"]
+                }
                 
-                # Check for all zodiac signs
-                missing_signs = [sign for sign in ZODIAC_SIGNS if sign not in animal]
-                if missing_signs:
-                    raise ValueError(f"Animal {animal['ANIMAL']} missing scores for: {missing_signs}")
-                
-                # Validate score ranges
+                # Add scores for each zodiac sign
                 for sign in ZODIAC_SIGNS:
-                    score = animal[sign]
-                    if not isinstance(score, (int, float)) or score < 0 or score > 100:
-                        raise ValueError(f"Invalid score for {animal['ANIMAL']} - {sign}: {score}")
+                    # Map zodiac sign names to CSV column names
+                    csv_column = sign.capitalize()  # ARIES -> Aries
+                    if csv_column in row:
+                        score = safe_float(row[csv_column])
+                        if score < 0 or score > 100:
+                            raise ValueError(f"Invalid score for {animal_entry['ANIMAL']} - {sign}: {score}")
+                        animal_entry[sign] = score
+                    else:
+                        raise ValueError(f"Missing score column for {sign} in CSV")
+                
+                animals.append(animal_entry)
             
-            return data
+            return {"animals": animals}
             
         except FileNotFoundError:
-            raise FileNotFoundError(f"Scores JSON file not found: {scores_json_path}")
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON format: {e}")
+            raise FileNotFoundError(f"Scores CSV file not found: {scores_csv_path}")
+        except Exception as e:
+            raise ValueError(f"Error loading scores from CSV: {e}")
     
     def _load_planet_weights(self, weights_csv_path: str) -> Dict[str, float]:
         """Load planet weights from CSV file."""
@@ -1176,7 +1176,7 @@ def main():
 Examples:
   # For Suzanna (September 1, 1991, 22:45 local time, Basse-Terre, Guadeloupe):
   python plumatotm_core.py \\
-    --scores_json "plumatotm_raw_scores.json" \\
+    --scores_csv "plumatotm_raw_scores_trad.csv" \\
     --weights_csv "plumatotm_planets_weights.csv" \\
     --multipliers_csv "plumatotm_planets_multiplier.csv" \\
     --date 1991-09-01 --time 22:45 \\
@@ -1184,7 +1184,7 @@ Examples:
 
   # For Cindy (April 13, 1995, 11:30 local time, Suresnes, France):
   python plumatotm_core.py \\
-    --scores_json "plumatotm_raw_scores.json" \\
+    --scores_csv "plumatotm_raw_scores_trad.csv" \\
     --weights_csv "plumatotm_planets_weights.csv" \\
     --multipliers_csv "plumatotm_planets_multiplier.csv" \\
     --date 1995-04-13 --time 11:30 \\
@@ -1192,7 +1192,7 @@ Examples:
 
   # For new person (August 31, 1990, 18:35 local time, France):
   python plumatotm_core.py \\
-    --scores_json "plumatotm_raw_scores.json" \\
+    --scores_csv "plumatotm_raw_scores_trad.csv" \\
     --weights_csv "plumatotm_planets_weights.csv" \\
     --multipliers_csv "plumatotm_planets_multiplier.csv" \\
     --date 1990-08-31 --time 18:35 \\
@@ -1202,8 +1202,8 @@ Note: This version automatically converts local time to UTC based on coordinates
         """
     )
     
-    parser.add_argument("--scores_json", required=True,
-                       help="Path to the animal scores JSON file")
+    parser.add_argument("--scores_csv", required=True,
+                       help="Path to the animal scores CSV file")
     parser.add_argument("--weights_csv", required=True,
                        help="Path to the planet weights CSV file")
     parser.add_argument("--multipliers_csv", required=True,
@@ -1238,7 +1238,7 @@ Note: This version automatically converts local time to UTC based on coordinates
         utc_time, timezone_method = convert_local_to_utc(args.date, args.time, args.lat, args.lon)
         
         # Initialize analyzer
-        analyzer = BirthChartAnalyzer(args.scores_json, args.weights_csv, args.multipliers_csv)
+        analyzer = BirthChartAnalyzer(args.scores_csv, args.weights_csv, args.multipliers_csv)
         
         # Run analysis with UTC time (includes radar chart generation)
         analyzer.run_analysis(args.date, utc_time, args.lat, args.lon, timezone_method, args.openai_api_key)

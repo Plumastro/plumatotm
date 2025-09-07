@@ -37,7 +37,7 @@ def initialize_analyzer():
         
         print("🔍 Initializing analyzer...")
         analyzer = BirthChartAnalyzer(
-            scores_json_path="plumatotm_raw_scores.json",
+            scores_csv_path="plumatotm_raw_scores_trad.csv",
             weights_csv_path="plumatotm_planets_weights.csv", 
             multipliers_csv_path="plumatotm_planets_multiplier.csv",
             translations_csv_path="plumatotm_raw_scores_trad.csv"
