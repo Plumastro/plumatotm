@@ -47,6 +47,7 @@ outputs/result.json
 
 # Animation files (can be large)
 outputs/*.gif
+outputs/sun_axis_animation.gif
 
 # Large files
 *.mp4
