@@ -74,7 +74,7 @@ class SingleAxisAnimationGenerator:
         ax.add_artist(ab)
     
     def create_sun_axis_animation(self, output_path: str = "outputs/sun_axis_animation.gif", 
-                                duration: float = 3.0) -> str:
+                                duration: float = 5.0) -> str:
         """
         Create a simple single-axis animation for the Sun.
         
@@ -87,7 +87,7 @@ class SingleAxisAnimationGenerator:
         """
         
         # Animation parameters
-        frames = 90  # 3 seconds at 30 FPS
+        frames = 150  # 5 seconds at 30 FPS for smoother animation
         fps = frames // duration
         
         # Create the figure
@@ -101,6 +101,7 @@ class SingleAxisAnimationGenerator:
         ax.set_thetagrids([])
         ax.set_ylim(0, 130)
         ax.set_facecolor('none')
+        ax.spines['polar'].set_visible(False)  # Remove the circle
         
         # Single axis for Sun (at 0 degrees - top)
         sun_angle = 0  # Top of the circle
@@ -117,21 +118,24 @@ class SingleAxisAnimationGenerator:
             ax.set_thetagrids([])
             ax.set_ylim(0, 130)
             ax.set_facecolor('none')
+            ax.spines['polar'].set_visible(False)  # Remove the circle
             
             # Calculate current value with smooth up-down motion
-            # Start at 25%, go to 92%, then back to 25%
+            # Start at 20%, go to 92%, then back to 20%
             progress = frame / (frames - 1)
             
             if progress <= 0.5:
-                # First half: go up from 25% to 92%
+                # First half: go up from 20% to 92%
                 phase_progress = progress * 2  # 0 to 1
-                eased_progress = phase_progress * phase_progress * (3 - 2 * phase_progress)  # Smooth step
-                current_value = 25.0 + (92.0 - 25.0) * eased_progress
+                # Custom easing: slower at start and end, faster in middle
+                eased_progress = 0.5 * (1 - np.cos(np.pi * phase_progress))  # Smooth sine curve
+                current_value = 20.0 + (92.0 - 20.0) * eased_progress
             else:
-                # Second half: go down from 92% to 25%
+                # Second half: go down from 92% to 20%
                 phase_progress = (progress - 0.5) * 2  # 0 to 1
-                eased_progress = phase_progress * phase_progress * (3 - 2 * phase_progress)  # Smooth step
-                current_value = 92.0 - (92.0 - 25.0) * eased_progress
+                # Custom easing: slower at start and end, faster in middle
+                eased_progress = 0.5 * (1 - np.cos(np.pi * phase_progress))  # Smooth sine curve
+                current_value = 92.0 - (92.0 - 20.0) * eased_progress
             
             # Draw single radial line
             ax.plot([sun_angle, sun_angle], [0, max_radius], color='black', linewidth=2, alpha=0.8)
@@ -202,12 +206,12 @@ def main():
     
     # Create the Sun axis animation
     output_path = "outputs/sun_axis_animation.gif"
-    animation_path = generator.create_sun_axis_animation(output_path, duration=3.0)
+    animation_path = generator.create_sun_axis_animation(output_path, duration=5.0)
     
     print(f"\n🎉 Single axis animation created successfully!")
     print(f"📊 Animation saved: {animation_path}")
-    print(f"📝 Duration: 3 seconds, loopable GIF")
-    print(f"📝 Sun moves from 25% to 92% and back to 25%")
+    print(f"📝 Duration: 5 seconds, loopable GIF")
+    print(f"📝 Sun moves from 20% to 92% and back to 20% (smooth sine curve)")
 
 
 if __name__ == "__main__":
