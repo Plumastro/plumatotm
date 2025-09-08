@@ -20,6 +20,12 @@ timezonefinderL>=4.0.0
 matplotlib>=3.10.0
 Pillow>=10.0.0
 
+# Optional: Animation module dependencies
+# Uncomment the following lines if you want to use the animation module:
+# matplotlib>=3.10.0  # Already included above
+# Pillow>=10.0.0      # Already included above
+# numpy>=2.3.0        # Already included above
+
 # OpenAI API for ChatGPT interpretation
 openai>=1.0.0
 

@@ -11,6 +11,7 @@ PLUMATOTM is a sophisticated astrological analysis engine that computes animal c
 - **REST API**: Full HTTP API for integration with web applications
 - **Timezone Handling**: Automatic local to UTC time conversion based on coordinates
 - **ChatGPT Interpretation**: AI-powered explanation of why the top animal matches the subject's personality
+- **Optional Animation Module**: Create animated GIFs of radar charts (see `ANIMATION_README.md`)
 
 ## 🚀 Quick Start
 

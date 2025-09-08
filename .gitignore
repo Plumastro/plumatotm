@@ -45,6 +45,9 @@ outputs/*.csv
 outputs/*.json
 outputs/result.json
 
+# Animation files (can be large)
+outputs/*.gif
+
 # Large files
 *.mp4
 *.avi
