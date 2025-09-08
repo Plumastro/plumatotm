@@ -850,18 +850,22 @@ class BirthChartAnalyzer:
             animal_fr = animal_translation.get('AnimalFR', top1_animal)
             animal_determinant = animal_translation.get('DeterminantAnimalFR', animal_fr)
             
+            # Get French birth chart for complete information
+            french_chart = self._format_birth_chart_french(planet_signs, planet_houses, None)
+            
             # Build the prompt for ChatGPT
             prompt = f"""Tu es un astrologue expert spécialisé dans l'interprétation des thèmes de naissance et la compatibilité avec les animaux totems.
 
 Basé sur le thème de naissance suivant et les planètes qui ont une forte corrélation avec l'animal totem, explique pourquoi {animal_determinant} correspond à la personnalité de cette personne.
 
-THÈME DE NAISSANCE:
-{json.dumps(planet_signs, indent=2, ensure_ascii=False)}
+THÈME DE NAISSANCE COMPLET:
+{json.dumps(french_chart, indent=2, ensure_ascii=False)}
 
 Voici les planetes pour lesquelles tu dois concentrer ton analyse:
 """
             
-            # Add planet-sign-house combinations for TRUE planets
+            # Add planet-sign-house combinations for TRUE planets (already included in the complete chart above)
+            prompt += f"\nPlanètes avec forte corrélation pour {animal_determinant}:\n"
             for planet in top1_true_planets:
                 sign = planet_signs.get(planet, "Non défini")
                 house = planet_houses.get(planet, 0)
@@ -877,7 +881,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                 • [Titre du trait] : [planète(s) en signe(s) et maison(s)] donne/transmet [qualité]. Comme {animal_determinant}, tu [comportement/qualité], grâce à [aspect astrologique spécifique].
                 • [Titre du trait] : [planète(s) en signe(s) et maison(s)] traduit [qualité]. {animal_determinant} incarne [trait], [comportement spécifique], [qualité].
                 • [Titre du trait] : [planète(s) en signe(s) et maison(s)] apporte [qualité]. Comme {animal_determinant} qui [comportement animal], ta personnalité associe [qualités], [comportements].
-                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] révèle [qualité]. L'animal totem {animal_determinant} correspond à ta personnalité car [explication spécifique de la correspondance entre l'animal et la personnalité de la personne].
+                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] révèle [qualité]. {animal_determinant} te correspond car [explication spécifique de la correspondance entre l'animal et la personnalité de la personne].
 
                 RÈGLES STRICTES:
                 - TOUJOURS utiliser "tu" et "ta" pour s'adresser directement à la personne
