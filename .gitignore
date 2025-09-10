@@ -47,7 +47,10 @@ outputs/result.json
 
 # Animation files (can be large)
 outputs/*.gif
-outputs/sun_axis_animation.gif
+outputs/score_axis_animation.gif
+outputs/weight_axis_animation.gif
+outputs/3_radar_animation.gif
+3_radar_animation.py
 
 # Large files
 *.mp4
