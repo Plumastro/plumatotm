@@ -157,6 +157,7 @@ def load_analysis_results():
                     
                     top3_summary[f"Top{i}"] = {
                         "animal": animal_fr,
+                        "animal_english": animal_en,
                         "determinant_animal": determinant_fr,
                         "article_animal": article_fr,
                         "overall_strength_adjust": strength
@@ -169,7 +170,7 @@ def load_analysis_results():
         if os.path.exists(interpretation_path):
             with open(interpretation_path, 'r', encoding='utf-8') as f:
                 interpretation_data = json.load(f)
-                results['chatgpt_interpretation'] = interpretation_data.get('interpretation', '')
+                results['interpretation'] = interpretation_data.get('interpretation', '')
         
     except Exception as e:
         print(f"⚠️  Warning: Could not load some analysis results: {e}")
