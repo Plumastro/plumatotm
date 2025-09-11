@@ -14,7 +14,7 @@ from supabase_manager import supabase_manager
 class AnimalStatisticsGenerator:
     """Générateur de statistiques d'animaux."""
     
-    def __init__(self, raw_scores_file: str = "plumatotm_raw_scores.csv"):
+    def __init__(self, raw_scores_file: str = "plumatotm_raw_scores_trad.csv"):
         self.raw_scores_file = raw_scores_file
         self.all_animals = self._load_all_animals()
     
@@ -23,29 +23,18 @@ class AnimalStatisticsGenerator:
         try:
             if os.path.exists(self.raw_scores_file):
                 animals = set()
-                with open(self.raw_scores_file, 'r', encoding='utf-8') as f:
+                with open(self.raw_scores_file, 'r', encoding='latin-1') as f:
                     reader = csv.DictReader(f)
                     for row in reader:
-                        if 'ANIMAL' in row and row['ANIMAL']:
-                            animals.add(row['ANIMAL'])
+                        # Use AnimalEN column and skip empty rows
+                        if 'AnimalEN' in row and row['AnimalEN'] and row['AnimalEN'].strip():
+                            animals.add(row['AnimalEN'])
                 return sorted(list(animals))
             
-            # Fallback: liste des animaux les plus communs
-            return [
-                "Penguin", "Mountain Goat", "Donkey", "Owl", "Raven", "Dog (siberian husky)",
-                "Falcon", "Snow Leopard", "Dog (dalmatian)", "Bat", "Bee", "Lizard",
-                "Shark", "Dog (border collie)", "Hare", "Parrot", "Squirrel", "Lemur",
-                "Gazelle", "Monkey", "Raccoon", "Horse", "Seahorse", "Cobra", "Macaw",
-                "Fox", "Crane", "Tiger", "Octopus", "Pelican", "Jaguar", "Eagle", "Cat",
-                "Butterfly", "Giraffe", "Dolphin", "Lynx", "Chameleon", "Swallow",
-                "Caribou", "Peacock", "Dog (great dane)", "Jellyfish", "Cheetah", "Otter",
-                "Boa Constrictor", "Hedgehog", "Polar Bear", "Turtle", "Dog (rottweiler)",
-                "Koala", "Llama", "Panther", "Whale", "Stag", "Elk", "Camel", "Beaver",
-                "Crocodile", "Elephant", "Wolf", "Cow", "Dog (belgian malinois)", "Pig",
-                "Capybara", "Sheep", "Gorillas", "Kangaroo", "Frog", "Swan", "Hippopotamus",
-                "Bear", "Deer", "Panda", "Goose", "Dog (bulldog)", "Dog (golden retriever)",
-                "Snake", "Rabbit"
-            ]
+            # No fallback - we need the CSV file to be present
+            print(f"❌ ERROR: CSV file not found: {self.raw_scores_file}")
+            print("   Please ensure the CSV file exists and contains animal data.")
+            return []
         except Exception as e:
             print(f"⚠️  Erreur chargement animaux: {e}")
             return []
