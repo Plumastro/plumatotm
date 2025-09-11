@@ -297,6 +297,10 @@ class BirthChartAnalyzer:
             # Convert CSV data to the expected JSON structure
             animals = []
             for row in data:
+                # Skip rows with empty animal names
+                if not row["AnimalEN"] or not row["AnimalEN"].strip():
+                    continue
+                    
                 animal_entry = {
                     "ANIMAL": row["AnimalEN"]
                 }
