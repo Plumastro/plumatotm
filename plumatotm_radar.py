@@ -347,8 +347,8 @@ class RadarChartGenerator:
             planet = self.planets[i]
             weight = self.planet_weights.get(planet, 5.0)
             
-            # Calculate node size (doubled)
-            node_size = max(6, min(30, weight * 4))
+            # Calculate node size - scaled so that weight 20 = size 30
+            node_size = max(6, min(30, (weight / 20.0) * 30))
             
             # Draw filled black circle
             ax.scatter(angle, value, s=node_size**2, color='black', zorder=5)
