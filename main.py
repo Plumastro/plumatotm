@@ -247,7 +247,8 @@ def analyze():
                 time=time, 
                 lat=lat,
                 lon=lon,
-                openai_api_key=openai_api_key
+                openai_api_key=openai_api_key,
+                user_name=name
             )
             
             # Load additional results for frontend

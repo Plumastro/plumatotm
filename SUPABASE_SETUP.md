@@ -16,6 +16,7 @@ Dans l'interface Supabase, allez dans l'éditeur SQL et exécutez :
 CREATE TABLE IF NOT EXISTS plumastat_usage (
     plumid TEXT PRIMARY KEY,
     top1_animal TEXT NOT NULL,
+    user_name TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -61,6 +62,7 @@ python supabase_manager.py
 |---------|------|-------------|
 | plumid | TEXT PRIMARY KEY | ID unique basé sur date/heure/location |
 | top1_animal | TEXT | Animal totem principal de l'utilisateur |
+| user_name | TEXT | Nom de l'utilisateur (optionnel) |
 | created_at | TIMESTAMP | Date de création de l'enregistrement |
 | updated_at | TIMESTAMP | Date de dernière mise à jour |
 
@@ -70,6 +72,7 @@ python supabase_manager.py
 {
   "plumid": "1998_12_22_10_13_42D35843_71D05977",
   "top1_animal": "Penguin",
+  "user_name": "Jean Dupont",
   "created_at": "2024-01-15T10:30:00Z",
   "updated_at": "2024-01-15T10:30:00Z"
 }

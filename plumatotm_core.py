@@ -951,7 +951,8 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                         percentage_strength: Dict[str, Dict[str, float]], true_false_table: Dict[str, Dict[str, bool]],
                         utc_time: str = None, timezone_method: str = None, openai_api_key: str = None, 
                         planet_positions: Dict[str, Dict[str, float]] = None,
-                        birth_date: str = None, birth_time: str = None, lat: float = None, lon: float = None):
+                        birth_date: str = None, birth_time: str = None, lat: float = None, lon: float = None,
+                        user_name: str = None):
         """Generate all output files in the outputs directory."""
         
         # Ensure outputs directory exists
@@ -1116,7 +1117,8 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                     time=birth_time,
                     lat=lat,
                     lon=lon,
-                    top1_animal=top1_animal
+                    top1_animal=top1_animal,
+                    user_name=user_name
                 )
                 
                 print(f"📊 Animal statistics saved to: outputs/animal_proportion.json")
@@ -1141,7 +1143,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         import gc
         gc.collect()
     
-    def run_analysis(self, date: str, time: str, lat: float, lon: float, timezone_method: str = None, openai_api_key: str = None, translations_csv_path: str = None):
+    def run_analysis(self, date: str, time: str, lat: float, lon: float, timezone_method: str = None, openai_api_key: str = None, translations_csv_path: str = None, user_name: str = None):
         """Run the complete analysis pipeline."""
         # Format coordinates with proper signs
         lat_sign = "N" if lat >= 0 else "S"
@@ -1192,7 +1194,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         self.generate_outputs(planet_signs, planet_houses, dynamic_weights, raw_scores, 
                             weighted_scores, animal_totals, percentage_strength, true_false_table, 
                             utc_time, timezone_method, openai_api_key, planet_positions,
-                            date, time, lat, lon)
+                            date, time, lat, lon, user_name)
         
         # Memory cleanup after all computations
         del raw_scores  # Free memory after all uses

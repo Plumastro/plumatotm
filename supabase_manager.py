@@ -102,13 +102,14 @@ class SupabaseManager:
             print(f"❌ Erreur récupération utilisateur: {e}")
             return None
     
-    def add_user(self, plumid: str, top1_animal: str) -> bool:
+    def add_user(self, plumid: str, top1_animal: str, user_name: str = None) -> bool:
         """
         Ajoute un nouvel utilisateur à la base de données.
         
         Args:
             plumid: ID unique de l'utilisateur
             top1_animal: Animal top1 de l'utilisateur
+            user_name: Nom de l'utilisateur (optionnel)
             
         Returns:
             True si succès, False sinon
@@ -122,10 +123,15 @@ class SupabaseManager:
                 'top1_animal': top1_animal
             }
             
+            # Add user_name if provided
+            if user_name:
+                data['user_name'] = user_name
+            
             response = self.client.table(self.table_name).insert(data).execute()
             
             if response.data:
-                print(f"✅ Utilisateur ajouté: {plumid} -> {top1_animal}")
+                name_display = f" ({user_name})" if user_name else ""
+                print(f"✅ Utilisateur ajouté: {plumid} -> {top1_animal}{name_display}")
                 return True
             return False
             
@@ -133,13 +139,14 @@ class SupabaseManager:
             print(f"❌ Erreur ajout utilisateur: {e}")
             return False
     
-    def update_user_animal(self, plumid: str, top1_animal: str) -> bool:
+    def update_user_animal(self, plumid: str, top1_animal: str, user_name: str = None) -> bool:
         """
         Met à jour l'animal top1 d'un utilisateur existant.
         
         Args:
             plumid: ID unique de l'utilisateur
             top1_animal: Nouvel animal top1
+            user_name: Nom de l'utilisateur (optionnel)
             
         Returns:
             True si succès, False sinon
@@ -153,10 +160,15 @@ class SupabaseManager:
                 'updated_at': 'NOW()'
             }
             
+            # Add user_name if provided
+            if user_name:
+                data['user_name'] = user_name
+            
             response = self.client.table(self.table_name).update(data).eq('plumid', plumid).execute()
             
             if response.data:
-                print(f"✅ Utilisateur mis à jour: {plumid} -> {top1_animal}")
+                name_display = f" ({user_name})" if user_name else ""
+                print(f"✅ Utilisateur mis à jour: {plumid} -> {top1_animal}{name_display}")
                 return True
             return False
             

@@ -43,13 +43,14 @@ class AnimalStatisticsGenerator:
         """Génère le PlumID pour l'utilisateur actuel."""
         return PlumIDGenerator.generate_plumid(date, time, lat, lon)
     
-    def process_user(self, plumid: str, current_top1_animal: str) -> Dict:
+    def process_user(self, plumid: str, current_top1_animal: str, user_name: str = None) -> Dict:
         """
         Traite un utilisateur: vérifie s'il existe, l'ajoute ou le met à jour.
         
         Args:
             plumid: ID unique de l'utilisateur
             current_top1_animal: Animal top1 actuel
+            user_name: Nom de l'utilisateur (optionnel)
             
         Returns:
             Dictionnaire avec les informations de traitement
@@ -72,10 +73,11 @@ class AnimalStatisticsGenerator:
         
         if existing_animal is None:
             # Nouvel utilisateur
-            success = supabase_manager.add_user(plumid, current_top1_animal)
+            success = supabase_manager.add_user(plumid, current_top1_animal, user_name)
             if success:
                 result['is_new_user'] = True
-                print(f"✅ Nouvel utilisateur ajouté: {plumid}")
+                name_display = f" ({user_name})" if user_name else ""
+                print(f"✅ Nouvel utilisateur ajouté: {plumid}{name_display}")
             else:
                 print(f"❌ Échec ajout utilisateur: {plumid}")
         else:
@@ -83,14 +85,23 @@ class AnimalStatisticsGenerator:
             result['previous_animal'] = existing_animal
             if existing_animal != current_top1_animal:
                 # L'animal a changé
-                success = supabase_manager.update_user_animal(plumid, current_top1_animal)
+                success = supabase_manager.update_user_animal(plumid, current_top1_animal, user_name)
                 if success:
                     result['animal_changed'] = True
-                    print(f"🔄 Animal mis à jour: {existing_animal} -> {current_top1_animal}")
+                    name_display = f" ({user_name})" if user_name else ""
+                    print(f"🔄 Animal mis à jour: {existing_animal} -> {current_top1_animal}{name_display}")
                 else:
                     print(f"❌ Échec mise à jour: {plumid}")
             else:
-                print(f"ℹ️  Animal inchangé: {current_top1_animal}")
+                # Animal inchangé mais on peut mettre à jour le nom si fourni
+                if user_name:
+                    success = supabase_manager.update_user_animal(plumid, current_top1_animal, user_name)
+                    if success:
+                        print(f"ℹ️  Nom mis à jour: {plumid} ({user_name})")
+                    else:
+                        print(f"❌ Échec mise à jour nom: {plumid}")
+                else:
+                    print(f"ℹ️  Animal inchangé: {current_top1_animal}")
         
         return result
     
@@ -161,7 +172,7 @@ class AnimalStatisticsGenerator:
             print(f"❌ Erreur sauvegarde statistiques: {e}")
             return False
     
-    def run_full_analysis(self, date: str, time: str, lat: float, lon: float, top1_animal: str) -> Dict:
+    def run_full_analysis(self, date: str, time: str, lat: float, lon: float, top1_animal: str, user_name: str = None) -> Dict:
         """
         Exécute l'analyse complète des statistiques.
         
@@ -171,6 +182,7 @@ class AnimalStatisticsGenerator:
             lat: Latitude
             lon: Longitude
             top1_animal: Animal top1 de l'utilisateur
+            user_name: Nom de l'utilisateur (optionnel)
             
         Returns:
             Dictionnaire avec toutes les statistiques
@@ -182,7 +194,7 @@ class AnimalStatisticsGenerator:
         print(f"🆔 PlumID généré: {plumid}")
         
         # Traiter l'utilisateur
-        user_result = self.process_user(plumid, top1_animal)
+        user_result = self.process_user(plumid, top1_animal, user_name)
         
         # Générer les statistiques
         statistics = self.generate_animal_proportion(plumid, top1_animal)

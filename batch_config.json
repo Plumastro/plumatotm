@@ -1,0 +1,76 @@
+{
+  "batch_testing_config": {
+    "description": "Configuration for PLUMATOTM batch testing",
+    
+    "basic_tester": {
+      "num_profiles": 1000,
+      "batch_size": 50,
+      "delay_between_analyses": 0.1,
+      "description": "Simple random profile generation"
+    },
+    
+    "advanced_tester": {
+      "num_profiles": 2000,
+      "batch_size": 25,
+      "max_attempts_per_animal": 100,
+      "description": "Strategic animal targeting with location/season optimization"
+    },
+    
+    "targeting_options": {
+      "target_specific_animals": null,
+      "avoid_animals": ["Snake"],
+      "description": "Set to specific animal names to target only those, or null for all"
+    },
+    
+    "location_strategies": {
+      "use_arctic_locations": true,
+      "use_tropical_locations": true,
+      "use_desert_locations": true,
+      "use_oceanic_locations": true,
+      "use_mountain_locations": true,
+      "use_forest_locations": true,
+      "description": "Enable/disable different location types for animal diversity"
+    },
+    
+    "time_strategies": {
+      "use_seasonal_targeting": true,
+      "use_time_of_day_targeting": true,
+      "description": "Use seasonal and time-of-day strategies"
+    },
+    
+    "output_options": {
+      "save_detailed_results": true,
+      "save_csv_summary": true,
+      "save_animal_coverage_report": true,
+      "output_directory": "outputs",
+      "description": "Output file options"
+    },
+    
+    "database_options": {
+      "check_existing_animals": true,
+      "skip_existing_animals": false,
+      "description": "Database interaction options"
+    }
+  },
+  
+  "example_usage": {
+    "basic_batch": "python batch_tester.py",
+    "advanced_batch": "python advanced_batch_tester.py",
+    "custom_config": "Modify this file and use the config in your scripts"
+  },
+  
+  "animal_targeting_examples": {
+    "target_rare_animals": [
+      "Beetle", "Manta Ray", "Dragonfly", "Orca", "Hummingbird"
+    ],
+    "avoid_common_animals": [
+      "Cat", "Dog", "Horse", "Bear", "Eagle"
+    ],
+    "target_marine_animals": [
+      "Dolphin", "Whale", "Shark", "Octopus", "Manta Ray", "Orca"
+    ],
+    "target_arctic_animals": [
+      "Penguin", "Polar Bear", "Husky", "Caribou", "Snow Leopard"
+    ]
+  }
+}
