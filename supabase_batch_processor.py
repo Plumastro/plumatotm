@@ -309,13 +309,57 @@ def main():
     print("🌐 This will update your Supabase database!")
     print("=" * 60)
     
-    # Your 500 profiles
-    profiles_input = '''
-{
-  "name": "",
-  "date": "1972-10-18",
-  "time": "20:44",
-  "lat": 41.133806,
+    # Load profiles from JSON file
+    try:
+        with open('plumastro_1000_profiles.json', 'r', encoding='utf-8') as f:
+            profiles_data = json.load(f)
+        
+        # Convert to the format expected by the processor
+        profiles_input = '\n'.join([json.dumps(profile) for profile in profiles_data])
+        print(f"📊 Loaded {len(profiles_data)} profiles from plumastro_1000_profiles.json")
+        
+    except FileNotFoundError:
+        print("❌ Error: plumastro_1000_profiles.json not found!")
+        return
+    except json.JSONDecodeError as e:
+        print(f"❌ Error parsing JSON: {e}")
+        return
+    except Exception as e:
+        print(f"❌ Error loading profiles: {e}")
+        return
+    
+    # Configuration
+    supabase_config = "supabase_config.py"
+    
+    # Check if Supabase config exists
+    if not os.path.exists(supabase_config):
+        print(f"❌ Supabase config file not found: {supabase_config}")
+        print("Please create the config file or update the path")
+        return
+    
+    # Create processor
+    processor = SupabaseBatchProcessor(supabase_config)
+    
+    # Process the batch
+    try:
+        result = processor.process_batch(profiles_input)
+        
+        if result['success']:
+            print(f"\n🎉 Batch processing completed successfully!")
+            print(f"📊 Processed {result['total_profiles']} profiles")
+            print(f"✅ {result['successful_analyses']} successful analyses")
+            print(f"❌ {result['failed_analyses']} failed analyses")
+            print(f"🎯 Found {result['unique_animals']} unique animals")
+        else:
+            print(f"\n❌ Batch processing failed: {result.get('error', 'Unknown error')}")
+            
+    except Exception as e:
+        print(f"\n❌ Error during batch processing: {e}")
+        import traceback
+        traceback.print_exc()
+
+if __name__ == "__main__":
+    main()
   "lon": 28.835051,
   "country": "",
   "state": ""

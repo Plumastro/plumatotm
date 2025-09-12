@@ -1,83 +1,147 @@
 AnimalEN,AnimalFR,DeterminantAnimalFR,ArticleAnimalFR,Aries,Taurus,Gemini,Cancer,Leo,Virgo,Libra,Scorpio,Sagittarius,Capricorn,Aquarius,Pisces
-Butterfly,Papillon,le Papillon,du Papillon,46,46,69,35,63,49,67,26,57,17,76,53
-Dolphin,Dauphin,le Dauphin,du Dauphin,38,33,62,52,60,40,55,38,67,27,64,69
-Grass Snake,Couleuvre,la Couleuvre,de la Couleuvre,64,41,67,36,37,57,64,73,31,52,30,47
-Turtle,Tortue,la Tortue,de la Tortue,32,57,26,79,28,53,45,66,25,79,28,78
-Eagle,Aigle,l'Aigle,de l'Aigle,70,51,48,25,68,39,41,66,55,43,61,33
-Horse,Cheval,le Cheval,du Cheval,73,45,62,24,71,48,56,16,73,35,65,36
-Zebra,ZÃ¨bre,le ZÃ¨bre,du ZÃ¨bre,54,49,67,34,60,38,66,25,56,41,71,41
-Bear,Ours,l'Ours,de l'Ours,54,60,35,77,67,52,21,58,40,66,21,47
-Octopus,Poulpe,le Poulpe,du Poulpe,30,64,61,52,16,52,43,62,32,41,72,72
-Mountain Goat,Bouquetin,le Bouquetin,du Bouquetin,64,46,37,41,35,60,34,58,44,77,65,36
-Otter,Loutre,la Loutre,de la Loutre,43,34,65,51,63,53,72,31,57,19,64,53
-Penguin,Pingouin,le Pingouin,du Pingouin,33,47,50,68,27,45,41,58,26,73,75,55
-Shark,Requin,le Requin,du Requin,70,34,45,44,61,42,25,68,40,64,58,51
-Lynx,Lynx,le Lynx,du Lynx,54,30,39,63,66,52,23,67,41,47,58,64
-Panther,PanthÃ¨re,la PanthÃ¨re,de la PanthÃ¨re,71,68,35,33,69,36,37,68,52,53,36,40
-Gazelle,Gazelle,la Gazelle,de la Gazelle,58,41,66,33,59,52,63,22,70,33,68,39
-Chameleon,CamÃ©lÃ©on,le CamÃ©lÃ©on,du CamÃ©lÃ©on,39,36,72,44,24,51,61,60,40,29,70,75
-Falcon,Faucon,le Faucon,du Faucon,71,25,62,20,71,40,54,53,65,41,73,30
-Raven,Corbeau,le Corbeau,du Corbeau,31,29,68,39,36,47,44,59,58,50,70,72
-Peacock,Paon,le Paon,du Paon,64,62,54,31,71,35,67,22,62,24,61,51
-Crane,Grue,la Grue,de la Grue,23,57,54,62,34,43,66,31,60,46,56,68
-Whale,Baleine,la Baleine,de la Baleine,33,42,27,78,60,55,35,59,45,51,35,78
-Jaguar,Jaguar,le Jaguar,du Jaguar,74,45,49,35,65,34,31,70,52,51,58,39
-Hare,LiÃ¨vre,le LiÃ¨vre,du LiÃ¨vre,44,48,73,36,38,56,69,23,68,27,76,43
-Stag,Cerf,le Cerf,du Cerf,53,56,39,55,73,53,61,25,67,56,31,31
-Seahorse,Hippocampe,l'Hippocampe,de l'Hippocampe,28,43,43,74,29,51,44,63,30,54,63,78
-Cat,Chat,le Chat,du Chat,43,48,65,26,74,45,63,51,45,40,68,34
-Dog (belgian malinois),Malinois,le Malinois,du Malinois,74,61,51,42,74,52,26,59,68,54,31,6
-Lemur,LÃ©murien,le LÃ©murien,du LÃ©murien,51,39,72,35,35,55,56,38,63,31,69,58
-Koala,Koala,le Koala,du Koala,24,59,42,78,34,53,64,32,37,62,35,78
-Snow Leopard,LÃ©opard des neiges,le LÃ©opard des neiges,du LÃ©opard des neiges,66,55,45,24,66,29,29,66,56,47,67,54
-Frog,Grenouille,la Grenouille,de la Grenouille,32,45,55,76,29,53,49,60,43,39,41,77
-Raccoon,Raton laveur,le Raton laveur,du Raton laveur,44,36,72,30,35,51,60,61,47,33,74,58
-Jellyfish,MÃ©duse,la MÃ©duse,de la MÃ©duse,29,61,49,72,26,44,53,55,31,47,56,75
-Lizard,LÃ©zard,le LÃ©zard,du LÃ©zard,58,44,67,32,32,50,39,55,62,35,75,52
-Bee,Abeille,l'Abeille,de l'Abeille,43,52,70,49,24,71,68,29,44,54,77,16
-Macaw,Perroquet,le Perroquet,du Perroquet,63,35,70,29,67,47,63,20,70,29,68,44
-Caribou,Caribou,le Caribou,du Caribou,58,64,30,59,32,42,35,53,72,58,40,56
-Cobra,Cobra,le Cobra,du Cobra,70,25,51,40,69,39,35,69,43,48,62,54
-Pelican,PÃ©lican,le PÃ©lican,du PÃ©lican,54,35,49,63,37,37,66,43,55,36,62,69
-Cheetah,GuÃ©pard,le GuÃ©pard,du GuÃ©pard,72,38,57,30,71,53,51,45,62,35,56,33
-Squirrel,Ã‰cureuil,l'Ã‰cureuil,de l'Ã‰cureuil,48,35,75,36,37,59,71,33,65,35,71,39
-Wolf,Loup,le Loup,du Loup,74,36,48,55,63,45,35,68,57,49,37,37
-Owl,Hibou,le Hibou,du Hibou,25,51,56,39,20,55,53,60,42,53,71,73
-Tiger,Tigre,le Tigre,du Tigre,72,44,51,41,75,35,34,51,63,47,61,29
-Swan,Cygne,le Cygne,du Cygne,22,46,36,67,60,53,75,55,41,39,38,68
-Elephant,Ã‰lÃ©phant,l'Ã‰lÃ©phant,de l'Ã‰lÃ©phant,43,71,29,63,39,60,49,53,48,66,30,43
-Fox,Renard,le Renard,du Renard,58,22,67,32,63,43,75,48,67,41,64,26
-Panda,Panda,le Panda,du Panda,37,69,32,67,32,50,81,52,26,53,29,67
-Donkey,Ã‚ne,l'Ã‚ne,de l'Ã‚ne,41,61,41,48,32,61,64,34,47,78,60,31
-Monkey,Singe,le Singe,du Singe,59,34,72,29,59,45,65,39,67,27,74,35
-Gorilla,Gorille,le Gorille,du Gorille,60,59,17,62,76,59,46,62,36,66,26,26
-Cow,Vache,la Vache,de la Vache,41,71,39,65,38,63,45,47,41,72,26,46
-Hedgehog,HÃ©risson,le HÃ©risson,du HÃ©risson,26,49,54,72,25,72,40,60,29,70,41,57
-Sheep,Mouton,le Mouton,du Mouton,25,65,39,75,64,48,69,18,40,55,26,75
-Llama,Lama,le Lama,du Lama,39,68,54,41,64,49,56,29,66,63,27,43
-Crocodile,Crocodile,le Crocodile,du Crocodile,72,59,29,44,71,46,28,74,39,69,30,38
-Hippopotamus,Hippopotame,l'Hippopotame,de l'Hippopotame,49,69,38,68,40,55,35,58,39,66,20,57
-Polar Bear,Ours polaire,l'Ours polaire,de l'Ours polaire,64,65,28,46,76,43,27,58,49,70,35,37
-Kangaroo,Kangourou,le Kangourou,du Kangourou,69,50,59,37,70,38,55,55,74,36,38,21
-Camel,Chameau,le Chameau,du Chameau,59,68,44,43,64,46,40,52,58,69,27,28
-Beaver,Castor,le Castor,du Castor,46,71,38,65,29,72,50,55,30,79,29,26
-Capybara,Capybara,le Capybara,du Capybara,24,62,48,71,36,55,66,32,47,49,32,76
-Goose,Oie,l'Oie,de l'Oie,33,60,43,74,38,57,36,62,39,56,21,75
-Dog (bulldog),Bulldog,le Bulldog,du Bulldog,60,67,33,65,73,60,35,59,31,70,17,26
-Dog (great dane),Dogue allemand,le Dogue allemand,du Dogue allemand,57,54,28,43,75,46,60,33,69,65,35,37
-Dog (border collie),Border collie,le Border collie,du Border collie,68,52,66,27,38,66,42,27,62,53,63,35
-Dog (golden retriever),Golden retriever,le Golden retriever,du Golden retriever,59,57,41,75,60,59,65,31,40,52,24,36
-Dog (rottweiler),Rottweiler,le Rottweiler,du Rottweiler,73,49,36,39,69,55,30,72,45,63,38,29
-Dog (siberian husky),Husky sibÃ©rien,le Husky sibÃ©rien,du Husky sibÃ©rien,67,50,51,21,57,55,30,51,69,48,68,33
-Dog (dalmatian),Dalmatien,le Dalmatien,du Dalmatien,60,45,48,28,69,56,56,33,55,44,70,37
-Boa Constrictor,Boa constricteur,le Boa constricteur,du Boa constricteur,37,52,33,50,31,63,35,81,48,72,35,60
-Duck,Canard,le Canard,du Canard,31,56,55,74,30,48,48,37,64,54,30,73
-Bat,Chauve-souris,la Chauve-souris,de la Chauve-souris,28,57,52,58,26,42,35,69,43,52,67,68
-Rabbit,Lapin,le Lapin,du Lapin,33,56,55,73,29,53,77,51,33,31,31,76
-Swallow,Hirondelle,l'Hirondelle,de l'Hirondelle,40,34,67,54,59,42,63,36,72,28,63,46
-Giraffe,Girafe,la Girafe,de la Girafe,45,53,39,38,70,51,76,40,46,54,58,31
-Beetle,ScarabÃ©e,le ScarabÃ©e,du ScarabÃ©e,61,61,39,64,33,48,35,70,38,56,25,69
-Manta Ray,Raie manta,la Raie manta,de la Raie manta,34,51,45,73,30,43,43,64,48,52,43,76
-Dragonfly,Libellule,la Libellule,de la Libellule,72,27,73,39,36,54,61,60,42,27,69,45
-Orca,Orque,l'Orque,de l'Orque,54,51,47,74,63,32,36,55,41,52,33,66
-Mole,Taupe,la Taupe,de la Taupe,39,56,37,59,24,63,39,72,34,76,35,60
+Butterfly,Papillon,le Papillon,du Papillon,48,35,75,37,60,58,70,20,58,8,80,52
+Dolphin,Dauphin,le Dauphin,du Dauphin,40,25,69,52,57,34,56,31,73,19,66,78
+Grass Snake,Couleuvre,la Couleuvre,de la Couleuvre,63,52,71,35,42,47,63,81,23,47,25,48
+Turtle,Tortue,la Tortue,de la Tortue,31,67,25,74,23,60,45,70,19,82,25,77
+Eagle,Aigle,l'Aigle,de l'Aigle,74,38,51,23,72,34,44,78,56,40,61,30
+Horse,Cheval,le Cheval,du Cheval,75,36,67,25,75,43,57,12,78,33,65,37
+Zebra,Zèbre,le Zèbre,du Zèbre,56,37,76,35,58,33,71,17,59,37,79,44
+Bear,Ours,l'Ours,de l'Ours,51,75,30,81,67,44,13,65,38,76,8,51
+Parrot,Perroquet,le Perroquet,du Perroquet,0,0,0,0,0,0,0,0,0,0,0,0
+Octopus,Poulpe,le Poulpe,du Poulpe,29,49,69,54,-7,65,47,72,26,37,77,82
+Mountain Goat,Bouquetin,le Bouquetin,du Bouquetin,62,57,34,43,39,67,34,51,41,81,59,33
+Otter,Loutre,la Loutre,de la Loutre,48,27,73,51,65,45,78,24,60,10,67,54
+Penguin,Pingouin,le Pingouin,du Pingouin,30,59,45,68,17,53,40,62,15,81,76,52
+Shark,Requin,le Requin,du Requin,73,26,41,49,58,35,21,78,39,74,55,50
+Lynx,Lynx,le Lynx,du Lynx,55,22,34,65,68,45,16,78,41,51,55,70
+Panther,Panthère,la Panthère,de la Panthère,74,49,32,34,72,31,37,79,51,59,42,40
+Gazelle,Gazelle,la Gazelle,de la Gazelle,59,31,74,35,56,45,67,14,79,27,73,41
+Chameleon,Caméléon,le Caméléon,du Caméléon,39,27,77,47,15,61,60,66,37,21,69,81
+Falcon,Faucon,le Faucon,du Faucon,75,19,67,16,77,34,54,49,71,37,78,24
+Raven,Corbeau,le Corbeau,du Corbeau,27,21,73,39,41,38,45,66,56,46,70,79
+Peacock,Paon,le Paon,du Paon,68,46,61,32,78,31,72,15,67,17,62,52
+Crane,Grue,la Grue,de la Grue,18,42,60,65,43,37,71,23,65,43,54,79
+Hummingbird,Colibri,le Colibri,du Colibri,0,0,0,0,0,0,0,0,0,0,0,0
+Whale,Baleine,la Baleine,de la Baleine,34,54,26,74,50,46,34,62,46,53,38,80
+Jaguar,Jaguar,le Jaguar,du Jaguar,76,36,47,38,64,33,32,79,51,49,56,41
+Crow,Corneille,la Corneille,de la Corneille,0,0,0,0,0,0,0,0,0,0,0,0
+Hare,Lièvre,le Lièvre,du Lièvre,44,34,80,34,48,66,71,11,70,18,80,44
+Stag,Cerf,le Cerf,du Cerf,51,72,33,55,80,44,62,14,72,62,29,24
+Seahorse,Hippocampe,l'Hippocampe,de l'Hippocampe,26,55,38,71,24,59,44,66,22,55,57,81
+Cat,Chat,le Chat,du Chat,44,35,72,21,79,53,63,56,45,34,70,29
+Dog (belgian malinois),Malinois,le Malinois,du Malinois,79,45,54,44,81,63,20,67,74,60,31,-17
+Lemur,Lémurien,le Lémurien,du Lémurien,50,30,79,37,43,47,56,32,67,25,73,61
+Koala,Koala,le Koala,du Koala,18,73,35,77,35,61,61,24,32,66,35,82
+Snow Leopard,Léopard des neiges,le Léopard des neiges,du Léopard des neiges,68,40,42,20,69,24,24,77,57,52,71,56
+Frog,Grenouille,la Grenouille,de la Grenouille,26,56,48,75,22,60,50,63,40,31,45,81
+Raccoon,Raton laveur,le Raton laveur,du Raton laveur,45,25,79,25,43,42,61,69,48,24,80,60
+Jellyfish,Méduse,la Méduse,de la Méduse,32,48,48,73,22,55,53,62,29,46,53,81
+Lizard,Lézard,le Lézard,du Lézard,58,32,73,31,37,43,40,61,65,30,80,51
+Bee,Abeille,l'Abeille,de l'Abeille,45,65,74,53,14,83,67,22,42,58,77,2
+Antelope,Antilope,l'Antilope,de l'Antilope,0,0,0,0,0,0,0,0,0,0,0,0
+Coyote,Coyote,le Coyote,du Coyote,0,0,0,0,0,0,0,0,0,0,0,0
+Macaw,Perroquet,le Perroquet,du Perroquet,64,26,78,28,70,40,65,12,78,23,71,47
+Caribou,Caribou,le Caribou,du Caribou,58,48,25,60,38,36,34,48,80,66,50,58
+Cobra,Cobra,le Cobra,du Cobra,70,19,53,41,70,33,32,78,42,50,59,54
+Pelican,Pélican,le Pélican,du Pélican,55,26,46,65,49,31,70,36,54,29,62,78
+Cheetah,Guépard,le Guépard,du Guépard,78,29,64,31,79,46,51,41,66,30,55,30
+Squirrel,Écureuil,l'Écureuil,de l'Écureuil,50,26,80,35,45,69,72,23,66,27,73,36
+Wolf,Loup,le Loup,du Loup,77,26,43,54,62,37,33,79,56,54,42,36
+Owl,Hibou,le Hibou,du Hibou,19,36,59,40,4,66,52,68,43,57,74,81
+Tiger,Tigre,le Tigre,du Tigre,74,34,54,44,78,32,34,57,65,44,59,25
+Swan,Cygne,le Cygne,du Cygne,17,60,30,68,56,45,80,51,41,34,44,74
+Elephant,Éléphant,l'Éléphant,de l'Éléphant,42,82,25,59,44,66,48,55,46,68,25,40
+Fox,Renard,le Renard,du Renard,58,17,73,30,61,52,78,41,72,36,64,17
+Panda,Panda,le Panda,du Panda,39,82,30,65,34,59,77,46,19,55,27,67
+Donkey,Âne,l'Âne,de l'Âne,42,72,38,51,32,68,61,30,47,82,52,27
+Monkey,Singe,le Singe,du Singe,60,25,79,27,55,53,67,32,72,20,79,33
+Gorilla,Gorille,le Gorille,du Gorille,59,76,10,62,81,49,48,69,31,76,20,16
+Cow,Vache,la Vache,de la Vache,40,82,31,64,46,74,44,38,36,80,18,46
+Hedgehog,Hérisson,le Hérisson,du Hérisson,21,61,48,70,14,83,38,65,20,78,46,55
+Sheep,Mouton,le Mouton,du Mouton,20,81,33,75,58,57,69,9,37,59,20,81
+Llama,Lama,le Lama,du Lama,39,81,54,43,55,57,51,24,65,66,24,42
+Crocodile,Crocodile,le Crocodile,du Crocodile,70,71,25,47,67,40,25,80,37,74,28,36
+Hippopotamus,Hippopotame,l'Hippopotame,de l'Hippopotame,52,81,35,65,50,47,35,61,36,70,13,54
+Polar Bear,Ours polaire,l'Ours polaire,de l'Ours polaire,61,80,22,48,76,36,21,62,49,77,35,32
+Kangaroo,Kangourou,le Kangourou,du Kangourou,70,64,63,37,71,32,53,48,80,30,42,9
+Camel,Chameau,le Chameau,du Chameau,57,81,41,46,55,55,41,46,54,73,25,23
+Beaver,Castor,le Castor,du Castor,48,83,35,63,25,79,53,58,25,84,26,20
+Deer,Daim,le Daim,du Daim,0,0,0,0,0,0,0,0,0,0,0,0
+Capybara,Capybara,le Capybara,du Capybara,17,77,42,71,39,63,65,23,46,44,31,82
+Goose,Oie,l'Oie,de l'Oie,30,75,38,75,46,47,33,68,36,62,8,82
+Elk,Élan,l'Élan,de l'Élan,0,0,0,0,0,0,0,0,0,0,0,0
+Dog (bulldog),Bulldog,le Bulldog,du Bulldog,60,81,33,64,71,52,36,65,29,77,8,23
+Dog (great dane),Dogue allemand,le Dogue allemand,du Dogue allemand,55,67,20,44,79,37,59,23,73,73,38,33
+Dog (border collie),Border collie,le Border collie,du Border collie,70,37,73,23,52,79,43,17,64,50,62,32
+Dog (cocker spaniel),Cocker,le Cocker,du Cocker,0,0,0,0,0,0,0,0,0,0,0,0
+Dog (golden retriever),Golden retriever,le Golden retriever,du Golden retriever,61,76,37,81,57,51,69,24,40,51,17,36
+Dog (rottweiler),Rottweiler,le Rottweiler,du Rottweiler,75,62,31,39,67,45,25,80,45,70,43,20
+Dog (siberian husky),Husky sibérien,le Husky sibérien,du Husky sibérien,72,37,57,17,55,48,28,48,79,55,73,30
+Dog (dalmatian),Dalmatien,le Dalmatien,du Dalmatien,64,34,46,27,78,48,60,27,58,43,78,38
+Boa Constrictor,Boa constricteur,le Boa constricteur,du Boa constricteur,36,62,30,50,28,69,33,82,46,74,35,56
+Tucan,Toucan,le Toucan,du Toucan,0,0,0,0,0,0,0,0,0,0,0,0
+Duck,Canard,le Canard,du Canard,26,71,51,77,26,39,51,27,65,58,27,81
+Pig,Cochon,le Cochon,du Cochon,0,0,0,0,0,0,0,0,0,0,0,0
+Bat,Chauve-souris,la Chauve-souris,de la Chauve-souris,25,42,49,58,19,51,34,81,43,57,68,74
+Rabbit,Lapin,le Lapin,du Lapin,31,70,52,74,24,62,79,44,28,24,30,82
+Swallow,Hirondelle,l'Hirondelle,de l'Hirondelle,41,25,73,53,53,51,65,28,79,20,63,49
+Giraffe,Girafe,la Girafe,de la Girafe,46,67,34,38,70,61,80,31,46,50,54,23
+Menthe religieuse,Mante religieuse,la Mante religieuse,de la Mante religieuse,0,0,0,0,0,0,0,0,0,0,0,0
+bison,Bison,le Bison,du Bison,0,0,0,0,0,0,0,0,0,0,0,0
+Ant,Forumi,la Fourmi,de la Fourmi,0,0,0,0,0,0,0,0,0,0,0,0
+Beetle,Scarabée,le Scarabée,du Scarabée,61,44,34,64,35,57,32,81,36,63,17,74
+Manta Ray,Raie manta,la Raie manta,de la Raie manta,31,62,39,71,26,35,42,69,48,47,51,80
+Dragonfly,Libellule,la Libellule,de la Libellule,75,18,80,39,43,43,61,68,40,15,71,47
+Orca,Orque,l'Orque,de l'Orque,53,36,42,78,62,26,34,63,40,57,33,73
+Mole,Taupe,la Taupe,de la Taupe,39,69,32,55,12,72,38,78,28,83,35,58
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
+,,,,0,0,0,0,0,0,0,0,0,0,0,0
