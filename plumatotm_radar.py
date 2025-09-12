@@ -347,11 +347,17 @@ class RadarChartGenerator:
             planet = self.planets[i]
             weight = self.planet_weights.get(planet, 5.0)
             
-            # Calculate node size - scaled so that weight 20 = size 30
-            node_size = max(6, min(30, (weight / 20.0) * 30))
+            # Calculate surface area directly proportional to weight
+            # Scale so that weight 23 (Sun) = surface area 900, weight 2 = surface area ~78
+            # Formula: surface_area = (weight / max_weight) * max_surface_area
+            max_weight = 23.0  # Sun's weight
+            max_surface_area = 900.0  # Desired max surface area
+            min_surface_area = 50.0   # Minimum surface area for visibility
             
-            # Draw filled black circle
-            ax.scatter(angle, value, s=node_size**2, color='black', zorder=5)
+            surface_area = max(min_surface_area, (weight / max_weight) * max_surface_area)
+            
+            # Draw filled black circle with proportional surface area
+            ax.scatter(angle, value, s=surface_area, color='black', zorder=5)
         
         # Set the labels - use custom icons if available, otherwise use text
         if any(planet in self.custom_icons for planet in self.planets):
