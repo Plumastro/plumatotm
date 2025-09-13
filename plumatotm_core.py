@@ -623,16 +623,16 @@ class BirthChartAnalyzer:
             
             for planet, sign in planet_signs.items():
                 if sign in animal_data:
-                    scores[planet] = int(animal_data[sign])
+                    scores[planet] = safe_float(animal_data[sign])
                 else:
                     print(f"Warning: No score found for {animal_name} - {sign}")
-                    scores[planet] = 0
+                    scores[planet] = 0.0
             
             raw_scores[animal_name] = scores
         
         return raw_scores
     
-    def compute_weighted_scores(self, raw_scores: Dict[str, Dict[str, int]], dynamic_weights: Dict[str, float]) -> Dict[str, Dict[str, float]]:
+    def compute_weighted_scores(self, raw_scores: Dict[str, Dict[str, float]], dynamic_weights: Dict[str, float]) -> Dict[str, Dict[str, float]]:
         """Apply dynamic planet weights to raw scores."""
         weighted_scores = {}
         
