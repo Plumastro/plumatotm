@@ -67,11 +67,17 @@ ZODIAC_SIGNS = [
 ]
 
 # Utility functions to replace pandas functionality
-def read_csv_to_dict(csv_path: str, encoding: str = 'utf-8') -> List[Dict[str, Any]]:
+def read_csv_to_dict(csv_path: str, encoding: str = 'utf-8-sig') -> List[Dict[str, Any]]:
     """Read CSV file and return list of dictionaries."""
     data = []
     try:
         with open(csv_path, 'r', encoding=encoding) as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                data.append(dict(row))
+    except UnicodeDecodeError:
+        # Try with utf-8 encoding (without BOM)
+        with open(csv_path, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 data.append(dict(row))
