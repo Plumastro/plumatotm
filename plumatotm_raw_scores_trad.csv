@@ -1,99 +1,99 @@
 ﻿AnimalEN,AnimalFR,DeterminantAnimalFR,ArticleAnimalFR,Aries,Taurus,Gemini,Cancer,Leo,Virgo,Libra,Scorpio,Sagittarius,Capricorn,Aquarius,Pisces
-Butterfly,Papillon,le Papillon,du Papillon,44.6,36.8,74.9,37.5,56,56.6,69.2,26.2,53.8,20.1,78.3,48.5
-Dolphin,Dauphin,le Dauphin,du Dauphin,38.9,25,68.8,51.9,55.1,35.5,55.1,30.3,73.6,20.1,64,79.7
-Grass Snake,Couleuvre,la Couleuvre,de la Couleuvre,65.2,52,71.1,32.3,45,45.5,64.9,79.9,19.6,46.5,24.2,51
-Turtle,Tortue,la Tortue,de la Tortue,32.3,67.9,26.3,73.6,22.7,61.5,46.7,67.7,19.6,80.5,26.1,75.2
-Eagle,Aigle,l'Aigle,de l'Aigle,74.8,36.1,52.8,20.2,70.9,32.5,45.2,79.9,56.2,39,60.6,29.7
-Horse,Cheval,le Cheval,du Cheval,75.2,35.9,65.7,28.5,73.3,41.8,52.6,20,78.4,32.5,61.2,34.1
-Zebra,Zèbre,le Zèbre,du Zèbre,53.6,36.5,76.7,35.5,56.1,34.5,72.6,20,56.3,36.4,78.3,40.8
-Bear,Ours,l'Ours,de l'Ours,45.3,76.3,34.3,80.9,61.9,42.3,23.1,60.8,35.8,74.6,19.6,44
+Butterfly,Papillon,le Papillon,du Papillon,44.2,36.5,74.8,37.2,55.9,56.3,69,26.1,53.6,20.1,78.4,48.2
+Dolphin,Dauphin,le Dauphin,du Dauphin,38.9,25,68.8,51.8,55.2,35.5,55.1,30.3,73.7,20.1,64.1,79.8
+Grass Snake,Couleuvre,la Couleuvre,de la Couleuvre,65.5,52.6,71.3,32.6,45.6,46,65.2,79.9,19.6,47.1,24.4,51.7
+Turtle,Tortue,la Tortue,de la Tortue,32.2,67.8,26.3,73.5,22.8,61.4,46.6,67.7,19.6,80.5,26.1,75.3
+Eagle,Aigle,l'Aigle,de l'Aigle,74.7,36.1,52.8,20.2,71,32.4,45.3,79.9,56.4,39,60.8,29.8
+Horse,Cheval,le Cheval,du Cheval,75.3,36.2,66,28.7,73.5,42.2,53.1,20,78.5,32.7,61.6,34.4
+Zebra,Zèbre,le Zèbre,du Zèbre,53.9,36.7,76.7,35.7,56.5,34.6,72.6,20,56.8,36.6,78.4,41.1
+Bear,Ours,l'Ours,de l'Ours,46.4,76.4,34.8,80.8,62.6,43.1,23.2,61.5,36.4,74.9,19.6,44.9
 Parrot,Perroquet,le Perroquet,du Perroquet,0,0,0,0,0,0,0,0,0,0,0,0
-Octopus,Poulpe,le Poulpe,du Poulpe,32.4,40.9,63,45.1,19.6,60.1,39.4,67.7,30.4,34.7,70.8,79.7
-Mountain Goat,Bouquetin,le Bouquetin,du Bouquetin,68.2,65.7,21.1,41.8,43,73,20.1,57.7,44.3,80.5,64.5,21.2
-Otter,Loutre,la Loutre,de la Loutre,43.5,30.4,72.7,46.7,60.1,43.8,80.5,27.6,55.3,20.1,63,49.8
-Penguin,Pingouin,le Pingouin,du Pingouin,31.1,58.1,44.1,67.4,22.9,51.6,40,59.8,19.6,80.5,71.8,50.6
-Shark,Requin,le Requin,du Requin,74,24.2,42.5,48.4,58.1,36.9,20.1,79.9,37.2,75.4,54.1,49.9
-Lynx,Lynx,le Lynx,du Lynx,52.7,24.1,35.9,66.7,67.8,44.6,20.1,79.9,37.7,47.9,51.6,71
-Panther,Panthère,la Panthère,de la Panthère,76.1,54.9,23.4,26.9,72.9,20.4,33.8,79.9,56.8,65.5,45.4,38.3
-Gazelle,Gazelle,la Gazelle,de la Gazelle,57.3,33.1,73.9,35.1,52.3,44.4,66.6,20,78.4,29.5,70.1,37.1
-Chameleon,Caméléon,le Caméléon,du Caméléon,40.3,28.9,75.3,46.4,19.6,59.8,59.3,63.6,36.8,24.5,65.8,79.7
-Falcon,Faucon,le Faucon,du Faucon,76.5,23.1,67.1,20.2,78.5,35.3,49.9,43.1,69.4,33.5,78.3,23.6
-Raven,Corbeau,le Corbeau,du Corbeau,27.4,20.5,73.7,37.6,36.6,40.3,43.7,67.5,57.3,43.7,70.7,79.7
-Peacock,Paon,le Paon,du Paon,67.2,42.7,57.6,32.5,78.5,33.2,74.3,20,65,21.9,58.1,47.3
-Crane,Grue,la Grue,de la Grue,19.9,42.4,59.9,66.6,39.6,39.5,72.4,22.3,62.9,42.7,53.2,79.7
+Octopus,Poulpe,le Poulpe,du Poulpe,33.7,44.4,64.8,49,19.6,62.4,42.5,69,31.7,36.3,71.8,79.8
+Mountain Goat,Bouquetin,le Bouquetin,du Bouquetin,67.5,64.9,21,40.7,41.8,72.5,20.1,56.3,43.1,80.5,64,21.1
+Otter,Loutre,la Loutre,de la Loutre,44.3,30.8,72.9,47.6,60.8,44.6,80.4,27.8,56.2,20.1,63.6,50.9
+Penguin,Pingouin,le Pingouin,du Pingouin,31.5,58.8,44.8,67.8,23,52.5,40.5,60.4,19.6,80.5,72.1,51.5
+Shark,Requin,le Requin,du Requin,73.9,24.2,42.1,47.9,57.8,36.6,20.1,79.9,37,75.3,53.8,49.5
+Lynx,Lynx,le Lynx,du Lynx,52.5,24,35.8,66.5,67.8,44.4,20.1,79.9,37.6,47.7,51.5,71
+Panther,Panthère,la Panthère,de la Panthère,75.9,53.3,23.2,26.5,72.8,20.4,33.1,79.9,55.5,64.9,44.3,37.5
+Gazelle,Gazelle,la Gazelle,de la Gazelle,57.6,33.3,73.9,35.4,52.8,44.8,66.8,20,78.5,29.6,70.4,37.4
+Chameleon,Caméléon,le Caméléon,du Caméléon,40.4,28.9,75.2,46.5,19.6,59.9,59.4,63.7,37,24.5,66,79.8
+Falcon,Faucon,le Faucon,du Faucon,76.4,23.1,67.1,20.2,78.5,35.2,49.9,43.2,69.6,33.6,78.4,23.7
+Raven,Corbeau,le Corbeau,du Corbeau,27.2,20.5,73.4,37,36.1,39.6,42.9,67.1,56.8,42.9,70.6,79.8
+Peacock,Paon,le Paon,du Paon,67.5,43.1,58.1,32.7,78.5,33.4,74.4,20,65.5,21.9,58.7,48.1
+Crane,Grue,la Grue,de la Grue,19.9,42.1,59.6,66.3,39.4,39.2,72.2,22.3,62.8,42.4,53,79.8
 Hummingbird,Colibri,le Colibri,du Colibri,0,0,0,0,0,0,0,0,0,0,0,0
-Whale,Baleine,la Baleine,de la Baleine,30.8,58.8,20.1,76.8,54.6,49.7,32.4,64.7,48.2,57.7,37.4,79.7
-Jaguar,Jaguar,le Jaguar,du Jaguar,78.3,24.8,54,33.7,67.4,20.4,21.2,79.9,59.6,57.1,61.7,40.4
+Whale,Baleine,la Baleine,de la Baleine,30.1,57.3,20.1,76.5,52.9,47.9,31.6,63.8,46.6,56.3,36.4,79.8
+Jaguar,Jaguar,le Jaguar,du Jaguar,78.1,24.5,51.9,32.9,66.8,20.4,21.1,79.9,58.6,54.8,60.9,39.2
 Crow,Corneille,la Corneille,de la Corneille,0,0,0,0,0,0,0,0,0,0,0,0
-Hare,Lièvre,le Lièvre,du Lièvre,41.6,35.4,80.4,35.2,42.1,64.7,71.3,20,68.4,23.9,78.3,39.3
-Stag,Cerf,le Cerf,du Cerf,46.6,74.7,36.3,52.4,78.5,43.7,60.3,20,69.8,60.3,29.7,26.5
-Seahorse,Hippocampe,l'Hippocampe,de l'Hippocampe,23,56.3,38,71.8,24.3,62.3,45.7,66.8,19.6,57.2,57.7,79.7
-Cat,Chat,le Chat,du Chat,43.5,33,71.9,20.2,78.5,55.2,64.7,55.6,45.1,34,68.4,28.7
-Dog (belgian malinois),Malinois,le Malinois,du Malinois,77.2,37.6,44.9,37.3,78.5,57.1,29.7,60.7,69.7,51.1,29.2,19.9
-Lemur,Lémurien,le Lémurien,du Lémurien,52.7,24.5,80.4,36.8,43.6,50.1,60.2,28.4,67.9,20.1,72.6,63.1
-Koala,Koala,le Koala,du Koala,19.9,73.7,37.9,76.5,34,62.3,61.8,21.3,31.2,66.5,33.9,79.7
-Snow Leopard,Léopard des neiges,le Léopard des neiges,du Léopard des neiges,68.7,38.4,41.2,20.2,67.7,26.1,24.1,79.9,56,50.1,69.4,56.1
-Frog,Grenouille,la Grenouille,de la Grenouille,23.1,58.3,50.1,75.5,19.6,63.4,53.8,64.3,41.7,26.9,47.5,79.7
-Raccoon,Raton laveur,le Raton laveur,du Raton laveur,45.8,20.6,80.4,22.4,39.2,42.9,64.3,70.4,48.6,20.1,78.3,62.1
-Jellyfish,Méduse,la Méduse,de la Méduse,25.5,47.1,50,74.4,19.6,58.2,56.7,63.7,24.5,45.8,56.1,79.7
-Lizard,Lézard,le Lézard,du Lézard,63.4,20.6,75.6,22.5,38,44.2,40.8,65.4,67.5,20.1,78.3,58.5
-Bee,Abeille,l'Abeille,de l'Abeille,41.8,61.2,69.5,46.2,23.6,81.6,62.5,30.2,38.5,51.2,71.7,19.9
+Hare,Lièvre,le Lièvre,du Lièvre,41.8,35.6,80.3,35.3,42.4,64.8,71.3,20,68.6,23.9,78.4,39.5
+Stag,Cerf,le Cerf,du Cerf,47,74.8,36.5,52.7,78.5,44,60.5,20,70.1,60.6,29.9,26.7
+Seahorse,Hippocampe,l'Hippocampe,de l'Hippocampe,23,56,37.7,71.6,24.3,62,45.4,66.7,19.6,56.9,57.6,79.8
+Cat,Chat,le Chat,du Chat,43.5,33,71.8,20.2,78.5,55.2,64.6,55.6,45.2,34,68.5,28.7
+Dog (belgian malinois),Malinois,le Malinois,du Malinois,77.4,38.7,47.5,38.5,78.5,58.7,30.3,62,70.4,53.2,29.9,19.9
+Lemur,Lémurien,le Lémurien,du Lémurien,52,24.3,80.3,36.3,43.1,49.3,59.7,28.2,67.8,20.1,72.6,62.7
+Koala,Koala,le Koala,du Koala,19.9,73.5,37.6,76.4,33.9,62,61.5,21.3,31.1,66.3,33.8,79.8
+Snow Leopard,Léopard des neiges,le Léopard des neiges,du Léopard des neiges,68.6,38.3,41,20.2,67.8,26,24,79.9,56,49.9,69.4,56
+Frog,Grenouille,la Grenouille,de la Grenouille,23,57.8,49.5,75.4,19.6,63,53.2,64,41.4,26.8,47.1,79.8
+Raccoon,Raton laveur,le Raton laveur,du Raton laveur,45,20.5,80.3,22.3,38.6,42.3,63.8,70.1,47.9,20.1,78.4,61.7
+Jellyfish,Méduse,la Méduse,de la Méduse,25.5,47,50,74.3,19.6,58.2,56.6,63.7,24.6,45.8,56.2,79.8
+Lizard,Lézard,le Lézard,du Lézard,62.8,20.5,75.4,22.4,37.3,43.1,39.9,64.9,67.2,20.1,78.4,57.8
+Bee,Abeille,l'Abeille,de l'Abeille,42.6,61.9,69.8,47.3,23.8,81.5,63.1,30.6,39.3,52.3,72,19.9
 Antelope,Antilope,l'Antilope,de l'Antilope,0,0,0,0,0,0,0,0,0,0,0,0
 Coyote,Coyote,le Coyote,du Coyote,0,0,0,0,0,0,0,0,0,0,0,0
-Macaw,Perroquet,le Perroquet,du Perroquet,60.9,29.1,80.4,30.4,67.7,38.8,62.7,20,78.4,26,69.3,40
-Caribou,Caribou,le Caribou,du Caribou,60.9,49.4,20.1,64.4,35.7,33,31.9,49.9,78.4,69.4,52.9,61.6
-Cobra,Cobra,le Cobra,du Cobra,71.5,20.5,54.1,39.4,70.1,35.2,31.3,79.9,39,49.6,59.8,53.5
-Pelican,Pélican,le Pélican,du Pélican,56.9,20.5,48.3,67.5,50.6,29.2,72.9,33.4,55.7,24.4,63.8,79.7
-Cheetah,Guépard,le Guépard,du Guépard,79.7,20.5,67.3,26.6,78.5,49.6,57,39.8,68.6,23.1,58.2,25
-Squirrel,Écureuil,l'Écureuil,de l'Écureuil,51.4,22.3,80.4,34.7,41.8,71.5,74.1,20,66.4,24.7,70.7,34.7
-Wolf,Loup,le Loup,du Loup,78.1,20.5,45.9,58.9,63.2,37.4,30.6,79.9,58.9,57,41.2,33.7
-Owl,Hibou,le Hibou,du Hibou,28,35.8,54.7,38.1,19.6,63.5,44.8,64.6,37.7,51,69.6,79.7
-Tiger,Tigre,le Tigre,du Tigre,75.9,28.6,58.2,46.4,78.5,27.6,32.7,59.3,66.2,44.7,60.3,19.9
-Swan,Cygne,le Cygne,du Cygne,19.9,60.6,33.7,69.3,53.8,46.2,80.5,49.1,39.2,33.2,42.4,75
-Elephant,Éléphant,l'Éléphant,de l'Éléphant,44.7,81.9,20.1,63.7,46.6,69.3,52.2,58.2,46.9,70.2,20.2,40.1
-Fox,Renard,le Renard,du Renard,55.8,24.6,73.4,32.3,58.7,50.7,80.5,37.9,70.2,34.4,60.6,19.9
-Panda,Panda,le Panda,du Panda,37.4,81.9,29.7,65.2,35.2,60.9,77.4,44.5,19.6,55.5,28.3,66.5
-Donkey,Âne,l'Âne,de l'Âne,40.8,74.7,35.4,55.4,33,71,65.1,20,50.5,80.5,56,21.3
-Monkey,Singe,le Singe,du Singe,58,25.1,80.4,28.5,52.9,53.5,67.7,30.7,71.5,20.1,78.3,30.9
-Gorilla,Gorille,le Gorille,du Gorille,56.3,76.9,22.6,61.1,78.5,47.1,44,66.8,29.5,75.2,22.5,19.9
-Cow,Vache,la Vache,de la Vache,37.8,81.9,30.9,65,47,74.6,44.3,36,36.8,78.4,19.6,45.9
-Hedgehog,Hérisson,le Hérisson,du Hérisson,25.5,60.3,48.1,68.6,19.6,81.6,38.6,62.5,23.4,75.5,45.3,53.2
-Sheep,Mouton,le Mouton,du Mouton,28.8,81.9,36.3,74.6,51.4,51.9,65.9,20,34.2,53.5,24.1,79.7
-Llama,Lama,le Lama,du Lama,40.4,81.9,55.9,43.1,54.9,58.6,53.1,20,63.5,66.8,23.5,42.8
-Crocodile,Crocodile,le Crocodile,du Crocodile,70.4,73.9,22.3,48.9,66.8,39.6,20.1,79.9,36.2,75.9,25.4,34.6
-Hippopotamus,Hippopotame,l'Hippopotame,de l'Hippopotame,49,81.9,35.6,63.7,46.2,43.9,35.2,58,35.3,67.9,19.6,52.2
-Polar Bear,Ours polaire,l'Ours polaire,de l'Ours polaire,61.2,81.9,23.3,48.2,74.2,37,20.1,61.7,48.7,77.5,34.4,31.5
-Kangaroo,Kangourou,le Kangourou,du Kangourou,68.4,62.4,59.7,37.1,68.1,34.6,48.7,42.3,78.4,31.6,38.5,19.9
-Camel,Chameau,le Chameau,du Chameau,58.9,81.9,38.5,45.4,55.8,56.5,40.1,43.9,56.3,74.1,24,19.9
-Beaver,Castor,le Castor,du Castor,48,81.9,36.1,63.4,28.1,78.7,55,58.2,26.5,80.5,27.6,19.9
+Macaw,Perroquet,le Perroquet,du Perroquet,61.2,29.2,80.3,30.5,67.9,39,63,20,78.5,26.1,69.6,40.4
+Caribou,Caribou,le Caribou,du Caribou,59.9,48,20.1,63.5,35,32.4,31.3,48.4,78.5,68.8,51.6,60.8
+Cobra,Cobra,le Cobra,du Cobra,71.2,20.5,52.9,38.6,69.9,34.6,30.9,79.9,38.3,48.5,59.2,52.4
+Pelican,Pélican,le Pélican,du Pélican,55.9,20.5,47.1,66.9,49.4,28.8,72.5,32.9,54.9,24.2,63.3,79.8
+Cheetah,Guépard,le Guépard,du Guépard,79.7,20.5,66.9,26.4,78.5,48.7,56.2,39.2,68.5,23,57.8,24.9
+Squirrel,Écureuil,l'Écureuil,de l'Écureuil,50.8,22.2,80.3,34.4,41.5,71.3,73.9,20,66.4,24.6,70.8,34.4
+Wolf,Loup,le Loup,du Loup,77.9,20.5,44.5,57.7,62.5,36.4,30,79.9,57.9,55.7,40.1,33
+Owl,Hibou,le Hibou,du Hibou,28.7,37.1,56.7,39.6,19.6,64.9,47.8,65.8,39.4,53.4,70.4,79.8
+Tiger,Tigre,le Tigre,du Tigre,75.8,28.5,57.8,46,78.5,27.5,32.5,59,66.2,44.4,60.1,19.9
+Swan,Cygne,le Cygne,du Cygne,19.9,60.3,33.5,69.1,53.5,45.8,80.4,48.7,39,33,42.1,75
+Elephant,Éléphant,l'Éléphant,de l'Éléphant,42.9,81.8,20.1,62.3,44.7,68.3,49.9,56.4,45,69.4,20.2,38.7
+Fox,Renard,le Renard,du Renard,55.6,24.6,73.3,32.2,58.6,50.5,80.4,37.8,70.3,34.3,60.6,19.9
+Panda,Panda,le Panda,du Panda,37.7,81.8,29.8,65.4,35.5,61.1,77.3,44.9,19.6,55.8,28.5,66.8
+Donkey,Âne,l'Âne,de l'Âne,40.3,74.5,35,54.7,32.7,70.6,64.7,20,49.9,80.5,55.5,21.3
+Monkey,Singe,le Singe,du Singe,58,25.1,80.3,28.5,52.9,53.3,67.6,30.7,71.6,20.1,78.4,30.9
+Gorilla,Gorille,le Gorille,du Gorille,56.2,76.8,22.6,61,78.5,46.9,43.8,66.7,29.6,75.2,22.5,19.9
+Cow,Vache,la Vache,de la Vache,38.4,81.8,31.3,65.4,48.1,74.7,45.1,36.6,37.5,78.5,19.6,46.9
+Hedgehog,Hérisson,le Hérisson,du Hérisson,25.5,60.3,48.1,68.6,19.6,81.5,38.6,62.6,23.5,75.5,45.5,53.3
+Sheep,Mouton,le Mouton,du Mouton,28.9,81.8,36.4,74.6,51.8,52.1,66,20,34.4,53.8,24.2,79.8
+Llama,Lama,le Lama,du Lama,40,81.8,55.5,42.7,54.6,58.1,52.6,20,63.4,66.6,23.4,42.4
+Crocodile,Crocodile,le Crocodile,du Crocodile,70.3,73.7,22.2,48.5,66.8,39.3,20.1,79.9,36.1,75.9,25.4,34.5
+Hippopotamus,Hippopotame,l'Hippopotame,de l'Hippopotame,50.9,81.8,36.6,64.8,48.3,45.5,36.1,59.3,36.4,68.7,19.6,53.9
+Polar Bear,Ours polaire,l'Ours polaire,de l'Ours polaire,61,81.8,23.2,47.8,74.3,36.8,20.1,61.4,48.4,77.5,34.3,31.4
+Kangaroo,Kangourou,le Kangourou,du Kangourou,69.1,63.6,61,38.1,68.8,35.5,50.7,43.9,78.5,32.4,39.8,19.9
+Camel,Chameau,le Chameau,du Chameau,59.6,81.8,39.1,46.2,56.6,57.3,40.8,44.7,57.2,74.3,24.2,19.9
+Beaver,Castor,le Castor,du Castor,48.1,81.8,36.2,63.4,28.1,78.6,55.1,58.4,26.6,80.5,27.7,19.9
 Deer,Daim,le Daim,du Daim,0,0,0,0,0,0,0,0,0,0,0,0
-Capybara,Capybara,le Capybara,du Capybara,19.9,77.5,44.4,71.4,36.1,64.7,65.8,21.3,45.4,43.5,31.2,79.7
-Goose,Oie,l'Oie,de l'Oie,31.9,75.4,37.8,73.2,41.5,43.8,34,65.2,35.5,58.2,19.6,79.7
+Capybara,Capybara,le Capybara,du Capybara,19.9,77.4,43.8,71.2,35.8,64.3,65.4,21.3,44.9,43,31,79.8
+Goose,Oie,l'Oie,de l'Oie,32.5,75.7,38.8,73.5,42.8,45.1,34.7,66.1,36.5,59.5,19.6,79.8
 Elk,Élan,l'Élan,de l'Élan,0,0,0,0,0,0,0,0,0,0,0,0
-Dog (bulldog),Bulldog,le Bulldog,du Bulldog,55.8,81.9,34.6,62.2,66.9,48,36.7,60.8,31.1,75.8,19.6,27.2
-Dog (great dane),Dogue allemand,le Dogue allemand,du Dogue allemand,55.6,69.1,21.1,44.1,78.5,38.6,60.5,20,71.9,74.5,34.6,30
-Dog (border collie),Border collie,le Border collie,du Border collie,68.3,37.2,72.1,27.1,49.3,81.6,42.2,20,61.6,48.5,60.1,32
+Dog (bulldog),Bulldog,le Bulldog,du Bulldog,56.8,81.8,35.1,62.9,67.4,49.3,37.3,61.5,31.6,76,19.6,27.5
+Dog (great dane),Dogue allemand,le Dogue allemand,du Dogue allemand,55.2,68.9,21.1,43.7,78.5,38.3,60.1,20,71.9,74.4,34.4,29.8
+Dog (border collie),Border collie,le Border collie,du Border collie,68.2,37.2,72,27.1,49.3,81.5,42.1,20,61.7,48.4,60.2,32
 Dog (cocker spaniel),Cocker,le Cocker,du Cocker,0,0,0,0,0,0,0,0,0,0,0,0
-Dog (golden retriever),Golden retriever,le Golden retriever,du Golden retriever,60.5,77,38.7,80.9,55,51.2,69.1,22.3,40.7,50.5,19.6,35.5
-Dog (rottweiler),Rottweiler,le Rottweiler,du Rottweiler,74.5,64,29.6,38.3,65.8,43,24.6,79.9,44.6,70.4,43.3,19.9
-Dog (siberian husky),Husky sibérien,le Husky sibérien,du Husky sibérien,71.8,37,56.2,20.2,52.7,49.3,29.6,46,78.4,53.7,72,30.9
-Dog (dalmatian),Dalmatien,le Dalmatien,du Dalmatien,67.8,27.7,46.9,21.2,78.5,50.1,63.3,20,60.9,43.4,78.3,39.7
-Boa Constrictor,Boa constricteur,le Boa constricteur,du Boa constricteur,31.9,67.9,20.1,57.7,22.2,72.6,25.6,79.9,51.2,75.2,31.6,62.2
+Dog (golden retriever),Golden retriever,le Golden retriever,du Golden retriever,60.6,76.9,38.8,80.8,55.3,51.3,69.1,22.3,40.9,50.7,19.6,35.7
+Dog (rottweiler),Rottweiler,le Rottweiler,du Rottweiler,74.7,64.6,29.9,38.9,66.3,43.7,24.8,79.9,45.7,70.8,44.2,19.9
+Dog (siberian husky),Husky sibérien,le Husky sibérien,du Husky sibérien,71.8,37,56.2,20.2,52.8,49.3,29.6,46.1,78.5,53.8,72.1,31
+Dog (dalmatian),Dalmatien,le Dalmatien,du Dalmatien,67.8,27.7,47,21.2,78.5,50.2,63.4,20,61.1,43.5,78.4,39.8
+Boa Constrictor,Boa constricteur,le Boa constricteur,du Boa constricteur,31.4,67.3,20.1,56.1,22.1,72.2,25.3,79.9,49.9,74.9,31.1,61.5
 Tucan,Toucan,le Toucan,du Toucan,0,0,0,0,0,0,0,0,0,0,0,0
-Duck,Canard,le Canard,du Canard,21,73.9,55.3,78.3,26.1,38.2,55.8,20,65.5,60.4,24.6,79.7
+Duck,Canard,le Canard,du Canard,21,73.7,54.9,78.2,26,37.8,55.3,20,65.4,60,24.5,79.8
 Pig,Cochon,le Cochon,du Cochon,0,0,0,0,0,0,0,0,0,0,0,0
-Bat,Chauve-souris,la Chauve-souris,de la Chauve-souris,24.1,40.1,49.4,59.4,19.6,52.6,33.5,79.9,42.5,58.7,66.1,73.7
-Rabbit,Lapin,le Lapin,du Lapin,30.3,72.2,54.7,73.8,23.8,64.3,77.7,44.5,27.9,20.1,31.1,79.7
-Swallow,Hirondelle,l'Hirondelle,de l'Hirondelle,42.3,25.3,73.7,53.6,52.1,51.9,66,27.7,78.4,20.1,61.2,48.5
-Giraffe,Girafe,la Girafe,de la Girafe,43.4,70.6,29.9,35.3,70.8,64.8,80.5,25.4,48.8,52.2,56.5,19.9
+Bat,Chauve-souris,la Chauve-souris,de la Chauve-souris,24.1,40.2,49.5,59.4,19.6,52.6,33.5,79.9,42.7,58.8,66.2,73.8
+Rabbit,Lapin,le Lapin,du Lapin,30.2,72,54.4,73.7,23.8,64.1,77.6,44.3,27.9,20.1,31.1,79.8
+Swallow,Hirondelle,l'Hirondelle,de l'Hirondelle,42,25.2,73.5,53.2,51.8,51.4,65.7,27.5,78.5,20.1,61.1,48.2
+Giraffe,Girafe,la Girafe,de la Girafe,44.1,70.9,30.2,35.6,71.1,65.2,80.4,25.5,49.7,53,57.2,19.9
 Menthe religieuse,Mante religieuse,la Mante religieuse,de la Mante religieuse,0,0,0,0,0,0,0,0,0,0,0,0
 bison,Bison,le Bison,du Bison,0,0,0,0,0,0,0,0,0,0,0,0
 Ant,Forumi,la Fourmi,de la Fourmi,0,0,0,0,0,0,0,0,0,0,0,0
-Beetle,Scarabée,le Scarabée,du Scarabée,62,40.4,33,65.1,36.7,58.5,31.9,79.9,34.8,62.5,19.6,74.5
-Manta Ray,Raie manta,la Raie manta,de la Raie manta,21.7,67.5,36.8,73.6,19.6,27.7,43.8,70.8,53.5,51,57,79.7
-Dragonfly,Libellule,la Libellule,de la Libellule,74.1,24.3,80.4,38.4,39.2,44.4,61.3,67.3,37.5,20.1,68.8,43.3
-Orca,Orque,l'Orque,de l'Orque,57.7,33,44.5,80.9,64.5,20.4,29.9,66.5,37.8,62.5,28.2,75
-Mole,Taupe,la Taupe,de la Taupe,36.4,68.7,32.2,56.1,19.6,71.9,37.3,75.7,29.4,80.5,35.8,58.2
+Beetle,Scarabée,le Scarabée,du Scarabée,62.7,41.1,33.5,65.6,37.3,59.3,32.3,79.9,35.5,63.2,19.6,74.8
+Manta Ray,Raie manta,la Raie manta,de la Raie manta,21.6,66.8,36.1,73.3,19.6,27.4,42.8,70.4,52.3,49.7,56.3,79.8
+Dragonfly,Libellule,la Libellule,de la Libellule,74,24.2,80.3,38.2,39,44,61,67.1,37.4,20.1,68.8,43
+Orca,Orque,l'Orque,de l'Orque,56,32.3,43,80.8,63.8,20.4,29.3,65.7,36.8,61.5,27.8,74.8
+Mole,Taupe,la Taupe,de la Taupe,37.1,69.3,32.7,57.2,19.6,72.3,38,75.8,29.9,80.5,36.6,59.2
 ,,,,0,0,0,0,0,0,0,0,0,0,0,0
 ,,,,0,0,0,0,0,0,0,0,0,0,0,0
 ,,,,0,0,0,0,0,0,0,0,0,0,0,0
