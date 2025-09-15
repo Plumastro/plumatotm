@@ -888,8 +888,8 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
 Écris une interprétation courte (environ 1050 caractères au total) en 4 points bullet points expliquant pourquoi {animal_determinant} correspond à la personnalité de cette personne. Chaque point doit établir une corrélation directe entre des éléments spécifiques du thème natal (planètes dans signes et maisons) et l'archétype de l'animal.
 
                 Format de réponse souhaité (4 points obligatoires):
-                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] transmet [qualité]. Comme {animal_determinant}, tu [comportement/qualité], grâce à [aspect astrologique spécifique].
-                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] traduit [qualité]. {animal_determinant} incarne [trait], [comportement spécifique], [qualité].
+                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] transmet [qualité]. Comme {animal_determinant}, tu [comportement/qualité].
+                • [Titre du trait] : [planète(s) en signe(s) et maison(s)] traduit [qualité]. {animal_determinant} incarne [trait], [comportement spécifique].
                 • [Titre du trait] : [planète(s) en signe(s) et maison(s)] apporte [qualité]. Comme {animal_determinant} qui [comportement animal], ta personnalité associe [qualités], [comportements].
                 • [Titre du trait] : [planète(s) en signe(s) et maison(s)] révèle [qualité]. {animal_determinant} te correspond car [explication spécifique de la correspondance entre l'animal et la personnalité de la personne].
 
