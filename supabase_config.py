@@ -22,7 +22,7 @@ class SupabaseConfig:
         # Ces valeurs doivent être configurées dans les variables d'environnement
         # ou dans un fichier .env
         self.url = os.getenv('SUPABASE_URL')
-        self.key = os.getenv('SUPABASE_ANON_KEY')
+        self.key = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
         self.table_name = 'plumastat_usage'
         
     def is_configured(self) -> bool:
