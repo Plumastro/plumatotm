@@ -28,9 +28,18 @@ ON plumastat_usage(top1_animal);
 -- Activer Row Level Security (RLS) pour la sécurité
 ALTER TABLE plumastat_usage ENABLE ROW LEVEL SECURITY;
 
--- Créer une politique pour permettre la lecture et l'écriture
-CREATE POLICY "Allow all operations on plumastat_usage" ON plumastat_usage
-FOR ALL USING (true);
+-- Créer des politiques pour permettre les opérations API
+-- Politique pour INSERT (ajout d'utilisateurs)
+CREATE POLICY "Allow Insert on plumastat_usage" ON plumastat_usage
+FOR INSERT WITH CHECK (true);
+
+-- Politique pour SELECT (lecture des données)
+CREATE POLICY "Allow Select for API operations on plumastat_usage" ON plumastat_usage
+FOR SELECT USING (true);
+
+-- Politique pour UPDATE (mise à jour des utilisateurs)
+CREATE POLICY "Allow Update on plumastat_usage" ON plumastat_usage
+FOR UPDATE USING (true);
 ```
 
 ## 3. Configuration des variables d'environnement
@@ -39,8 +48,12 @@ Créez un fichier `.env` dans le répertoire racine avec :
 
 ```bash
 SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 SUPABASE_ANON_KEY=your-anon-key-here
 ```
+
+**Important**: Pour les opérations API, utilisez la **Service Role Key** (pas l'anon key). Vous la trouvez dans :
+- Supabase Dashboard → Settings → API → service_role key
 
 ## 4. Installation des dépendances
 

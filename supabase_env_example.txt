@@ -4,7 +4,10 @@
 # URL de votre projet Supabase
 SUPABASE_URL=https://your-project-id.supabase.co
 
-# Clé anonyme de votre projet Supabase
+# Clé de service (recommandée pour les opérations API)
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+
+# Clé anonyme (fallback si service role key non disponible)
 SUPABASE_ANON_KEY=your-anon-key-here
 
 # Clé API OpenAI (optionnel, peut aussi être dans api_key.txt)
