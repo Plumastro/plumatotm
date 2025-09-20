@@ -32,42 +32,48 @@ class BirthChartRenderer:
         self.center = (750, 750)
         self.R = 700  # Rayon utile
         
-        # Rayons spécifiés dans le FRS (en pixels) - CORRIGÉS
+        # Rayons spécifiés dans le FRS (en pixels) - COURONNE DES SIGNES 25% PLUS FINE
         self.sign_ring_outer = self.R * 0.97  # R*0.97 (inchangé)
-        self.sign_ring_inner = self.R * 0.70  # R*0.70 (élargi de 0.83 à 0.70)
-        self.sign_icon_radius = self.R * 0.83  # R*0.83 (centre de la bande élargie)
         
-        self.house_ring_outer = self.R * 0.34    # ↓ vers le centre
-        self.house_ring_inner = self.R * 0.24    # ↓ même épaisseur
-        self.house_icon_radius = (self.house_ring_inner + self.house_ring_outer) / 2.0  # = 0.29R (toujours au centre)
+        # Ancienne épaisseur = self.sign_ring_outer - 0.70*R
+        old_inner = self.R * 0.70
+        old_thick = self.sign_ring_outer - old_inner
+        new_thick = old_thick * 0.75  # 25% plus fin
+        self.sign_ring_inner = self.sign_ring_outer - new_thick
         
-        # Cercle pointillé = rayon d'ancrage planétaire (plus proche du centre)
-        self.position_radius = self.sign_ring_inner - self.R * 0.04  # un cran plus intérieur
+        # icône de signe au centre de la bande
+        self.sign_icon_radius = (self.sign_ring_outer + self.sign_ring_inner) / 2.0
+        
+        self.house_ring_outer = self.R * 0.28    # ↓ encore plus vers le centre
+        self.house_ring_inner = self.R * 0.18    # ↓ même épaisseur
+        self.house_icon_radius = (self.house_ring_inner + self.house_ring_outer) / 2.0  # = 0.23R (toujours au centre)
+        
+        # --- tout le bloc "position" est poussé vers l'extérieur ---
+        # cercle pointillé juste à l'intérieur de la nouvelle couronne des signes
+        self.position_radius = self.sign_ring_inner - self.R * 0.03
         self.grid_radii = [self.position_radius]
         
-        # Géométrie de l'encoche / icône / nœud (distances vers le centre)
-        self.planet_tick_len = self.R * 0.020   # encoche + courte
-        self.icon_gap        = self.R * 0.040   # icône descend davantage vers le centre
-        self.node_gap = self.R * 0.120  # nœud nettement plus central
-        self.node_radius_px = 6                  # rayon visuel du petit nœud (cercle vide)
+        # géométrie encoche / icône / nœud (on conserve les gaps, simplement *au-dessus*)
+        self.planet_tick_len = self.R * 0.020
+        self.icon_gap        = self.R * 0.080
+        self.node_gap        = self.R * 0.070  # encore plus réduit pour rapprocher les nœuds des icônes
+        self.node_radius_px  = 6
         
-        # Rayons de placement le long du même rayon
         self.planet_icon_radius = self.position_radius - (self.planet_tick_len + self.icon_gap)
-        self.node_radius = self.planet_icon_radius - self.node_gap
+        self.node_radius        = self.planet_icon_radius - self.node_gap
         
-        # S'assurer que le nœud reste au-dessus de la couronne des maisons
+        # garde une marge au-dessus de la couronne des maisons
         self.node_radius = max(self.node_radius, self.house_ring_outer + self.R * 0.04)
         
-        # Rayons pour planètes et angles (utilisent la nouvelle géométrie)
         self.planet_radius = self.planet_icon_radius
         self.asc_mc_radius = self.planet_icon_radius
         
-        # Rayon maximum pour les aspects (synchronisé avec house_ring_inner)
-        self.aspect_max_radius = self.house_ring_inner  # garantis le confinement
+        # aspects confinés à la limite intérieure des maisons (inchangé)
+        self.aspect_max_radius = self.house_ring_inner
         
         # Icon sizes according to FRS - CORRIGÉS
         self.sign_icon_size = 48  # 42-52px (inchangé)
-        self.house_icon_size = 26  # 22-28px (inchangé)
+        self.house_icon_size = 32  # augmenté pour meilleure visibilité
         self.planet_icon_size = 48  # 48px (agrandi pour meilleure visibilité)
         
         # Load icon mappings
@@ -152,12 +158,10 @@ class BirthChartRenderer:
     def _longitude_to_angle(self, longitude: float, ascendant_longitude: float = None) -> float:
         """Convert longitude to matplotlib angle (radians)."""
         if ascendant_longitude is not None:
-            # Place AC à gauche (180°/pi), et tourner en SENS ANTIHORAIRE.
-            # Formule robuste : theta = 180° + (longitude - AC)  (mod 360), en radians
+            # AC à 9h (180°), anti-horaire
             theta_deg = (180 + (longitude - ascendant_longitude)) % 360
             return np.radians(theta_deg)
         else:
-            # Zodiaque standard anti-horaire si jamais AC absent
             return np.radians((180 + longitude) % 360)
     
     def _angle_to_position(self, angle: float, radius: float) -> Tuple[float, float]:
@@ -165,6 +169,78 @@ class BirthChartRenderer:
         x = radius * np.cos(angle)
         y = radius * np.sin(angle)
         return x, y
+    
+    def _compute_icon_angle_offsets(self, planet_positions: Dict[str, Any], ascendant_longitude: Optional[float]) -> Dict[str, float]:
+        """
+        Calcule un petit décalage angulaire POUR L'ICÔNE SEULEMENT quand plusieurs
+        planètes sont trop proches. Les ticks + nœuds restent à l'angle exact.
+        TOUTES les planètes (y compris AC/MC) sont traitées de manière égale.
+        Retourne un dict {planet_name: delta_angle_radians}.
+        """
+        # 1) Récupère angle "vrai" de chaque planète
+        items = []
+        for name, data in planet_positions.items():
+            ang = self._longitude_to_angle(data["longitude"], ascendant_longitude)
+            items.append((name, ang))
+        # trie circulaire
+        items.sort(key=lambda t: t[1])
+
+        # 2) Calcul dynamique de la séparation minimale en fonction de la taille icône & rayon
+        icon_half_width_px = self.planet_icon_size * 0.5
+        base_min_sep = icon_half_width_px / max(self.planet_icon_radius, 1)
+        min_sep = base_min_sep * 3.5      # marge très agressive pour éviter les superpositions
+        max_spread = min_sep * 5.0        # éventail max très large
+
+        # 3) Détecte les clusters (attention au wrap 2π)
+        clusters = []
+        current = [items[0]]
+        for a, b in zip(items, items[1:]):
+            if (b[1] - a[1]) < min_sep:
+                current.append(b)
+            else:
+                clusters.append(current)
+                current = [b]
+        clusters.append(current)
+
+        # wrap-around : si premier et dernier proches, fusionne
+        if len(clusters) > 1:
+            first = clusters[0]
+            last = clusters[-1]
+            if ( (first[0][1] + 2*np.pi) - last[-1][1] ) < min_sep:
+                clusters[0] = last + first
+                clusters.pop()
+
+        # 4) Attribue offsets avec déplacement proportionnel de TOUTES les planètes (sans priorité)
+        offsets: Dict[str, float] = {}
+        
+        for cluster in clusters:
+            n = len(cluster)
+            if n <= 1:
+                continue
+
+            # Calculer l'écart total nécessaire
+            total_spread = min(max_spread, (n-1) * (min_sep))
+            
+            # Créer des positions équidistantes autour du centre du cluster
+            positions = np.linspace(-total_spread/2.0, total_spread/2.0, n)
+            
+            # Calculer le centre du cluster (position moyenne)
+            center_angle = sum(angle for _, angle in cluster) / n
+            
+            # Attribuer les positions aux planètes (ordre original maintenu)
+            for (name, original_angle), position in zip(cluster, positions):
+                # Calculer l'offset par rapport à la position originale
+                target_angle = center_angle + position
+                offset = target_angle - original_angle
+                
+                # Normaliser l'offset dans [-π, π]
+                while offset > np.pi:
+                    offset -= 2*np.pi
+                while offset < -np.pi:
+                    offset += 2*np.pi
+                    
+                offsets[name] = float(offset)
+        return offsets
     
     def _planet_geo(self, longitude: float, ascendant_longitude: float):
         """Retourne (point sur cercle pointillé, bout encoche, pos icône, pos nœud, angle) en coords canvas."""
@@ -210,9 +286,9 @@ class BirthChartRenderer:
             
             # Get Ascendant longitude for proper positioning
             ascendant_longitude = None
-            angles = chart_data.get("angles", {})
-            if "Ascendant" in angles:
-                ascendant_longitude = angles["Ascendant"]["longitude"]
+            pp = chart_data.get("planet_positions", {})
+            if "Ascendant" in pp:
+                ascendant_longitude = pp["Ascendant"]["longitude"]
             
             # Draw in correct z-order according to FRS
             # 1. Grid circles (background)
@@ -292,8 +368,8 @@ class BirthChartRenderer:
             x2 += self.center[0]
             y2 += self.center[1]
             
-            ax.plot([x1, x2], [y1, y2], color='black', linewidth=1, 
-                   linestyle='--', alpha=0.6, zorder=5)
+            ax.plot([x1, x2], [y1, y2], color='black', linewidth=1.5, 
+                   linestyle='--', alpha=0.8, zorder=5)
 
     def _draw_zodiac_ring(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
         """Draw the outer zodiac signs ring."""
@@ -387,27 +463,34 @@ class BirthChartRenderer:
         planet_positions = chart_data.get("planet_positions", {})
         print(f"[DEBUG] planets count = {len(planet_positions)}")
         
+        # calcule les deltas d'angle pour les icônes
+        icon_angle_offsets = self._compute_icon_angle_offsets(planet_positions, ascendant_longitude)
+        
         for planet, data in planet_positions.items():
             print(f"[DEBUG] planet={planet}, lon={data['longitude']:.2f}")
             longitude = data["longitude"]
-            (x_on, y_on), (x_tick, y_tick), (x_icon, y_icon), (x_node, y_node), angle = \
+            (x_on, y_on), (x_tick, y_tick), (_, _), (x_node, y_node), base_angle = \
                 self._planet_geo(longitude, ascendant_longitude)
 
-            print(f"[DEBUG] {planet} xy_icon=({x_icon:.1f},{y_icon:.1f}) xy_node=({x_node:.1f},{y_node:.1f})")
-            
-            # (a) encoche — trait plein, perpendiculaire au cercle, vers le centre
+            # (a) encoche (à l'angle exact)
             ax.plot([x_on, x_tick], [y_on, y_tick],
-                   color='black', linewidth=4, solid_capstyle='round', zorder=18)
+                   color='black', linewidth=5, solid_capstyle='round', zorder=18)
 
-            # (b) icône — juste en dessous de l'encoche
+            # (b) icône (avec décalage angulaire si nécessaire)
+            dth = icon_angle_offsets.get(planet, 0.0)
+            icon_angle = base_angle + dth
+            xi, yi = self._angle_to_position(icon_angle, self.planet_icon_radius)
+            xi += self.center[0]; yi += self.center[1]
+            print(f"[DEBUG] {planet} xy_icon=({xi:.1f},{yi:.1f}) xy_node=({x_node:.1f},{y_node:.1f})")
+            
             icon = self._load_icon(planet, self.planet_icon_size)
             if icon is not None:
-                self._place_icon(ax, icon, x_icon, y_icon, self.planet_icon_size)
+                self._place_icon(ax, icon, xi, yi, self.planet_icon_size)
             else:
                 # Fallback: draw a black dot if icon is missing
-                ax.plot(x_icon, y_icon, 'o', color='black', markersize=12, markeredgewidth=0, zorder=20)
+                ax.plot(xi, yi, 'o', color='black', markersize=12, markeredgewidth=0, zorder=20)
 
-            # (c) nœud — petit cercle **vide** (non rempli), le plus proche du centre
+            # (c) nœud (à l'angle exact)
             node = Circle((x_node, y_node), self.node_radius_px, fill=False,
                          linewidth=2.2, edgecolor='black', zorder=19)
             ax.add_patch(node)
@@ -423,7 +506,7 @@ class BirthChartRenderer:
 
             # (a) encoche — trait plein, perpendiculaire au cercle, vers le centre
             ax.plot([x_on, x_tick], [y_on, y_tick],
-                   color='black', linewidth=4, solid_capstyle='round', zorder=18)
+                   color='black', linewidth=5, solid_capstyle='round', zorder=18)
 
             # (b) icône — juste en dessous de l'encoche
             icon = self._load_icon(angle_name, self.planet_icon_size)
@@ -464,6 +547,12 @@ class BirthChartRenderer:
                 continue
 
             style = self._get_aspect_style(a_type)
+            
+            # Pour les conjonctions blanches, ajouter un backing gris pour la visibilité
+            if a_type == "conjunction":
+                ax.plot([p1[0], p2[0]], [p1[1], p2[1]],
+                       color="#111827", linewidth=5.0, alpha=0.15, zorder=11)
+            
             ax.plot([p1[0], p2[0]], [p1[1], p2[1]],
                    color=style['color'],
                    linewidth=style['linewidth'],
@@ -471,16 +560,15 @@ class BirthChartRenderer:
                    alpha=0.95, zorder=12)
     
     def _get_aspect_style(self, aspect_type: str) -> Dict[str, Any]:
-        """Get styling parameters for different aspect types with colors."""
-        # tout en traits pleins, bien épais (on garde les couleurs si tu veux)
+        """Get styling parameters for different aspect types with darker colors."""
         styles = {
-            "conjunction": {"linewidth": 4, "linestyle": "-", "color": "black"},
-            "sextile":     {"linewidth": 3.5, "linestyle": "-", "color": "violet"},
-            "square":      {"linewidth": 3.5, "linestyle": "-", "color": "red"},
-            "trine":       {"linewidth": 3.5, "linestyle": "-", "color": "green"},
-            "opposition":  {"linewidth": 3.5, "linestyle": "-", "color": "blue"},
+            "conjunction": {"linewidth": 4.2, "linestyle": "-", "color": "#FFFFFF"},  # blanc
+            "sextile":     {"linewidth": 4.2, "linestyle": "-", "color": "#2563EB"},  # bleu foncé
+            "square":      {"linewidth": 4.2, "linestyle": "-", "color": "#B91C1C"},  # rouge foncé
+            "trine":       {"linewidth": 4.2, "linestyle": "-", "color": "#166534"},  # vert foncé
+            "opposition":  {"linewidth": 4.2, "linestyle": "-", "color": "#C2410C"},  # orange foncé
         }
-        return styles.get(aspect_type, {"linewidth": 3.5, "linestyle": "-", "color": "black"})
+        return styles.get(aspect_type, {"linewidth": 3.8, "linestyle": "-", "color": "#111827"})
     
     def _place_icon(self, ax, icon: np.ndarray, x: float, y: float, size: int):
         """Place an icon at the specified position."""
