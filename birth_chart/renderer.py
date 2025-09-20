@@ -37,18 +37,18 @@ class BirthChartRenderer:
         self.sign_ring_inner = self.R * 0.70  # R*0.70 (élargi de 0.83 à 0.70)
         self.sign_icon_radius = self.R * 0.83  # R*0.83 (centre de la bande élargie)
         
-        self.house_ring_outer = self.R * 0.45  # R*0.45 (agrandi de 0.42 à 0.45)
-        self.house_ring_inner = self.R * 0.35  # R*0.35 (réduit de 0.27 à 0.35)
+        self.house_ring_outer = self.R * 0.40  # R*0.40 (même épaisseur, plus central)
+        self.house_ring_inner = self.R * 0.30  # R*0.30 (même épaisseur, plus central)
         self.house_icon_radius = self.R * 0.40  # R*0.40 (centre de la bande ajustée)
         
-        # Cercle pointillé = rayon d'ancrage planétaire
-        self.position_radius = self.sign_ring_inner - self.R * 0.02
+        # Cercle pointillé = rayon d'ancrage planétaire (plus proche du centre)
+        self.position_radius = self.sign_ring_inner - self.R * 0.04  # un cran plus intérieur
         self.grid_radii = [self.position_radius]
         
         # Géométrie de l'encoche / icône / nœud (distances vers le centre)
-        self.planet_tick_len = self.R * 0.03     # longueur encoche (≈ 2–3% R)
-        self.icon_gap = self.R * 0.01            # espace entre encoche et icône
-        self.node_gap = self.R * 0.01            # espace entre icône et nœud
+        self.planet_tick_len = self.R * 0.035    # encoche un peu plus longue
+        self.icon_gap = self.R * 0.015           # icône + intérieure
+        self.node_gap = self.R * 0.025           # nœud bien + intérieur
         self.node_radius_px = 6                  # rayon visuel du petit nœud (cercle vide)
         
         # Rayons de placement le long du même rayon
@@ -56,7 +56,7 @@ class BirthChartRenderer:
         self.node_radius = self.planet_icon_radius - self.node_gap
         
         # S'assurer que le nœud reste au-dessus de la couronne des maisons
-        self.node_radius = max(self.node_radius, self.house_ring_outer + self.R * 0.03)
+        self.node_radius = max(self.node_radius, self.house_ring_outer + self.R * 0.04)
         
         # Rayons pour planètes et angles (utilisent la nouvelle géométrie)
         self.planet_radius = self.planet_icon_radius
@@ -252,7 +252,7 @@ class BirthChartRenderer:
         """Draw concentric dotted circles for grid structure."""
         for radius in self.grid_radii:
             circle = Circle(self.center, radius, fill=False, 
-                          color='black', linewidth=1, linestyle='--', alpha=0.3, zorder=1)
+                          color='black', linewidth=2, linestyle=(0, (4, 4)), alpha=0.5, zorder=1)
             ax.add_patch(circle)
     
     def _draw_radial_ticks(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
@@ -279,9 +279,9 @@ class BirthChartRenderer:
             
             ax.plot([x1, x2], [y1, y2], color='black', linewidth=2, zorder=5)
             
-            # Dotted extension to sign ring
+            # Dotted extension to position circle
             start_radius = self.house_ring_outer
-            end_radius = self.sign_ring_inner
+            end_radius = self.position_radius   # stoppe sur le cercle planètes
             
             x1, y1 = self._angle_to_position(angle, start_radius)
             x2, y2 = self._angle_to_position(angle, end_radius)
@@ -401,11 +401,11 @@ class BirthChartRenderer:
                 self._place_icon(ax, icon, x_icon, y_icon, self.planet_icon_size)
             else:
                 # Fallback: draw a black dot if icon is missing
-                ax.plot(x_icon, y_icon, 'o', color='black', markersize=10, markeredgewidth=0, zorder=10)
+                ax.plot(x_icon, y_icon, 'o', color='black', markersize=12, markeredgewidth=0, zorder=10)
 
             # (c) nœud — petit cercle **vide** (non rempli), le plus proche du centre
             node = Circle((x_node, y_node), self.node_radius_px, fill=False,
-                         linewidth=2, edgecolor='black', zorder=7)
+                         linewidth=2.2, edgecolor='black', zorder=7)
             ax.add_patch(node)
     
     def _draw_angles(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
@@ -427,11 +427,11 @@ class BirthChartRenderer:
                 self._place_icon(ax, icon, x_icon, y_icon, self.planet_icon_size)
             else:
                 # Fallback: draw a black dot if icon is missing
-                ax.plot(x_icon, y_icon, 'o', color='black', markersize=10, markeredgewidth=0, zorder=10)
+                ax.plot(x_icon, y_icon, 'o', color='black', markersize=12, markeredgewidth=0, zorder=10)
 
             # (c) nœud — petit cercle **vide** (non rempli), le plus proche du centre
             node = Circle((x_node, y_node), self.node_radius_px, fill=False,
-                         linewidth=2, edgecolor='black', zorder=7)
+                         linewidth=2.2, edgecolor='black', zorder=7)
             ax.add_patch(node)
     
     def _draw_aspects(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
