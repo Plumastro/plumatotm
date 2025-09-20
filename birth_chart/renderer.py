@@ -41,15 +41,29 @@ class BirthChartRenderer:
         self.house_ring_inner = self.R * 0.35  # R*0.35 (réduit de 0.27 à 0.35)
         self.house_icon_radius = self.R * 0.40  # R*0.40 (centre de la bande ajustée)
         
-        # Rayon commun pour planètes et angles, centré entre maisons et signes
-        self.planet_radius = (self.house_ring_outer + self.sign_ring_inner) / 2.0  # ~0.575R
-        self.asc_mc_radius = self.planet_radius
+        # Cercle pointillé = rayon d'ancrage planétaire
+        self.position_radius = self.sign_ring_inner - self.R * 0.02
+        self.grid_radii = [self.position_radius]
+        
+        # Géométrie de l'encoche / icône / nœud (distances vers le centre)
+        self.planet_tick_len = self.R * 0.03     # longueur encoche (≈ 2–3% R)
+        self.icon_gap = self.R * 0.01            # espace entre encoche et icône
+        self.node_gap = self.R * 0.01            # espace entre icône et nœud
+        self.node_radius_px = 6                  # rayon visuel du petit nœud (cercle vide)
+        
+        # Rayons de placement le long du même rayon
+        self.planet_icon_radius = self.position_radius - (self.planet_tick_len + self.icon_gap)
+        self.node_radius = self.planet_icon_radius - self.node_gap
+        
+        # S'assurer que le nœud reste au-dessus de la couronne des maisons
+        self.node_radius = max(self.node_radius, self.house_ring_outer + self.R * 0.03)
+        
+        # Rayons pour planètes et angles (utilisent la nouvelle géométrie)
+        self.planet_radius = self.planet_icon_radius
+        self.asc_mc_radius = self.planet_icon_radius
         
         # Rayon maximum pour les aspects (synchronisé avec house_ring_inner)
         self.aspect_max_radius = self.house_ring_inner  # garantis le confinement
-        
-        # Grille concentrique - un seul cercle pointillé
-        self.grid_radii = [self.sign_ring_inner - self.R * 0.02]  # ~2% à l'intérieur
         
         # Icon sizes according to FRS - CORRIGÉS
         self.sign_icon_size = 48  # 42-52px (inchangé)
@@ -152,6 +166,25 @@ class BirthChartRenderer:
         y = radius * np.sin(angle)
         return x, y
     
+    def _planet_geo(self, longitude: float, ascendant_longitude: float):
+        """Retourne (point sur cercle pointillé, bout encoche, pos icône, pos nœud, angle) en coords canvas."""
+        angle = self._longitude_to_angle(longitude, ascendant_longitude)
+
+        # 1) point sur le cercle pointillé (départ encoche)
+        x_on, y_on = self._angle_to_position(angle, self.position_radius)
+
+        # 2) bout intérieur de l'encoche
+        x_tick, y_tick = self._angle_to_position(angle, self.position_radius - self.planet_tick_len)
+
+        # 3) position icône (entre encoche et nœud)
+        x_icon, y_icon = self._angle_to_position(angle, self.planet_icon_radius)
+
+        # 4) position nœud (cercle vide, le plus proche du centre)
+        x_node, y_node = self._angle_to_position(angle, self.node_radius)
+
+        cx, cy = self.center
+        return (x_on+cx, y_on+cy), (x_tick+cx, y_tick+cy), (x_icon+cx, y_icon+cy), (x_node+cx, y_node+cy), angle
+    
     def render_birth_chart(self, chart_data: Dict[str, Any], output_path: str) -> str:
         """
         Render a complete birth chart.
@@ -164,10 +197,10 @@ class BirthChartRenderer:
             Path to the saved image
         """
         try:
-            # Create figure with transparent background
+            # Create figure with white background
             fig, ax = plt.subplots(figsize=(self.canvas_size/self.dpi, self.canvas_size/self.dpi),
-                                 dpi=self.dpi, facecolor='none')
-            ax.set_facecolor('none')
+                                 dpi=self.dpi, facecolor='white')
+            ax.set_facecolor('white')
             
             # Set equal aspect ratio and remove axes
             ax.set_aspect('equal')
@@ -202,10 +235,10 @@ class BirthChartRenderer:
             # Ensure output directory exists
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             
-            # Save with transparent background
+            # Save with white background
             plt.tight_layout()
             plt.savefig(output_path, dpi=self.dpi, bbox_inches='tight',
-                       facecolor='none', transparent=True, pad_inches=0)
+                       facecolor='white', transparent=False, pad_inches=0)
             plt.close()
             
             logger.info(f"Birth chart saved to: {output_path}")
@@ -219,7 +252,7 @@ class BirthChartRenderer:
         """Draw concentric dotted circles for grid structure."""
         for radius in self.grid_radii:
             circle = Circle(self.center, radius, fill=False, 
-                          color='black', linewidth=1, linestyle='--', alpha=0.3)
+                          color='black', linewidth=1, linestyle='--', alpha=0.3, zorder=1)
             ax.add_patch(circle)
     
     def _draw_radial_ticks(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
@@ -244,7 +277,7 @@ class BirthChartRenderer:
             x2 += self.center[0]
             y2 += self.center[1]
             
-            ax.plot([x1, x2], [y1, y2], color='black', linewidth=2)
+            ax.plot([x1, x2], [y1, y2], color='black', linewidth=2, zorder=5)
             
             # Dotted extension to sign ring
             start_radius = self.house_ring_outer
@@ -260,7 +293,7 @@ class BirthChartRenderer:
             y2 += self.center[1]
             
             ax.plot([x1, x2], [y1, y2], color='black', linewidth=1, 
-                   linestyle='--', alpha=0.6)
+                   linestyle='--', alpha=0.6, zorder=5)
 
     def _draw_zodiac_ring(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
         """Draw the outer zodiac signs ring."""
@@ -350,116 +383,88 @@ class BirthChartRenderer:
                 self._place_icon(ax, icon, x, y, self.house_icon_size)
     
     def _draw_planets(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
-        """Draw planets at their positions."""
+        """Draw planets with encoche, icon, and node geometry."""
         planet_positions = chart_data.get("planet_positions", {})
         
         for planet, data in planet_positions.items():
             longitude = data["longitude"]
-            angle = self._longitude_to_angle(longitude, ascendant_longitude)
-            x, y = self._angle_to_position(angle, self.planet_radius)
-            
-            # Convert to canvas coordinates
-            x += self.center[0]
-            y += self.center[1]
-            
-            # Load and place planet icon
+            (x_on, y_on), (x_tick, y_tick), (x_icon, y_icon), (x_node, y_node), angle = \
+                self._planet_geo(longitude, ascendant_longitude)
+
+            # (a) encoche — trait plein, perpendiculaire au cercle, vers le centre
+            ax.plot([x_on, x_tick], [y_on, y_tick],
+                   color='black', linewidth=3, solid_capstyle='round', zorder=6)
+
+            # (b) icône — juste en dessous de l'encoche
             icon = self._load_icon(planet, self.planet_icon_size)
             if icon is not None:
-                self._place_icon(ax, icon, x, y, self.planet_icon_size)
+                self._place_icon(ax, icon, x_icon, y_icon, self.planet_icon_size)
             else:
                 # Fallback: draw a black dot if icon is missing
-                ax.plot(x, y, 'o', color='black', markersize=10, markeredgewidth=0, zorder=20)
+                ax.plot(x_icon, y_icon, 'o', color='black', markersize=10, markeredgewidth=0, zorder=10)
+
+            # (c) nœud — petit cercle **vide** (non rempli), le plus proche du centre
+            node = Circle((x_node, y_node), self.node_radius_px, fill=False,
+                         linewidth=2, edgecolor='black', zorder=7)
+            ax.add_patch(node)
     
     def _draw_angles(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
-        """Draw Ascendant and MC."""
+        """Draw Ascendant and MC with encoche, icon, and node geometry."""
         angles = chart_data.get("angles", {})
         
         for angle_name, data in angles.items():
             longitude = data["longitude"]
-            angle = self._longitude_to_angle(longitude, ascendant_longitude)
-            
-            # AC and MC are placed closer to the crown (R*0.76)
-            radius = self.asc_mc_radius
-            x, y = self._angle_to_position(angle, radius)
-            
-            # Convert to canvas coordinates
-            x += self.center[0]
-            y += self.center[1]
-            
-            # Load and place angle icon
+            (x_on, y_on), (x_tick, y_tick), (x_icon, y_icon), (x_node, y_node), angle = \
+                self._planet_geo(longitude, ascendant_longitude)
+
+            # (a) encoche — trait plein, perpendiculaire au cercle, vers le centre
+            ax.plot([x_on, x_tick], [y_on, y_tick],
+                   color='black', linewidth=3, solid_capstyle='round', zorder=6)
+
+            # (b) icône — juste en dessous de l'encoche
             icon = self._load_icon(angle_name, self.planet_icon_size)
             if icon is not None:
-                self._place_icon(ax, icon, x, y, self.planet_icon_size)
+                self._place_icon(ax, icon, x_icon, y_icon, self.planet_icon_size)
             else:
                 # Fallback: draw a black dot if icon is missing
-                ax.plot(x, y, 'o', color='black', markersize=10, markeredgewidth=0, zorder=20)
+                ax.plot(x_icon, y_icon, 'o', color='black', markersize=10, markeredgewidth=0, zorder=10)
+
+            # (c) nœud — petit cercle **vide** (non rempli), le plus proche du centre
+            node = Circle((x_node, y_node), self.node_radius_px, fill=False,
+                         linewidth=2, edgecolor='black', zorder=7)
+            ax.add_patch(node)
     
     def _draw_aspects(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
-        """Draw aspect lines between planets with differentiated styles."""
+        """Draw aspect lines between planet nodes with differentiated styles."""
         aspects = chart_data.get("aspects", [])
         planet_positions = chart_data.get("planet_positions", {})
         angles = chart_data.get("angles", {})
-        
-        for aspect in aspects:
-            body1 = aspect["body1"]
-            body2 = aspect["body2"]
-            aspect_type = aspect["aspect"]
-            
-            # Get positions
-            pos1 = None
-            pos2 = None
-            
-            if body1 in planet_positions:
-                longitude1 = planet_positions[body1]["longitude"]
-                angle1 = self._longitude_to_angle(longitude1, ascendant_longitude)
-                pos1 = self._angle_to_position(angle1, self.planet_radius)
-            elif body1 in angles:
-                longitude1 = angles[body1]["longitude"]
-                angle1 = self._longitude_to_angle(longitude1, ascendant_longitude)
-                # AC/MC use different radius
-                radius = self.asc_mc_radius if body1 in ["Ascendant", "MC"] else self.planet_radius
-                pos1 = self._angle_to_position(angle1, radius)
-            
-            if body2 in planet_positions:
-                longitude2 = planet_positions[body2]["longitude"]
-                angle2 = self._longitude_to_angle(longitude2, ascendant_longitude)
-                pos2 = self._angle_to_position(angle2, self.planet_radius)
-            elif body2 in angles:
-                longitude2 = angles[body2]["longitude"]
-                angle2 = self._longitude_to_angle(longitude2, ascendant_longitude)
-                # AC/MC use different radius
-                radius = self.asc_mc_radius if body2 in ["Ascendant", "MC"] else self.planet_radius
-                pos2 = self._angle_to_position(angle2, radius)
-            
-            # Convert to canvas coordinates
-            if pos1 is not None and pos2 is not None:
-                x1, y1 = pos1[0] + self.center[0], pos1[1] + self.center[1]
-                x2, y2 = pos2[0] + self.center[0], pos2[1] + self.center[1]
-                
-                # Apply aspect-specific styling with colors
-                style_params = self._get_aspect_style(aspect_type)
-                
-                # Scale aspect positions to be inside house ring
-                # Calculate scaling factor to keep aspects within aspect_max_radius
-                max_distance = max(np.sqrt((x1 - self.center[0])**2 + (y1 - self.center[1])**2),
-                                 np.sqrt((x2 - self.center[0])**2 + (y2 - self.center[1])**2))
-                
-                if max_distance > self.aspect_max_radius:
-                    scale_factor = self.aspect_max_radius / max_distance
-                    # Scale positions relative to center
-                    x1_scaled = self.center[0] + (x1 - self.center[0]) * scale_factor
-                    y1_scaled = self.center[1] + (y1 - self.center[1]) * scale_factor
-                    x2_scaled = self.center[0] + (x2 - self.center[0]) * scale_factor
-                    y2_scaled = self.center[1] + (y2 - self.center[1]) * scale_factor
-                else:
-                    x1_scaled, y1_scaled = x1, y1
-                    x2_scaled, y2_scaled = x2, y2
-                
-                ax.plot([x1_scaled, x2_scaled], [y1_scaled, y2_scaled], 
-                       color=style_params['color'],
-                       linewidth=style_params['linewidth'],
-                       linestyle=style_params['linestyle'],
-                       alpha=0.8)
+
+        for asp in aspects:
+            b1, b2, a_type = asp["body1"], asp["body2"], asp["aspect"]
+
+            def node_pos(body):
+                if body in planet_positions:
+                    lon = planet_positions[body]["longitude"]
+                    _, _, _, (x_n, y_n), _ = self._planet_geo(lon, ascendant_longitude)
+                    return x_n, y_n
+                elif body in angles:
+                    lon = angles[body]["longitude"]
+                    _, _, _, (x_n, y_n), _ = self._planet_geo(lon, ascendant_longitude)
+                    return x_n, y_n
+                return None
+
+            p1 = node_pos(b1)
+            p2 = node_pos(b2)
+            if not p1 or not p2:
+                continue
+
+            style = self._get_aspect_style(a_type)
+            ax.plot([p1[0], p2[0]], [p1[1], p2[1]],
+                   color=style['color'],
+                   linewidth=style['linewidth'],
+                   linestyle=style['linestyle'],
+                   alpha=0.95, zorder=8)
     
     def _get_aspect_style(self, aspect_type: str) -> Dict[str, Any]:
         """Get styling parameters for different aspect types with colors."""
@@ -477,7 +482,7 @@ class BirthChartRenderer:
         try:
             oi = OffsetImage(icon, zoom=1.0, interpolation='nearest')
             ab = AnnotationBbox(oi, (x, y), frameon=False, pad=0.0,
-                              box_alignment=(0.5, 0.5))
+                              box_alignment=(0.5, 0.5), zorder=10)
             ax.add_artist(ab)
         except Exception as e:
             logger.warning(f"Could not place icon at ({x}, {y}): {e}")

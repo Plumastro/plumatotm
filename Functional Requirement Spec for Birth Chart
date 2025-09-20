@@ -1,0 +1,538 @@
+Functional Requirement Specification (FRS)
+Projet : Générateur de Birth Chart Astrologique
+ Référence visuelle : Birth_Chart_Reference.png
+
+1. Objectif
+Développer un module Python qui génère automatiquement une birth chart (thème natal astrologique) à partir des données de naissance d’un client.
+ La birth chart est une représentation graphique en cercle indiquant :
+Les 12 signes du zodiaque disposés en cercle
+
+
+Les 12 maisons astrologiques
+
+
+Les positions des planètes et points sensibles (Ascendant, Milieu du Ciel, Nœud Nord)
+
+
+Les aspects majeurs entre planètes (traits reliant les planètes)
+
+
+Le résultat doit être exporté en image .png de taille ~1500x1500 px avec fond blanc.
+
+2. Technologies Utilisées
+flatlib → calculs astrologiques (planètes, maisons, aspects)
+
+
+timezonefinder → détection automatique du fuseau horaire
+
+
+zoneinfo → gestion des conversions UTC/local time
+
+
+matplotlib + PIL → génération graphique en cercle
+
+
+Custom icons PNG → planètes, signes, maisons
+
+
+
+3. Inputs
+Le module reçoit les données d’un client :
+Date de naissance (AAAA-MM-JJ)
+
+
+Heure de naissance (HH:MM, format 24h)
+
+
+Lieu de naissance (latitude, longitude)
+
+
+Processus automatisé :
+Validation du format (date, heure, coordonnées).
+
+
+Détection automatique du fuseau horaire.
+
+
+Conversion heure locale → UTC.
+
+
+Calcul du thème avec flatlib (zodiaque tropical, maisons Placidus par défaut, Nœud Nord moyen).
+
+
+
+4. Outputs
+Un fichier .png :
+
+
+Taille : 1500x1500 pixels
+
+
+Fond blanc
+
+
+Nom de fichier : birth_chart_CLIENT.png
+
+
+
+5. Contraintes de Design
+Style : Minimaliste, noir et blanc avec aspects colorés.
+
+
+Polices : sobres, sans empattement.
+
+
+Pas d'angles (longitude écliptique) affichés.
+
+
+Icônes PNG :
+
+
+Planètes : Sun.png, Moon.png, Mercury.png, etc.
+
+
+Signes : ARIES.png, TAURUS.png, etc.
+
+
+Maisons : 1.png, 2.png, etc.
+
+
+Aspects : Seuls éléments en couleur (sextile violet, carré rouge, trigone vert, opposition bleu, conjonction noir).
+
+
+Positionnement :
+
+
+Les signes zodiacaux répartis à 30° chacun.
+
+
+Les maisons superposées selon le système choisi (Placidus/Porphyry).
+
+
+Les planètes affichées selon la nouvelle géométrie : encoche → icône → nœud.
+
+
+Géométrie des planètes (du plus extérieur au plus intérieur) :
+- Encoche : petit trait plein épais (3px) perpendiculaire au cercle pointillé
+- Icône PNG : placée juste en dessous de l'encoche
+- Nœud : petit cercle vide, le plus proche du centre
+
+
+Aspects majeurs représentés par des traits colorés reliant les nœuds :
+
+
+Conjonction (0° ± 8°) : noir, ligne pleine, 3px
+
+
+Sextile (60° ± 6°) : violet, tirets 6 on / 6 off, 2px
+
+
+Carré (90° ± 6°) : rouge, ligne pleine, 2px
+
+
+Trigone (120° ± 6°) : vert, tirets 10 on / 8 off, 2px
+
+
+Opposition (180° ± 8°) : bleu, dash-dot 4 on / 4 off / 1 on / 4 off, 2px
+
+
+
+6. Structure Fonctionnelle
+Cercle externe → 12 signes (icônes aux positions fixes, chaque 30°).
+
+
+Cercle interne → 12 maisons (icônes des maisons alignées sur leur cusp).
+
+
+Planètes → placées selon leur longitude zodiacale exacte.
+
+
+Traits d’aspects → reliants les planètes impliquées.
+
+
+Ascendant (AC) et MC (Milieu du Ciel) → marqués par leurs icônes respectives.
+
+
+
+7. Exemple de Workflow
+Input : 1986-11-09 16:28 Genève (46.2044, 6.1432)
+
+
+Conversion heure locale → UTC.
+
+
+flatlib calcule :
+
+
+Soleil en Scorpion à 16°56’
+
+
+Lune en Verseau à 9°12’
+
+
+Ascendant à 12° Gémeaux
+
+
+etc.
+
+
+Génération d’un .png avec :
+
+
+Soleil placé dans le secteur Scorpion
+
+
+Lune dans le secteur Verseau
+
+
+Ascendant marqué en Gémeaux
+
+
+Traits reliant Soleil-Lune (carré, si aspect exact)
+
+
+
+8. Règles Astrologiques à Respecter
+Zodiaque tropical occidental
+
+
+Maisons Placidus (option Porphyry si haute latitude)
+
+
+Orbes standards pour les aspects :
+
+
+Conjonction : ±8°
+
+
+Opposition : ±8°
+
+
+Carré : ±6°
+
+
+Trigone : ±6°
+
+
+Sextile : ±6°
+
+
+Inclure uniquement les aspects majeurs
+
+
+
+9. Contraintes Techniques
+Résultat vectorisé au maximum pour garder la netteté.
+
+
+Export .png fond transparent, 1500x1500px.
+
+
+Tous les calculs (planètes, maisons, aspects) doivent venir de flatlib.
+
+
+Pas de données écrites (pas de degrés, pas de noms de planètes) → uniquement icônes et lignes.
+
+
+
+10. Indications de Design
+
+Vue d'ensemble
+
+Format image : 1500×1500 px, fond blanc.
+
+Centre : (750, 750). Rayon utile R ≈ 700 px (laisse ~50 px de marge).
+
+Système angulaire : 0° en haut (Nord) = 0° Bélier ; angles sens horaire.
+
+Ordre visuel (de l'extérieur vers l'intérieur) :
+
+Bande des signes (cercle externe segmenté en 12 parts de 30°)
+
+Repères radiaux (pointillés/dashes)
+
+Bande des maisons (donut interne avec 12 secteurs et cuspides)
+
+Nœud des aspects (lignes reliant les planètes)
+
+Icônes des planètes/points (placées sur un rayon fixe)
+
+NB Plumastro : tout en noir (noir pur), pas de texte, pas de degrés ; utiliser icônes PNG (signes, planètes, maisons).
+
+Couches et géométrie (rayons en % de R)
+Élément	Rayon / Épaisseur	Détails
+Bande des signes (outer ring)	R*0.83 → R*0.97 (épaisseur ~0.14R)	12 secteurs de 30°. Chaque limite de signe = trait fin (2 px). Icône de signe au centre du secteur (angle milieu, r = R*0.90). Taille icône ~42–52 px.
+Tick radiaux "signes"	traits à chaque 30°	Traits pointillés du bord interne de la bande des signes (R*0.83) jusqu'à R*0.40. Dash pattern p.ex. 6 px on / 6 px off, 1 px d'épaisseur.
+Repères radiaux mineurs (option)	tous les 15°	Identiques mais plus fins/courts (jusqu'à R*0.55).
+Cercles pointillés (grille)	R*{0.18, 0.28, 0.38, 0.48, 0.58, 0.68}	Concentriques, pointillés noirs 1 px. Ils structurent l'intérieur et donnent l'aspect "grille" discret de la référence.
+Bande des maisons	R*0.27 → R*0.42	Donut interne. Cuspides de maison = rayons calculés (Placidus ou Porphyry). Entre R*0.27 et R*0.35 : trait plein. De R*0.35 à R*0.83 : prolongement en pointillés (c'est le "tiret vers l'extérieur" visible sur la référence).
+Icônes des maisons	r = R*0.33	Icône 1.png…12.png posée au milieu angulaire de chaque maison, taille ~22–28 px.
+Planètes & points (AC, MC, NN)	r = R*0.60 (orbite d'affichage)	Place chaque icône à son angle écliptique. Taille ~34–44 px (adapter pour éviter les collisions). Jitter radial de ±0.015R (±10 px) si deux corps à < 2°. AC & MC peuvent avoir r = R*0.76 pour être plus lisibles près de la couronne.
+Lignes d'aspects	dans R*0.20 → R*0.65	Droites centre-à-centre entre planètes. Épaisseur 2 px. (En N&B : soit toutes pleines, soit styles par aspect : conjonction = plein 3 px, sextile = courts tirets, carré = plein 2 px, trigone = longs tirets, opposition = pointillé/dash-dot).
+
+Détails d'implantation
+
+1) Bande des signes (12×30°)
+
+Découpe le cercle en 12 secteurs égaux (commençant à 0° Bélier en haut).
+
+Au milieu de chaque secteur (ex. Bélier à 15° du secteur), place l'icône PNG du signe à r = R*0.90.
+
+Limite de secteur (0/30/60…°) : petit trait plein de 2 px qui traverse la bande des signes (R*0.97 → R*0.83).
+
+Pas de texte ni degrés.
+
+2) Repères radiaux (dashes vers l'extérieur)
+
+Pour chaque cuspide de maison (angle réel calculé), dessine :
+
+Segment plein de r = R*0.27 → R*0.35 (dans la bande des maisons).
+
+Prolongement pointillé de r = R*0.35 → R*0.83 (traverse la zone intérieure jusqu'à la base de la bande des signes).
+
+Épaisseurs : 2 px (plein), 1 px (pointillé).
+
+Repères de signes (chaque 30°) : pointillés du bord interne de la couronne (R*0.83) vers l'intérieur (jusqu'à ~R*0.40) pour l'aspect "filets" de la référence.
+
+Mineurs 15° (option) : plus courts et plus fins.
+
+3) Bande des maisons (donut interne)
+
+Anneau R*0.27 → R*0.42.
+
+Les cuspides sont des rayons aux angles calculés (AC est cuspide maison 1 ; MC = cuspide maison 10).
+
+Chaque secteur de maison peut avoir un léger aplat transparent (facultatif) ; en N&B minimaliste, laisser transparent.
+
+Placer l'icône de maison (1–12) au centre angulaire du secteur, r = R*0.33.
+
+Pas de texte (les numéros sont apportés par les PNG).
+
+4) Planètes et points
+
+Convertir la longitude en angle d'affichage :
+theta = 90° - longitude (mod 360), en radians pour la polar. (0° Bélier = haut, sens horaire).
+
+Placer les icônes PNG (Soleil, Lune, Mercure, …, NN, AC, MC) :
+
+Planètes : r = R*0.60.
+
+AC/MC : r = R*0.76 (plus proche de la couronne pour rappeler leur rôle d'axes).
+
+Gestion de collisions : si |Δlong| < 2°, décaler radialement l'un des deux de ±0.015R (priorité : garder Soleil/Lune au rayon nominal, décaler les autres).
+
+Option rétrogrades : petit chevron ou suffixe "R" n'est pas requis (Plumastro N&B minimal).
+
+5) Aspects majeurs
+
+Détecter conjonction, sextile, carré, trigone, opposition avec les orbes FRS.
+
+Tracer une ligne entre les centres des icônes (ou un point légèrement à l'intérieur, p. ex. r = R*0.58, pour éviter de toucher le bord des glyphes).
+
+Épaisseur 2 px (N&B).
+
+Si différenciation requise sans couleur :
+
+Conjonction : plein 3 px
+
+Sextile : 6 on / 6 off
+
+Carré : plein 2 px
+
+Trigone : 10 on / 8 off
+
+Opposition : 4 on / 4 off / point (dash-dot)
+
+Z-order : d'abord les lignes d'aspect, par-dessus les grilles, sous les icônes planètes.
+
+Règles d'orientation et cohérence
+
+Signe fixe en haut : 0° Bélier au zénith (comme la référence).
+
+Maisons tournées par les cuspides réelles : l'ascendant tombe où il doit (souvent à gauche) et entraîne la rotation de la bande des maisons uniquement, pas celle des signes.
+
+Les prolongements pointillés des cuspides assurent la lecture visuelle "de la maison vers l'extérieur".
+
+Aucune valeur chiffrée (degrés, minutes), aucun nom : uniquement icônes et traits.
+
+Tailles & styles (reco)
+
+Traits pleins (limites, cuspides internes) : 2 px.
+
+Pointillés : 1 px, dash pattern régulier.
+
+Icônes signes : 42–52 px, planètes : 34–44 px, maisons : 22–28 px.
+
+Marges min. depuis le bord : ≥ 40 px.
+
+Tout en noir (#000000) ; arrière-plan blanc.
+
+Résultat attendu
+
+Une image .png 1500×1500 avec fond blanc, où :
+
+La couronne des signes segmente clairement le cercle (icônes de signes centrées).
+
+Les maisons sont lisibles via la bande interne et leurs cuspides prolongées en pointillés vers l'extérieur.
+
+Les planètes sont nettes, non chevauchées.
+
+Les aspects forment une toile régulière au centre, sans codes couleur, sans textes.
+
+11. Positionnement des Signes dans une Birth Chart
+
+Zodiaque = cercle de 360° divisé en 12 signes (30° chacun).
+
+Bélier commence à 0°, Taureau à 30°, Gémeaux à 60°, etc.
+
+Cet ordre ne change jamais.
+
+Ascendant (AC) = point le plus à l'Est au moment de la naissance.
+
+C'est la longitude zodiacale qui se lève à l'horizon Est.
+
+En astrologie, l'Ascendant marque toujours le début de la Maison I.
+
+Placement dans la roue :
+
+L'Ascendant se trace toujours à gauche du cercle (9h sur une horloge).
+
+Cela signifie que le signe où se trouve l'Ascendant est placé à gauche de la roue.
+
+Exemple : si ton Ascendant est en Cancer 15°, alors le Cancer démarre à gauche de la roue, Maison I.
+
+Le signe suivant (Lion) s'enchaîne en sens antihoraire (Lion → Vierge → Balance…).
+
+MC (Milieu du Ciel) = le point culminant au Sud.
+
+Il tombe automatiquement en haut de la carte (12h d'une horloge).
+
+C'est le début de la Maison X.
+
+Il correspond au signe qui culmine au moment de naissance.
+
+Résumé pratique pour l'implémentation
+
+Ascendant toujours à gauche (début Maison I).
+
+Signe Ascendant = signe qui commence la roue, placé à gauche.
+
+Les 12 signes suivent dans l'ordre antihoraire autour du cercle.
+
+MC (Milieu du Ciel) tombe en haut de la roue (début Maison X).
+
+Ainsi, la roue est tournée selon la naissance :
+
+Pas de signe fixe en haut,
+
+Pas de Bélier imposé en haut,
+
+Tout dépend de l'Ascendant calculé avec flatlib.
+
+Exemple concret
+
+Ascendant en Balance 29° → La Balance démarre à gauche (Maison I).
+
+La Maison II commence en Scorpion, puis Maison III en Sagittaire, etc.
+
+MC (Milieu du Ciel) tombera peut-être en Cancer, en haut.
+
+👉 Donc, ce que tu as montré sur l'image précédente (Bélier en haut) est une représentation standardisée (utile pour manuels d'astro), mais une birth chart réelle est toujours tournée pour aligner :
+
+Ascendant à gauche (Maison I)
+
+MC en haut (Maison X)
+
+12. Corrections et Améliorations du Design
+
+Problèmes observés et corrections demandées :
+
+1. Visibilité des planètes
+- Problème : Les planètes ne sont pas visibles (icônes manquantes ou trop petites)
+- Correction : Afficher chaque planète (et points AC, MC, NN) sous forme d'icône PNG ou d'un point noir si icône absente
+- Taille icône : ~40 px
+- Rayon de placement : r = 0.60R (entre la couronne des maisons et le centre)
+- Z-order : Toujours au-dessus des traits et des aspects
+
+2. Positionnement de l'Ascendant
+- Problème : L'Ascendant n'est pas positionné à gauche (9h sur l'horloge)
+- Correction : Forcer le début de la Maison I (Ascendant) à être à gauche de la roue
+- Le signe de l'Ascendant doit commencer à cet endroit
+- Les signes tournent ensuite en sens antihoraire autour du cercle
+- Le MC (Maison X) doit automatiquement tomber en haut
+
+3. Couronne des maisons (donut)
+- Problème : Trop épaisse et trop petite
+- Correction : Réduire le diamètre intérieur (plus proche du centre)
+- Nouveaux rayons : intérieur = 0.35R, extérieur = 0.45R
+- Résultat : Une bande plus fine, mais un peu plus grande
+
+4. Couronne des signes
+- Problème : Trop fine
+- Correction : Élargir la bande en réduisant le rayon intérieur
+- Nouveaux rayons : intérieur = 0.70R, extérieur = 0.97R (inchangé)
+- Le diamètre extérieur ne doit pas changer (pour garder la taille totale)
+
+5. Aspects colorés
+- Problème : Aucune ligne d'aspect n'apparaît
+- Correction : Dessiner les aspects entre planètes visibles uniquement
+- Styles demandés :
+  - Sextile (60°) : violet, tirets 6 on / 6 off, 2 px
+  - Carré (90°) : rouge, ligne pleine, 2 px
+  - Trigone (120°) : vert, tirets 10 on / 8 off, 2 px
+  - Opposition (180°) : bleu, motif dash-dot 4 on / 4 off / 1 on / 4 off, 2 px
+  - Conjonction (0°) : noir, ligne pleine, 3 px
+- Les aspects sont le seul élément en couleur
+
+6. Position des aspects
+- Problème : Les aspects sont absents
+- Correction : Les aspects doivent apparaître à l'intérieur de la couronne des maisons
+- Tracer les lignes uniquement à l'intérieur du diamètre intérieur de la couronne des maisons
+
+Nouveaux rayons spécifiés (v2.0) :
+- Couronne des signes : intérieur = 0.70R, extérieur = 0.97R
+- Couronne des maisons : intérieur = 0.35R, extérieur = 0.45R
+- Cercle pointillé (rayon de positionnement) : 0.68R
+- Géométrie des planètes :
+  - Encoche : de 0.68R vers 0.65R (longueur 0.03R)
+  - Icône : 0.64R (espace 0.01R depuis l'encoche)
+  - Nœud : 0.63R (espace 0.01R depuis l'icône)
+- Aspects : reliant les nœuds (0.63R)
+- Z-order : grille(1) < cuspides(5) < encoches(6) < nœuds(7) < aspects(8) < icônes(10)
+
+13. Spécifications Finales v2.0 - Géométrie des Planètes
+
+Nouvelle représentation des planètes avec géométrie professionnelle :
+
+1. Cercle pointillé unique (rayon 0.68R) = rayon de positionnement des planètes
+
+2. Pour chaque planète, le long du même rayon (du plus extérieur au plus intérieur) :
+   - Encoche : petit trait plein épais (3px) perpendiculaire au cercle pointillé
+   - Icône PNG : placée juste en dessous de l'encoche (rayon 0.64R)
+   - Nœud : petit cercle vide (rayon 6px), le plus proche du centre (rayon 0.63R)
+
+3. Aspects : traits colorés reliant nœud → nœud (pas centre d'icône)
+
+4. Z-order hiérarchique :
+   - Grille (1) < Cuspides (5) < Encoches (6) < Nœuds (7) < Aspects (8) < Icônes (10)
+
+5. Fond blanc (PNG non transparent)
+
+6. Orientation : AC à gauche, MC en haut, ordre anti-horaire
+
+👉 Résumé pour Cursor :
+ Tu dois coder un générateur de birth chart astrologique avec aspects colorés et géométrie professionnelle des planètes, utilisant flatlib pour calculer les positions, matplotlib/PIL pour dessiner le cercle et les icônes PNG (planètes, signes, maisons). Le rendu final est un .png avec fond blanc de 1500x1500px, contenant :
+Les 12 signes du zodiaque
+
+
+Les 12 maisons
+
+
+Les planètes avec géométrie encoche → icône → nœud
+
+
+Les aspects majeurs représentés par des traits colorés reliant les nœuds
+
+
+Positionnement correct : Ascendant à gauche, MC en haut, sens anti-horaire
+
