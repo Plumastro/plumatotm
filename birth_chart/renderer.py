@@ -37,18 +37,18 @@ class BirthChartRenderer:
         self.sign_ring_inner = self.R * 0.70  # R*0.70 (élargi de 0.83 à 0.70)
         self.sign_icon_radius = self.R * 0.83  # R*0.83 (centre de la bande élargie)
         
-        self.house_ring_outer = self.R * 0.40  # R*0.40 (même épaisseur, plus central)
-        self.house_ring_inner = self.R * 0.30  # R*0.30 (même épaisseur, plus central)
-        self.house_icon_radius = (self.house_ring_inner + self.house_ring_outer) / 2.0  # = 0.35R (recentré)
+        self.house_ring_outer = self.R * 0.34    # ↓ vers le centre
+        self.house_ring_inner = self.R * 0.24    # ↓ même épaisseur
+        self.house_icon_radius = (self.house_ring_inner + self.house_ring_outer) / 2.0  # = 0.29R (toujours au centre)
         
         # Cercle pointillé = rayon d'ancrage planétaire (plus proche du centre)
         self.position_radius = self.sign_ring_inner - self.R * 0.04  # un cran plus intérieur
         self.grid_radii = [self.position_radius]
         
         # Géométrie de l'encoche / icône / nœud (distances vers le centre)
-        self.planet_tick_len = self.R * 0.035    # encoche un peu plus longue
-        self.icon_gap = self.R * 0.020           # icône descend un peu plus
-        self.node_gap = self.R * 0.035           # nœud descend nettement plus
+        self.planet_tick_len = self.R * 0.020   # encoche + courte
+        self.icon_gap        = self.R * 0.040   # icône descend davantage vers le centre
+        self.node_gap = self.R * 0.120  # nœud nettement plus central
         self.node_radius_px = 6                  # rayon visuel du petit nœud (cercle vide)
         
         # Rayons de placement le long du même rayon
@@ -68,7 +68,7 @@ class BirthChartRenderer:
         # Icon sizes according to FRS - CORRIGÉS
         self.sign_icon_size = 48  # 42-52px (inchangé)
         self.house_icon_size = 26  # 22-28px (inchangé)
-        self.planet_icon_size = 40  # 40px (fixé pour visibilité)
+        self.planet_icon_size = 48  # 48px (agrandi pour meilleure visibilité)
         
         # Load icon mappings
         self.icon_mappings = self._create_icon_mappings()
@@ -252,7 +252,7 @@ class BirthChartRenderer:
         """Draw concentric dotted circles for grid structure."""
         for radius in self.grid_radii:
             circle = Circle(self.center, radius, fill=False, 
-                          color='black', linewidth=3.5, linestyle=(0, (4, 4)), alpha=0.7, zorder=1)
+                          color='black', linewidth=4, linestyle=(0, (4, 4)), alpha=0.8, zorder=1)
             ax.add_patch(circle)
     
     def _draw_radial_ticks(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
@@ -397,7 +397,7 @@ class BirthChartRenderer:
             
             # (a) encoche — trait plein, perpendiculaire au cercle, vers le centre
             ax.plot([x_on, x_tick], [y_on, y_tick],
-                   color='black', linewidth=3, solid_capstyle='round', zorder=18)
+                   color='black', linewidth=4, solid_capstyle='round', zorder=18)
 
             # (b) icône — juste en dessous de l'encoche
             icon = self._load_icon(planet, self.planet_icon_size)
@@ -423,7 +423,7 @@ class BirthChartRenderer:
 
             # (a) encoche — trait plein, perpendiculaire au cercle, vers le centre
             ax.plot([x_on, x_tick], [y_on, y_tick],
-                   color='black', linewidth=3, solid_capstyle='round', zorder=18)
+                   color='black', linewidth=4, solid_capstyle='round', zorder=18)
 
             # (b) icône — juste en dessous de l'encoche
             icon = self._load_icon(angle_name, self.planet_icon_size)
@@ -472,14 +472,15 @@ class BirthChartRenderer:
     
     def _get_aspect_style(self, aspect_type: str) -> Dict[str, Any]:
         """Get styling parameters for different aspect types with colors."""
+        # tout en traits pleins, bien épais (on garde les couleurs si tu veux)
         styles = {
-            "conjunction": {"linewidth": 3, "linestyle": "-", "color": "black"},
-            "sextile": {"linewidth": 2, "linestyle": (0, (6, 6)), "color": "violet"},  # 6 on / 6 off
-            "square": {"linewidth": 2, "linestyle": "-", "color": "red"},
-            "trine": {"linewidth": 2, "linestyle": (0, (10, 8)), "color": "green"},   # 10 on / 8 off
-            "opposition": {"linewidth": 2, "linestyle": (0, (4, 4, 1, 4)), "color": "blue"}  # dash-dot
+            "conjunction": {"linewidth": 4, "linestyle": "-", "color": "black"},
+            "sextile":     {"linewidth": 3.5, "linestyle": "-", "color": "violet"},
+            "square":      {"linewidth": 3.5, "linestyle": "-", "color": "red"},
+            "trine":       {"linewidth": 3.5, "linestyle": "-", "color": "green"},
+            "opposition":  {"linewidth": 3.5, "linestyle": "-", "color": "blue"},
         }
-        return styles.get(aspect_type, {"linewidth": 2, "linestyle": "-", "color": "black"})
+        return styles.get(aspect_type, {"linewidth": 3.5, "linestyle": "-", "color": "black"})
     
     def _place_icon(self, ax, icon: np.ndarray, x: float, y: float, size: int):
         """Place an icon at the specified position."""
