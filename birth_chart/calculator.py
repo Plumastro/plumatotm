@@ -39,10 +39,10 @@ class BirthChartCalculator:
         if not HAS_TIMEZONEFINDER:
             raise ImportError("timezonefinderL is required. Install with: pip install timezonefinderL")
         
-        # Supported planets and points
+        # Supported planets and points (matching plumatotm engine)
         self.planets = [
-            "Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", 
-            "Saturn", "Uranus", "Neptune", "Pluto", "North Node"
+            "Sun", "Ascendant", "Moon", "Mercury", "Venus", "Mars", "Jupiter", 
+            "Saturn", "Uranus", "Neptune", "Pluto", "North Node", "MC"
         ]
         
         # Mapping to flatlib constants
@@ -220,27 +220,38 @@ class BirthChartCalculator:
             raise ValueError(f"Error calculating birth chart: {e}")
     
     def _extract_planet_positions(self, chart: Chart) -> Dict[str, Dict[str, Any]]:
-        """Extract planetary positions from chart."""
+        """Extract planetary positions from chart using plumatotm engine logic."""
         positions = {}
         
-        for planet in self.planets:
+        for planet_name in self.planets:
             try:
-                if planet == "North Node":
-                    obj = chart.getObject("North Node")
+                # Use exact same logic as plumatotm engine
+                if planet_name == "Ascendant":
+                    obj = chart.get("Asc")
+                elif planet_name == "North Node":
+                    obj = chart.get("North Node")
+                elif planet_name == "MC":
+                    obj = chart.get("MC")
+                elif planet_name == "Uranus":
+                    obj = chart.get(const.URANUS)
+                elif planet_name == "Neptune":
+                    obj = chart.get(const.NEPTUNE)
+                elif planet_name == "Pluto":
+                    obj = chart.get(const.PLUTO)
                 else:
-                    obj = chart.getObject(planet)
+                    obj = chart.get(planet_name)
                 
-                positions[planet] = {
+                positions[planet_name] = {
                     "longitude": obj.lon,
                     "sign": obj.sign,
                     "sign_degrees": obj.lon % 30,
                     "house": self._get_house_number(obj.lon, chart.houses)
                 }
                 
-                logger.debug(f"{planet}: {obj.sign} {obj.lon:.3f}° (House {positions[planet]['house']})")
+                logger.debug(f"{planet_name}: {obj.sign} {obj.lon:.3f}° (House {positions[planet_name]['house']})")
                 
             except Exception as e:
-                logger.warning(f"Could not get {planet}: {e}")
+                logger.warning(f"Could not get {planet_name}: {e}")
                 continue
         
         return positions
@@ -260,40 +271,37 @@ class BirthChartCalculator:
         return cusps
     
     def _extract_angles(self, chart: Chart) -> Dict[str, Dict[str, Any]]:
-        """Extract Ascendant and MC from chart."""
-        asc = chart.getAngle(const.ASC)
-        mc = chart.getAngle(const.MC)
-        
-        return {
-            "Ascendant": {
-                "longitude": asc.lon,
-                "sign": asc.sign,
-                "sign_degrees": asc.lon % 30
-            },
-            "MC": {
-                "longitude": mc.lon,
-                "sign": mc.sign,
-                "sign_degrees": mc.lon % 30
-            }
-        }
+        """Extract Ascendant and MC from chart (now handled in planet positions)."""
+        # Ascendant and MC are now extracted as part of planet positions
+        # This method is kept for compatibility but returns empty dict
+        return {}
     
     def _get_house_number(self, longitude: float, houses) -> int:
-        """Get house number for a given longitude."""
+        """Get house number for a given longitude using plumatotm engine logic."""
+        # Convert to 0-360 range
         longitude = longitude % 360
         
-        for i, house in enumerate(houses, 1):
+        # Convert HouseList to list for easier indexing (same as plumatotm)
+        house_list = list(houses)
+        
+        # Find the house by checking which house cusp the planet is closest to
+        for i, house in enumerate(house_list, 1):
             house_cusp = house.lon % 360
-            next_house_cusp = houses[i % 12].lon % 360 if i < 12 else houses[0].lon % 360
+            next_house_cusp = house_list[i % 12].lon % 360 if i < 12 else house_list[0].lon % 360
             
-            # Handle crossing 0°
+            # Handle the case where we cross 0°
             if next_house_cusp < house_cusp:
+                # We're crossing 0°, so the house spans from house_cusp to 360° and from 0° to next_house_cusp
                 if longitude >= house_cusp or longitude < next_house_cusp:
                     return i
             else:
+                # Normal case, house spans from house_cusp to next_house_cusp
+                # Use < for the upper bound (exclusive) as the next house starts at the next cusp
                 if house_cusp <= longitude < next_house_cusp:
                     return i
         
-        return 1  # Fallback
+        # If we get here, the planet is exactly on a cusp, return the next house
+        return 1
     
     def _longitude_to_sign(self, longitude: float) -> str:
         """Convert longitude to zodiac sign."""
@@ -305,32 +313,15 @@ class BirthChartCalculator:
         """Calculate major aspects between planets."""
         aspects = []
         
-        # Get all planets including angles
-        all_bodies = list(planet_positions.keys()) + ["Ascendant", "MC"]
+        # Get all planets (Ascendant and MC are now included in planet_positions)
+        all_bodies = list(planet_positions.keys())
         
         for i, body1 in enumerate(all_bodies):
             for body2 in all_bodies[i+1:]:
                 try:
-                    # Get longitudes
-                    if body1 in planet_positions:
-                        lon1 = planet_positions[body1]["longitude"]
-                    elif body1 == "Ascendant":
-                        # We need to get this from the chart, but for now skip
-                        continue
-                    elif body1 == "MC":
-                        # We need to get this from the chart, but for now skip
-                        continue
-                    else:
-                        continue
-                    
-                    if body2 in planet_positions:
-                        lon2 = planet_positions[body2]["longitude"]
-                    elif body2 == "Ascendant":
-                        continue
-                    elif body2 == "MC":
-                        continue
-                    else:
-                        continue
+                    # Get longitudes from planet positions
+                    lon1 = planet_positions[body1]["longitude"]
+                    lon2 = planet_positions[body2]["longitude"]
                     
                     # Calculate angular distance
                     angular_distance = abs(lon1 - lon2)
