@@ -45,6 +45,21 @@ class BirthChartCalculator:
             "Saturn", "Uranus", "Neptune", "Pluto", "North Node"
         ]
         
+        # Mapping to flatlib constants
+        self._idmap = {
+            "Sun": const.SUN,
+            "Moon": const.MOON,
+            "Mercury": const.MERCURY,
+            "Venus": const.VENUS,
+            "Mars": const.MARS,
+            "Jupiter": const.JUPITER,
+            "Saturn": const.SATURN,
+            "Uranus": const.URANUS,
+            "Neptune": const.NEPTUNE,
+            "Pluto": const.PLUTO,
+            "North Node": const.NORTH_NODE,
+        }
+        
         # Major aspects with orbs (in degrees)
         self.major_aspects = {
             "conjunction": 8.0,    # 0° ± 8°
@@ -165,12 +180,12 @@ class BirthChartCalculator:
             
             # Create chart
             pos = GeoPos(lat, lon)
-            custom_objects = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 
-                            'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'North Node']
+            custom_objects = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'North Node']
             chart = Chart(dt, pos, hsys=house_sys, IDs=custom_objects)
             
             # Extract planetary positions
             planet_positions = self._extract_planet_positions(chart)
+            print(f"[DEBUG] nb_planets={len(planet_positions)} -> {list(planet_positions.keys())}")
             
             # Extract house cusps
             house_cusps = self._extract_house_cusps(chart)
@@ -211,9 +226,9 @@ class BirthChartCalculator:
         for planet in self.planets:
             try:
                 if planet == "North Node":
-                    obj = chart.get("North Node")
+                    obj = chart.getObject("North Node")
                 else:
-                    obj = chart.get(planet)
+                    obj = chart.getObject(planet)
                 
                 positions[planet] = {
                     "longitude": obj.lon,

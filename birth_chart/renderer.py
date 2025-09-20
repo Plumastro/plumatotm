@@ -39,7 +39,7 @@ class BirthChartRenderer:
         
         self.house_ring_outer = self.R * 0.40  # R*0.40 (même épaisseur, plus central)
         self.house_ring_inner = self.R * 0.30  # R*0.30 (même épaisseur, plus central)
-        self.house_icon_radius = self.R * 0.40  # R*0.40 (centre de la bande ajustée)
+        self.house_icon_radius = (self.house_ring_inner + self.house_ring_outer) / 2.0  # = 0.35R (recentré)
         
         # Cercle pointillé = rayon d'ancrage planétaire (plus proche du centre)
         self.position_radius = self.sign_ring_inner - self.R * 0.04  # un cran plus intérieur
@@ -47,8 +47,8 @@ class BirthChartRenderer:
         
         # Géométrie de l'encoche / icône / nœud (distances vers le centre)
         self.planet_tick_len = self.R * 0.035    # encoche un peu plus longue
-        self.icon_gap = self.R * 0.015           # icône + intérieure
-        self.node_gap = self.R * 0.025           # nœud bien + intérieur
+        self.icon_gap = self.R * 0.020           # icône descend un peu plus
+        self.node_gap = self.R * 0.035           # nœud descend nettement plus
         self.node_radius_px = 6                  # rayon visuel du petit nœud (cercle vide)
         
         # Rayons de placement le long du même rayon
@@ -252,7 +252,7 @@ class BirthChartRenderer:
         """Draw concentric dotted circles for grid structure."""
         for radius in self.grid_radii:
             circle = Circle(self.center, radius, fill=False, 
-                          color='black', linewidth=2, linestyle=(0, (4, 4)), alpha=0.5, zorder=1)
+                          color='black', linewidth=3.5, linestyle=(0, (4, 4)), alpha=0.7, zorder=1)
             ax.add_patch(circle)
     
     def _draw_radial_ticks(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
@@ -385,15 +385,19 @@ class BirthChartRenderer:
     def _draw_planets(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
         """Draw planets with encoche, icon, and node geometry."""
         planet_positions = chart_data.get("planet_positions", {})
+        print(f"[DEBUG] planets count = {len(planet_positions)}")
         
         for planet, data in planet_positions.items():
+            print(f"[DEBUG] planet={planet}, lon={data['longitude']:.2f}")
             longitude = data["longitude"]
             (x_on, y_on), (x_tick, y_tick), (x_icon, y_icon), (x_node, y_node), angle = \
                 self._planet_geo(longitude, ascendant_longitude)
 
+            print(f"[DEBUG] {planet} xy_icon=({x_icon:.1f},{y_icon:.1f}) xy_node=({x_node:.1f},{y_node:.1f})")
+            
             # (a) encoche — trait plein, perpendiculaire au cercle, vers le centre
             ax.plot([x_on, x_tick], [y_on, y_tick],
-                   color='black', linewidth=3, solid_capstyle='round', zorder=6)
+                   color='black', linewidth=3, solid_capstyle='round', zorder=18)
 
             # (b) icône — juste en dessous de l'encoche
             icon = self._load_icon(planet, self.planet_icon_size)
@@ -401,11 +405,11 @@ class BirthChartRenderer:
                 self._place_icon(ax, icon, x_icon, y_icon, self.planet_icon_size)
             else:
                 # Fallback: draw a black dot if icon is missing
-                ax.plot(x_icon, y_icon, 'o', color='black', markersize=12, markeredgewidth=0, zorder=10)
+                ax.plot(x_icon, y_icon, 'o', color='black', markersize=12, markeredgewidth=0, zorder=20)
 
             # (c) nœud — petit cercle **vide** (non rempli), le plus proche du centre
             node = Circle((x_node, y_node), self.node_radius_px, fill=False,
-                         linewidth=2.2, edgecolor='black', zorder=7)
+                         linewidth=2.2, edgecolor='black', zorder=19)
             ax.add_patch(node)
     
     def _draw_angles(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
@@ -419,7 +423,7 @@ class BirthChartRenderer:
 
             # (a) encoche — trait plein, perpendiculaire au cercle, vers le centre
             ax.plot([x_on, x_tick], [y_on, y_tick],
-                   color='black', linewidth=3, solid_capstyle='round', zorder=6)
+                   color='black', linewidth=3, solid_capstyle='round', zorder=18)
 
             # (b) icône — juste en dessous de l'encoche
             icon = self._load_icon(angle_name, self.planet_icon_size)
@@ -427,11 +431,11 @@ class BirthChartRenderer:
                 self._place_icon(ax, icon, x_icon, y_icon, self.planet_icon_size)
             else:
                 # Fallback: draw a black dot if icon is missing
-                ax.plot(x_icon, y_icon, 'o', color='black', markersize=12, markeredgewidth=0, zorder=10)
+                ax.plot(x_icon, y_icon, 'o', color='black', markersize=12, markeredgewidth=0, zorder=20)
 
             # (c) nœud — petit cercle **vide** (non rempli), le plus proche du centre
             node = Circle((x_node, y_node), self.node_radius_px, fill=False,
-                         linewidth=2.2, edgecolor='black', zorder=7)
+                         linewidth=2.2, edgecolor='black', zorder=19)
             ax.add_patch(node)
     
     def _draw_aspects(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
@@ -464,7 +468,7 @@ class BirthChartRenderer:
                    color=style['color'],
                    linewidth=style['linewidth'],
                    linestyle=style['linestyle'],
-                   alpha=0.95, zorder=8)
+                   alpha=0.95, zorder=12)
     
     def _get_aspect_style(self, aspect_type: str) -> Dict[str, Any]:
         """Get styling parameters for different aspect types with colors."""
@@ -482,7 +486,8 @@ class BirthChartRenderer:
         try:
             oi = OffsetImage(icon, zoom=1.0, interpolation='nearest')
             ab = AnnotationBbox(oi, (x, y), frameon=False, pad=0.0,
-                              box_alignment=(0.5, 0.5), zorder=10)
+                              box_alignment=(0.5, 0.5))
+            ab.set_zorder(20)  # icônes tout en haut
             ax.add_artist(ab)
         except Exception as e:
             logger.warning(f"Could not place icon at ({x}, {y}): {e}")
