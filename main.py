@@ -15,6 +15,14 @@ import traceback
 # Import the core engine
 import plumatotm_core
 
+# Import Supabase manager
+try:
+    from supabase_manager import SupabaseManager
+    SUPABASE_AVAILABLE = True
+except ImportError:
+    SUPABASE_AVAILABLE = False
+    print("⚠️  Supabase not available. Install with: pip install supabase")
+
 app = Flask(__name__)
 
 # Configure CORS to allow requests from plumastro.com
@@ -22,6 +30,9 @@ CORS(app, resources={r"/analyze": {"origins": "https://plumastro.com"}})
 
 # Global analyzer instance
 analyzer = None
+
+# Global Supabase manager instance
+supabase_manager = None
 
 def initialize_analyzer():
     """Initialize the analyzer with required files"""
@@ -54,6 +65,25 @@ def initialize_analyzer():
         traceback.print_exc()
         return False
 
+def initialize_supabase():
+    """Initialize the Supabase manager"""
+    global supabase_manager
+    if SUPABASE_AVAILABLE:
+        try:
+            supabase_manager = SupabaseManager()
+            if supabase_manager.is_available():
+                print("✅ Supabase manager initialized successfully")
+                return True
+            else:
+                print("⚠️  Supabase manager not available (check configuration)")
+                return False
+        except Exception as e:
+            print(f"❌ Failed to initialize Supabase manager: {e}")
+            return False
+    else:
+        print("⚠️  Supabase not available")
+        return False
+
 @app.route('/')
 def home():
     """API home endpoint"""
@@ -74,7 +104,8 @@ def health():
     return jsonify({
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
-        "analyzer_ready": analyzer is not None
+        "analyzer_ready": analyzer is not None,
+        "supabase_ready": supabase_manager is not None and supabase_manager.is_available()
     })
 
 def load_analysis_results():
@@ -290,6 +321,34 @@ def analyze():
             # Load additional results for frontend
             analysis_results = load_analysis_results()
             
+            # Update Supabase with user data
+            supabase_updated = False
+            if supabase_manager and supabase_manager.is_available():
+                try:
+                    # Get the top1 animal from the results
+                    top3_summary = analysis_results.get('top3_summary', {})
+                    top1_data = top3_summary.get('Top1', {})
+                    top1_animal = top1_data.get('animal_english', '')
+                    
+                    if top1_animal:
+                        # Generate a unique PlumID for this user
+                        import hashlib
+                        user_data = f"{name}_{date}_{time}_{lat}_{lon}"
+                        plumid = hashlib.md5(user_data.encode()).hexdigest()[:12]
+                        
+                        # Add user to Supabase
+                        supabase_success = supabase_manager.add_user(plumid, top1_animal, name)
+                        if supabase_success:
+                            supabase_updated = True
+                            print(f"✅ Supabase updated: {name} -> {top1_animal} (PlumID: {plumid})")
+                        else:
+                            print(f"⚠️  Supabase update failed for {name}")
+                    else:
+                        print("⚠️  No top1 animal found for Supabase update")
+                        
+                except Exception as supabase_error:
+                    print(f"⚠️  Supabase error: {supabase_error}")
+            
         except Exception as e:
             print(f"❌ Analysis failed: {e}")
             import traceback
@@ -333,7 +392,8 @@ def analyze():
                 "top1_animal_radar.png",
                 "top2_animal_radar.png", 
                 "top3_animal_radar.png"
-            ]
+            ],
+            "supabase_updated": supabase_updated
         }
         
         # Add the additional data requested by the user
@@ -385,13 +445,16 @@ def list_files():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Initialize analyzer at module level (after function definition)
+# Initialize analyzer and Supabase at module level (after function definition)
 print("🚀 Starting PLUMATOTM API...")
 if initialize_analyzer():
-    print("✅ API ready to serve requests")
+    print("✅ Analyzer ready")
 else:
     print("❌ Failed to start API - analyzer initialization failed")
     exit(1)
+
+# Initialize Supabase (optional - API will work without it)
+initialize_supabase()
 
 if __name__ == '__main__':
     # Analyzer is already initialized at module level
