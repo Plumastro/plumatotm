@@ -25,7 +25,7 @@ class BirthChartRenderer:
     def __init__(self, icons_dir: str = "icons"):
         self.icons_dir = icons_dir
         self.canvas_size = 1500
-        self.dpi = 100
+        self.dpi = 100  # Garder la même échelle
         
         # Chart dimensions according to FRS specifications
         # Centre: (750, 750), Rayon utile R ≈ 700px
@@ -38,7 +38,7 @@ class BirthChartRenderer:
         # Ancienne épaisseur = self.sign_ring_outer - 0.70*R
         old_inner = self.R * 0.70
         old_thick = self.sign_ring_outer - old_inner
-        new_thick = old_thick * 0.75  # 25% plus fin
+        new_thick = old_thick * 0.75  # 25% plus fin (épaisseur de bande inchangée)
         self.sign_ring_inner = self.sign_ring_outer - new_thick
         
         # icône de signe au centre de la bande
@@ -55,7 +55,7 @@ class BirthChartRenderer:
         
         # géométrie encoche / icône / nœud (on conserve les gaps, simplement *au-dessus*)
         self.planet_tick_len = self.R * 0.020
-        self.icon_gap        = self.R * 0.080
+        self.icon_gap        = self.R * 0.070  # légèrement réduit pour rapprocher les icônes des encoches
         self.node_gap        = self.R * 0.070  # encore plus réduit pour rapprocher les nœuds des icônes
         self.node_radius_px  = 6
         
@@ -71,10 +71,10 @@ class BirthChartRenderer:
         # aspects confinés à la limite intérieure des maisons (inchangé)
         self.aspect_max_radius = self.house_ring_inner
         
-        # Icon sizes according to FRS - CORRIGÉS
-        self.sign_icon_size = 48  # 42-52px (inchangé)
-        self.house_icon_size = 32  # augmenté pour meilleure visibilité
-        self.planet_icon_size = 48  # 48px (agrandi pour meilleure visibilité)
+        # Icon sizes according to FRS - CORRIGÉS (même taille, meilleure qualité)
+        self.sign_icon_size = 48  # Taille originale
+        self.house_icon_size = 32 # Taille originale
+        self.planet_icon_size = 48 # Taille originale
         
         # Load icon mappings
         self.icon_mappings = self._create_icon_mappings()
@@ -140,9 +140,11 @@ class BirthChartRenderer:
             icon_path = os.path.join(self.icons_dir, filename)
             if os.path.exists(icon_path):
                 try:
-                    # Load and resize icon
+                    # Load and resize icon with high quality
                     img = Image.open(icon_path).convert("RGBA")
+                    # Utiliser un redimensionnement de haute qualité
                     img = img.resize((size, size), Image.Resampling.LANCZOS)
+                    # Assurer que l'image a une bonne qualité
                     icon_array = np.asarray(img)
                     self.loaded_icons[name] = icon_array
                     logger.debug(f"Loaded icon: {filename} for {name}")
@@ -188,8 +190,8 @@ class BirthChartRenderer:
         # 2) Calcul dynamique de la séparation minimale en fonction de la taille icône & rayon
         icon_half_width_px = self.planet_icon_size * 0.5
         base_min_sep = icon_half_width_px / max(self.planet_icon_radius, 1)
-        min_sep = base_min_sep * 3.5      # marge très agressive pour éviter les superpositions
-        max_spread = min_sep * 5.0        # éventail max très large
+        min_sep = base_min_sep * 3.8      # marge équilibrée pour éviter les chevauchements
+        max_spread = min_sep * 5.3        # éventail max équilibré
 
         # 3) Détecte les clusters (attention au wrap 2π)
         clusters = []
@@ -328,7 +330,7 @@ class BirthChartRenderer:
         """Draw concentric dotted circles for grid structure."""
         for radius in self.grid_radii:
             circle = Circle(self.center, radius, fill=False, 
-                          color='black', linewidth=4, linestyle=(0, (4, 4)), alpha=0.8, zorder=1)
+                          color='black', linewidth=2, linestyle=(0, (2, 3)), alpha=0.8, zorder=1)
             ax.add_patch(circle)
     
     def _draw_radial_ticks(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
@@ -375,12 +377,12 @@ class BirthChartRenderer:
         """Draw the outer zodiac signs ring."""
         # Draw outer circle
         outer_circle = Circle(self.center, self.sign_ring_outer, fill=False, 
-                            color='black', linewidth=2)
+                            color='black', linewidth=4)
         ax.add_patch(outer_circle)
         
         # Draw inner circle
         inner_circle = Circle(self.center, self.sign_ring_inner, fill=False, 
-                            color='black', linewidth=2)
+                            color='black', linewidth=4)
         ax.add_patch(inner_circle)
         
         # Draw sector dividers (every 30°)
@@ -398,7 +400,7 @@ class BirthChartRenderer:
             x2 += self.center[0]
             y2 += self.center[1]
             
-            ax.plot([x1, x2], [y1, y2], color='black', linewidth=2)
+            ax.plot([x1, x2], [y1, y2], color='black', linewidth=4)
         
         # Place zodiac sign icons at 30° intervals
         signs = ["ARIES", "TAURUS", "GEMINI", "CANCER", "LEO", "VIRGO",
@@ -571,9 +573,12 @@ class BirthChartRenderer:
         return styles.get(aspect_type, {"linewidth": 3.8, "linestyle": "-", "color": "#111827"})
     
     def _place_icon(self, ax, icon: np.ndarray, x: float, y: float, size: int):
-        """Place an icon at the specified position."""
+        """Place an icon at the specified position with high quality rendering."""
         try:
-            oi = OffsetImage(icon, zoom=1.0, interpolation='nearest')
+            # Calculer le zoom optimal pour la résolution
+            zoom_factor = size / icon.shape[0]  # Ajustement automatique du zoom
+            
+            oi = OffsetImage(icon, zoom=zoom_factor, interpolation='bilinear')
             ab = AnnotationBbox(oi, (x, y), frameon=False, pad=0.0,
                               box_alignment=(0.5, 0.5))
             ab.set_zorder(20)  # icônes tout en haut
