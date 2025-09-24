@@ -987,6 +987,19 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                 os.remove(file_path)
                 print(f"Removed existing file: {file_path}")
         
+        # Remove existing birth chart PNG file
+        birth_chart_path = "outputs/birth_chart.png"
+        if os.path.exists(birth_chart_path):
+            os.remove(birth_chart_path)
+            print(f"Removed existing birth chart: {birth_chart_path}")
+        
+        # Remove existing radar chart files (same pattern as birth chart)
+        radar_patterns = ["outputs/top1_animal_radar.png", "outputs/top2_animal_radar.png", "outputs/top3_animal_radar.png"]
+        for radar_file in radar_patterns:
+            if os.path.exists(radar_file):
+                os.remove(radar_file)
+                print(f"Removed existing radar chart: {radar_file}")
+        
         # 1. Birth Chart Data (JSON) - includes both signs and houses
         birth_chart_data = {
             "planet_signs": planet_signs,
@@ -1004,6 +1017,41 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         with open(output_files["birth_chart"], 'w', encoding='utf-8') as f:
             json.dump(birth_chart_data, f, indent=2, ensure_ascii=False)
         print(f"Birth chart data saved to: {output_files['birth_chart']}")
+        
+        # 1.1. Generate Birth Chart PNG
+        if birth_date and birth_time and lat is not None and lon is not None:
+            try:
+                from birth_chart.service import generate_birth_chart
+                
+                # Check if icons directory exists
+                if not os.path.exists("icons"):
+                    print("WARNING: Icons directory not found, birth chart may not render properly")
+                else:
+                    print(f"Icons directory found with {len(os.listdir('icons'))} files")
+                
+                # Generate birth chart PNG with simple filename
+                birth_chart_png_path = generate_birth_chart(
+                    date=birth_date,
+                    time=birth_time,
+                    lat=lat,
+                    lon=lon,
+                    icons_dir="icons",
+                    house_system="placidus",
+                    zodiac="tropical",
+                    output_path="outputs/birth_chart.png"  # Nom simple
+                )
+                print(f"Birth chart PNG generated: {birth_chart_png_path}")
+                
+                # Verify the file was actually created
+                if not os.path.exists("outputs/birth_chart.png"):
+                    print("ERROR: Birth chart PNG file was not created!")
+                    raise FileNotFoundError("Birth chart PNG file was not created")
+                
+            except Exception as e:
+                print(f"ERROR: Could not generate birth chart PNG: {e}")
+                import traceback
+                traceback.print_exc()
+                # Don't fail the entire analysis, but make the error more visible
         
         # 2. Planet Weights (JSON)
         with open(output_files["planet_weights"], 'w', encoding='utf-8') as f:
