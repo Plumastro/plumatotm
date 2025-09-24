@@ -177,6 +177,40 @@ def load_analysis_results():
     
     return results
 
+def cleanup_memory():
+    """Clean up memory after each API run to minimize memory usage in Render."""
+    try:
+        import gc
+        import sys
+        
+        # Force garbage collection
+        gc.collect()
+        
+        # Clear any cached data in the analyzer if it exists
+        global analyzer
+        if analyzer is not None:
+            # Clear any cached data that might be stored in the analyzer
+            if hasattr(analyzer, 'loaded_icons'):
+                analyzer.loaded_icons.clear()
+            if hasattr(analyzer, 'animal_translations'):
+                # Don't clear translations as they're needed for next run
+                pass
+        
+        # Clear any matplotlib cache
+        try:
+            import matplotlib.pyplot as plt
+            plt.close('all')
+        except:
+            pass
+        
+        # Force another garbage collection
+        gc.collect()
+        
+        print("🧹 Memory cleanup completed")
+        
+    except Exception as e:
+        print(f"⚠️  Warning: Memory cleanup failed: {e}")
+
 @app.route('/analyze', methods=['POST'])
 def analyze():
     """
@@ -190,6 +224,7 @@ def analyze():
         "lon": 4.8320114,
         "country": "France",
         "state": "Auvergne-Rhône-Alpes",
+        "city": "Lyon",
         "openai_api_key": "sk-..." (optional)
     }
     """
@@ -214,6 +249,7 @@ def analyze():
         lon = float(data['lon'])
         country = data.get('country', 'Unknown')
         state = data.get('state', 'Unknown')
+        city = data.get('city', 'Unknown')
         openai_api_key = data.get('openai_api_key')
         
         # Validate date format
@@ -238,7 +274,7 @@ def analyze():
         if analyzer is None:
             return jsonify({"error": "Analyzer not initialized"}), 500
         
-        print(f"🔮 Starting analysis for {name} ({date} {time} at {lat}°N, {lon}°W, {country}, {state})")
+        print(f"🔮 Starting analysis for {name} ({date} {time} at {lat}°N, {lon}°W, {city}, {state}, {country})")
         
         try:
             # Run analysis using the analyzer's run_analysis method
@@ -274,6 +310,7 @@ def analyze():
                 "location": {
                     "country": country,
                     "state": state,
+                    "city": city,
                     "coordinates": {
                         "lat": lat,
                         "lon": lon
@@ -288,6 +325,7 @@ def analyze():
             },
             "output_files": [
                 "birth_chart.json",
+                "birth_chart.png",
                 "animal_totals.json", 
                 "top3_percentage_strength.json",
                 "animal_proportion.json",
@@ -306,8 +344,7 @@ def analyze():
         json_response = json.dumps(response_data, ensure_ascii=False, indent=None)
         
         # Explicit memory cleanup after analysis
-        import gc
-        gc.collect()
+        cleanup_memory()
         
         return Response(json_response, mimetype='application/json')
         
