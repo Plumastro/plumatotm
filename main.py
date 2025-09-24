@@ -331,18 +331,29 @@ def analyze():
                     top1_animal = top1_data.get('animal_english', '')
                     
                     if top1_animal:
-                        # Generate a unique PlumID for this user
-                        import hashlib
-                        user_data = f"{name}_{date}_{time}_{lat}_{lon}"
-                        plumid = hashlib.md5(user_data.encode()).hexdigest()[:12]
+                        # Generate a unique PlumID for this user using the correct format
+                        from plumid_generator import PlumIDGenerator
+                        plumid = PlumIDGenerator.generate_plumid(date, time, lat, lon)
                         
-                        # Add user to Supabase
-                        supabase_success = supabase_manager.add_user(plumid, top1_animal, name)
-                        if supabase_success:
-                            supabase_updated = True
-                            print(f"✅ Supabase updated: {name} -> {top1_animal} (PlumID: {plumid})")
+                        # Check if user already exists in Supabase
+                        existing_animal = supabase_manager.get_user_animal(plumid)
+                        
+                        if existing_animal:
+                            # User exists, update the record
+                            supabase_success = supabase_manager.update_user_animal(plumid, top1_animal, name)
+                            if supabase_success:
+                                supabase_updated = True
+                                print(f"✅ Supabase updated existing user: {name} -> {top1_animal} (PlumID: {plumid})")
+                            else:
+                                print(f"⚠️  Supabase update failed for existing user {name}")
                         else:
-                            print(f"⚠️  Supabase update failed for {name}")
+                            # User doesn't exist, add new record
+                            supabase_success = supabase_manager.add_user(plumid, top1_animal, name)
+                            if supabase_success:
+                                supabase_updated = True
+                                print(f"✅ Supabase added new user: {name} -> {top1_animal} (PlumID: {plumid})")
+                            else:
+                                print(f"⚠️  Supabase add failed for new user {name}")
                     else:
                         print("⚠️  No top1 animal found for Supabase update")
                         
