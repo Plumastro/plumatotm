@@ -275,10 +275,10 @@ class BirthChartRenderer:
             Path to the saved image
         """
         try:
-            # Create figure with white background
+            # Create figure with transparent background
             fig, ax = plt.subplots(figsize=(self.canvas_size/self.dpi, self.canvas_size/self.dpi),
-                                 dpi=self.dpi, facecolor='white')
-            ax.set_facecolor('white')
+                                 dpi=self.dpi, facecolor='none')
+            ax.set_facecolor('none')
             
             # Set equal aspect ratio and remove axes
             ax.set_aspect('equal')
@@ -313,10 +313,10 @@ class BirthChartRenderer:
             # Ensure output directory exists
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             
-            # Save with white background
+            # Save with transparent background
             plt.tight_layout()
             plt.savefig(output_path, dpi=self.dpi, bbox_inches='tight',
-                       facecolor='white', transparent=False, pad_inches=0)
+                       facecolor='none', transparent=True, pad_inches=0)
             plt.close()
             
             logger.info(f"Birth chart saved to: {output_path}")
