@@ -179,95 +179,99 @@ class BirthChartRenderer:
         angles: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, float]:
         """
-        Compute small angular OFFSETS (radians) for *icons only* so none overlap.
-        Works on a single ring and considers: all planets + ASC + MC together.
-
-        Strategy:
-          1) Collect desired angles (matplotlib radians) for all bodies.
-          2) Compute minimal angular spacing d from icon size & radius.
-          3) Choose the largest natural gap as the circle 'break', unwrap angles.
-          4) Project the desired positions to a sequence with >= d spacing
-             while minimizing total squared displacement (forward + backward pass).
-          5) Convert back to offsets (target - original) in [-π, π].
-
-        You can bias "importance" via weights (e.g., ASC/MC).
+        Icons are assumed the SAME size.
+        Enforce a constant min center-to-center spacing 'd' (radians)
+        and compute minimal-movement offsets for icons only.
+        Consider planets + ASC + MC together.
         """
-        # ---- 1) Collect desired angles for all bodies on the same ring ----
-        items = []  # [(name, desired_angle_rad)]
+        # ----- 1) Collect desired angles for all bodies -----
+        bodies = []
         for name, data in planet_positions.items():
-            ang = self._longitude_to_angle(data["longitude"], ascendant_longitude)
-            items.append((name, float(ang)))
-
+            ang = float(self._longitude_to_angle(data["longitude"], ascendant_longitude))
+            bodies.append((name, ang))
         if angles:
             for name, data in angles.items():
-                ang = self._longitude_to_angle(data["longitude"], ascendant_longitude)
-                items.append((name, float(ang)))
+                ang = float(self._longitude_to_angle(data["longitude"], ascendant_longitude))
+                bodies.append((name, ang))
 
-        if not items:
+        if not bodies:
             return {}
 
-        # ---- 2) Minimal spacing in radians based on icon width on this radius ----
-        # arc length s ~ icon_width_px; angle d = s / r
-        icon_half_w_px = 0.5 * self.planet_icon_size
+        names = [n for n, _ in bodies]
+        a_des = np.array([a for _, a in bodies], dtype=float)
+
+        # ----- 2) Constant angular spacing d from icon size on this radius -----
         r = max(self.planet_icon_radius, 1.0)
-        base_d = (2.0 * icon_half_w_px) / r           # just tangent-to-tangent
-        d = base_d * 1.15                              # small safety factor; tune 1.1–1.3
+        icon_px = float(self.planet_icon_size)
+        halo_px = 3.5   # moderate pixels to cover antialias/outline
+        safety  = 1.15  # moderate cushion for balanced spacing
+        half_w  = 0.5 * icon_px + halo_px
+        # use arctan for robust geometry (or replace with half_w/r for small-angle approx)
+        half_rad = float(np.arctan(half_w / r)) * safety
+        d = 2.2 * half_rad   # balanced center-to-center clearance for all neighbors
 
-        # Optional: hard cap so spacing never gets absurdly wide on tiny radii
-        d = min(d, np.radians(20))                     # never spread more than 20° per gap
+        # ----- 3) Sort around circle, break at largest natural gap -----
+        order = np.argsort(a_des)
+        a_sorted = a_des[order]
+        names_sorted = [names[i] for i in order]
 
-        # ---- 3) Sort & pick a 'break' at the largest natural gap ----
-        items.sort(key=lambda t: t[1])                 # by desired angle
-        names = [n for n, _ in items]
-        a = np.array([ang for _, ang in items], dtype=float)
+        # natural free gaps (center-to-center) on the circle
+        gaps = np.diff(a_sorted, append=a_sorted[0] + 2*np.pi)
+        k_break = int(np.argmax(gaps))  # start after the largest gap
 
-        # circular consecutive gaps (including wrap from last->first)
-        diffs = np.diff(a, append=a[0] + 2*np.pi)
-        k_break = int(np.argmax(diffs))                # index of largest natural gap
+        def rot(x): return np.concatenate([x[k_break+1:], x[:k_break+1]])
+        a_rot = rot(a_sorted)
+        names_rot = names_sorted[k_break+1:] + names_sorted[:k_break+1]
 
-        # rotate so we start right *after* the largest gap, then unwrap
-        a_rot = np.concatenate([a[k_break+1:], a[:k_break+1]])
-        names_rot = names[k_break+1:] + names[:k_break+1]
+        # unwrap to a line
+        a_unwrap = np.unwrap(a_rot)
 
-        # unwrap to strictly increasing (line instead of circle)
-        a_unwrap = np.unwrap(a_rot)                    # ensures monotonic increase
+        # ----- 4) Isotonic regression (PAV) on u = a - G with constant spacing -----
+        # Required min spacing sequence relative to previous: [0, d, d, ...]
+        s = np.zeros_like(a_unwrap)
+        if len(s) > 1:
+            s[1:] = d
+        G = np.cumsum(s)        # G[0]=0, G[i]=i*d
+        u = a_unwrap - G        # must be non-decreasing
 
-        # ---- 4) Project to >= d spacing, minimizing movement ----
-        # Forward pass: push right to meet spacing
-        y = np.empty_like(a_unwrap)
-        y[0] = a_unwrap[0]
-        for i in range(1, len(y)):
-            y[i] = max(a_unwrap[i], y[i-1] + d)
+        # Pool-Adjacent-Violators (weights=1)
+        def pav(y: np.ndarray) -> np.ndarray:
+            n = len(y)
+            v = y.copy().tolist()
+            w = [1.0] * n
+            i0 = list(range(n))  # block starts
+            i1 = list(range(n))  # block ends
+            k = 0
+            while k < len(v) - 1:
+                if v[k] <= v[k+1]:
+                    k += 1; continue
+                # merge k and k+1
+                nv = (w[k]*v[k] + w[k+1]*v[k+1]) / (w[k]+w[k+1])
+                nw = w[k] + w[k+1]
+                v[k] = nv; w[k] = nw; i1[k] = i1[k+1]
+                del v[k+1]; del w[k+1]; del i0[k+1]; del i1[k+1]
+                while k > 0 and v[k-1] > v[k]:
+                    nv = (w[k-1]*v[k-1] + w[k]*v[k]) / (w[k-1]+w[k])
+                    nw = w[k-1] + w[k]
+                    v[k-1] = nv; w[k-1] = nw; i1[k-1] = i1[k]
+                    del v[k]; del w[k]; del i0[k]; del i1[k]
+                    k -= 1
+            out = np.empty(n, dtype=float)
+            for val, a, b in zip(v, i0, i1):
+                out[a:b+1] = val
+            return out
 
-        # Backward pass: pull left to be closer to targets while keeping spacing
-        # (classic isotonic-like projection with Lipschitz constraint)
-        for i in range(len(y)-2, -1, -1):
-            y[i] = min(y[i], y[i+1] - d)
-            # never cross original to the other side more than needed
-            y[i] = max(y[i], a_unwrap[i])
+        u_star = pav(u)
+        y = u_star + G  # final angles on the line
 
-        # Optional: a second forward pass helps when very dense clusters exist
-        for i in range(1, len(y)):
-            y[i] = max(y[i], y[i-1] + d)
-
-        # ---- 5) Build offsets (final - original), restore original order, normalize ----
-        # Re-rotate to original order
-        inv_rot_idx = list(range(len(y)))
-        # y_rot is aligned with names_rot; undo rotation to match `names`
-        y_rot = np.array(y, copy=True)
-        # Order mapping
-        names_to_final_angle = {n: y_rot[i] for i, n in enumerate(names_rot)}
-
-        # normalize final angles back to [-π, π] neighborhood of original
+        # map back to names and produce offsets near originals
+        final_angles = {n: ang for n, ang in zip(names_rot, y)}
+        # restore original order names[]/a_des[]
         offsets: Dict[str, float] = {}
-        for n, a0 in items:
-            af = names_to_final_angle[n]
-            # wrap af near a0
-            # bring difference to [-π, π]
-            delta = af - a0
-            delta = (delta + np.pi) % (2*np.pi) - np.pi
-            offsets[n] = float(delta)
-
+        for n, a0 in zip(names, a_des):
+            af = final_angles[n]
+            dth = (af - a0 + np.pi) % (2*np.pi) - np.pi
+            offsets[n] = float(dth)
         return offsets
     
     def _planet_geo(self, longitude: float, ascendant_longitude: float):
