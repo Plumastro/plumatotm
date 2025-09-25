@@ -172,76 +172,102 @@ class BirthChartRenderer:
         y = radius * np.sin(angle)
         return x, y
     
-    def _compute_icon_angle_offsets(self, planet_positions: Dict[str, Any], ascendant_longitude: Optional[float]) -> Dict[str, float]:
+    def _compute_icon_angle_offsets(
+        self,
+        planet_positions: Dict[str, Any],
+        ascendant_longitude: Optional[float],
+        angles: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, float]:
         """
-        Calcule un petit décalage angulaire POUR L'ICÔNE SEULEMENT quand plusieurs
-        planètes sont trop proches. Les ticks + nœuds restent à l'angle exact.
-        TOUTES les planètes (y compris AC/MC) sont traitées de manière égale.
-        Retourne un dict {planet_name: delta_angle_radians}.
+        Compute small angular OFFSETS (radians) for *icons only* so none overlap.
+        Works on a single ring and considers: all planets + ASC + MC together.
+
+        Strategy:
+          1) Collect desired angles (matplotlib radians) for all bodies.
+          2) Compute minimal angular spacing d from icon size & radius.
+          3) Choose the largest natural gap as the circle 'break', unwrap angles.
+          4) Project the desired positions to a sequence with >= d spacing
+             while minimizing total squared displacement (forward + backward pass).
+          5) Convert back to offsets (target - original) in [-π, π].
+
+        You can bias "importance" via weights (e.g., ASC/MC).
         """
-        # 1) Récupère angle "vrai" de chaque planète
-        items = []
+        # ---- 1) Collect desired angles for all bodies on the same ring ----
+        items = []  # [(name, desired_angle_rad)]
         for name, data in planet_positions.items():
             ang = self._longitude_to_angle(data["longitude"], ascendant_longitude)
-            items.append((name, ang))
-        # trie circulaire
-        items.sort(key=lambda t: t[1])
+            items.append((name, float(ang)))
 
-        # 2) Calcul dynamique de la séparation minimale en fonction de la taille icône & rayon
-        icon_half_width_px = self.planet_icon_size * 0.5
-        base_min_sep = icon_half_width_px / max(self.planet_icon_radius, 1)
-        min_sep = base_min_sep * 3.8      # marge équilibrée pour éviter les chevauchements
-        max_spread = min_sep * 5.3        # éventail max équilibré
+        if angles:
+            for name, data in angles.items():
+                ang = self._longitude_to_angle(data["longitude"], ascendant_longitude)
+                items.append((name, float(ang)))
 
-        # 3) Détecte les clusters (attention au wrap 2π)
-        clusters = []
-        current = [items[0]]
-        for a, b in zip(items, items[1:]):
-            if (b[1] - a[1]) < min_sep:
-                current.append(b)
-            else:
-                clusters.append(current)
-                current = [b]
-        clusters.append(current)
+        if not items:
+            return {}
 
-        # wrap-around : si premier et dernier proches, fusionne
-        if len(clusters) > 1:
-            first = clusters[0]
-            last = clusters[-1]
-            if ( (first[0][1] + 2*np.pi) - last[-1][1] ) < min_sep:
-                clusters[0] = last + first
-                clusters.pop()
+        # ---- 2) Minimal spacing in radians based on icon width on this radius ----
+        # arc length s ~ icon_width_px; angle d = s / r
+        icon_half_w_px = 0.5 * self.planet_icon_size
+        r = max(self.planet_icon_radius, 1.0)
+        base_d = (2.0 * icon_half_w_px) / r           # just tangent-to-tangent
+        d = base_d * 1.15                              # small safety factor; tune 1.1–1.3
 
-        # 4) Attribue offsets avec déplacement proportionnel de TOUTES les planètes (sans priorité)
+        # Optional: hard cap so spacing never gets absurdly wide on tiny radii
+        d = min(d, np.radians(20))                     # never spread more than 20° per gap
+
+        # ---- 3) Sort & pick a 'break' at the largest natural gap ----
+        items.sort(key=lambda t: t[1])                 # by desired angle
+        names = [n for n, _ in items]
+        a = np.array([ang for _, ang in items], dtype=float)
+
+        # circular consecutive gaps (including wrap from last->first)
+        diffs = np.diff(a, append=a[0] + 2*np.pi)
+        k_break = int(np.argmax(diffs))                # index of largest natural gap
+
+        # rotate so we start right *after* the largest gap, then unwrap
+        a_rot = np.concatenate([a[k_break+1:], a[:k_break+1]])
+        names_rot = names[k_break+1:] + names[:k_break+1]
+
+        # unwrap to strictly increasing (line instead of circle)
+        a_unwrap = np.unwrap(a_rot)                    # ensures monotonic increase
+
+        # ---- 4) Project to >= d spacing, minimizing movement ----
+        # Forward pass: push right to meet spacing
+        y = np.empty_like(a_unwrap)
+        y[0] = a_unwrap[0]
+        for i in range(1, len(y)):
+            y[i] = max(a_unwrap[i], y[i-1] + d)
+
+        # Backward pass: pull left to be closer to targets while keeping spacing
+        # (classic isotonic-like projection with Lipschitz constraint)
+        for i in range(len(y)-2, -1, -1):
+            y[i] = min(y[i], y[i+1] - d)
+            # never cross original to the other side more than needed
+            y[i] = max(y[i], a_unwrap[i])
+
+        # Optional: a second forward pass helps when very dense clusters exist
+        for i in range(1, len(y)):
+            y[i] = max(y[i], y[i-1] + d)
+
+        # ---- 5) Build offsets (final - original), restore original order, normalize ----
+        # Re-rotate to original order
+        inv_rot_idx = list(range(len(y)))
+        # y_rot is aligned with names_rot; undo rotation to match `names`
+        y_rot = np.array(y, copy=True)
+        # Order mapping
+        names_to_final_angle = {n: y_rot[i] for i, n in enumerate(names_rot)}
+
+        # normalize final angles back to [-π, π] neighborhood of original
         offsets: Dict[str, float] = {}
-        
-        for cluster in clusters:
-            n = len(cluster)
-            if n <= 1:
-                continue
+        for n, a0 in items:
+            af = names_to_final_angle[n]
+            # wrap af near a0
+            # bring difference to [-π, π]
+            delta = af - a0
+            delta = (delta + np.pi) % (2*np.pi) - np.pi
+            offsets[n] = float(delta)
 
-            # Calculer l'écart total nécessaire
-            total_spread = min(max_spread, (n-1) * (min_sep))
-            
-            # Créer des positions équidistantes autour du centre du cluster
-            positions = np.linspace(-total_spread/2.0, total_spread/2.0, n)
-            
-            # Calculer le centre du cluster (position moyenne)
-            center_angle = sum(angle for _, angle in cluster) / n
-            
-            # Attribuer les positions aux planètes (ordre original maintenu)
-            for (name, original_angle), position in zip(cluster, positions):
-                # Calculer l'offset par rapport à la position originale
-                target_angle = center_angle + position
-                offset = target_angle - original_angle
-                
-                # Normaliser l'offset dans [-π, π]
-                while offset > np.pi:
-                    offset -= 2*np.pi
-                while offset < -np.pi:
-                    offset += 2*np.pi
-                    
-                offsets[name] = float(offset)
         return offsets
     
     def _planet_geo(self, longitude: float, ascendant_longitude: float):
@@ -463,10 +489,13 @@ class BirthChartRenderer:
     def _draw_planets(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
         """Draw planets with encoche, icon, and node geometry."""
         planet_positions = chart_data.get("planet_positions", {})
+        angles = chart_data.get("angles", {})  # include ASC / MC here
         print(f"[DEBUG] planets count = {len(planet_positions)}")
         
-        # calcule les deltas d'angle pour les icônes
-        icon_angle_offsets = self._compute_icon_angle_offsets(planet_positions, ascendant_longitude)
+        # compute unified offsets (planets + ASC/MC)
+        icon_angle_offsets = self._compute_icon_angle_offsets(
+            planet_positions, ascendant_longitude, angles=angles
+        )
         
         for planet, data in planet_positions.items():
             print(f"[DEBUG] planet={planet}, lon={data['longitude']:.2f}")
@@ -500,23 +529,35 @@ class BirthChartRenderer:
     def _draw_angles(self, ax, chart_data: Dict[str, Any], ascendant_longitude: float = None):
         """Draw Ascendant and MC with encoche, icon, and node geometry."""
         angles = chart_data.get("angles", {})
+        planet_positions = chart_data.get("planet_positions", {})
+        
+        # reuse the same offsets dict computed once in _draw_planets,
+        # or compute here in case you keep functions independent:
+        icon_angle_offsets = self._compute_icon_angle_offsets(
+            planet_positions, ascendant_longitude, angles=angles
+        )
         
         for angle_name, data in angles.items():
             longitude = data["longitude"]
-            (x_on, y_on), (x_tick, y_tick), (x_icon, y_icon), (x_node, y_node), angle = \
+            (x_on, y_on), (x_tick, y_tick), (x_icon, y_icon), (x_node, y_node), base_angle = \
                 self._planet_geo(longitude, ascendant_longitude)
 
             # (a) encoche — trait plein, perpendiculaire au cercle, vers le centre
             ax.plot([x_on, x_tick], [y_on, y_tick],
                    color='black', linewidth=5, solid_capstyle='round', zorder=18)
 
-            # (b) icône — juste en dessous de l'encoche
+            # (b) icône — avec décalage angulaire si nécessaire (so ASC/MC also avoid overlap)
+            dth = icon_angle_offsets.get(angle_name, 0.0)
+            icon_angle = base_angle + dth
+            xi, yi = self._angle_to_position(icon_angle, self.planet_icon_radius)
+            xi += self.center[0]; yi += self.center[1]
+            
             icon = self._load_icon(angle_name, self.planet_icon_size)
             if icon is not None:
-                self._place_icon(ax, icon, x_icon, y_icon, self.planet_icon_size)
+                self._place_icon(ax, icon, xi, yi, self.planet_icon_size)
             else:
                 # Fallback: draw a black dot if icon is missing
-                ax.plot(x_icon, y_icon, 'o', color='black', markersize=12, markeredgewidth=0, zorder=20)
+                ax.plot(xi, yi, 'o', color='black', markersize=12, markeredgewidth=0, zorder=20)
 
             # (c) nœud — petit cercle **vide** (non rempli), le plus proche du centre
             node = Circle((x_node, y_node), self.node_radius_px, fill=False,
