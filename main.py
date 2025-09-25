@@ -432,28 +432,66 @@ def analyze():
 def get_file(filename):
     """Serve output files"""
     try:
-        file_path = os.path.join("outputs", filename)
+        # Get absolute path to outputs directory
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        outputs_dir = os.path.join(current_dir, "outputs")
+        file_path = os.path.join(outputs_dir, filename)
+        
+        # Debug logging
+        print(f"🔍 Looking for file: {file_path}")
+        print(f"📁 Outputs directory exists: {os.path.exists(outputs_dir)}")
+        print(f"📄 File exists: {os.path.exists(file_path)}")
+        
         if os.path.exists(file_path):
             return send_file(file_path)
         else:
-            return jsonify({"error": "File not found"}), 404
+            # List available files for debugging
+            if os.path.exists(outputs_dir):
+                available_files = os.listdir(outputs_dir)
+                print(f"📋 Available files: {available_files}")
+                return jsonify({
+                    "error": "File not found", 
+                    "requested_file": filename,
+                    "available_files": available_files
+                }), 404
+            else:
+                return jsonify({
+                    "error": "Outputs directory not found",
+                    "outputs_dir": outputs_dir
+                }), 404
     except Exception as e:
+        print(f"❌ Error serving file {filename}: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/files')
 def list_files():
     """List available output files"""
     try:
-        outputs_dir = "outputs"
+        # Get absolute path to outputs directory
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        outputs_dir = os.path.join(current_dir, "outputs")
+        
+        print(f"🔍 Looking for outputs directory: {outputs_dir}")
+        print(f"📁 Directory exists: {os.path.exists(outputs_dir)}")
+        
         if os.path.exists(outputs_dir):
             files = os.listdir(outputs_dir)
+            print(f"📋 Found {len(files)} files: {files}")
             return jsonify({
                 "files": files,
-                "count": len(files)
+                "count": len(files),
+                "outputs_dir": outputs_dir
             })
         else:
-            return jsonify({"files": [], "count": 0})
+            print(f"❌ Outputs directory not found: {outputs_dir}")
+            return jsonify({
+                "files": [], 
+                "count": 0,
+                "error": "Outputs directory not found",
+                "outputs_dir": outputs_dir
+            })
     except Exception as e:
+        print(f"❌ Error listing files: {e}")
         return jsonify({"error": str(e)}), 500
 
 # Initialize analyzer and Supabase at module level (after function definition)
