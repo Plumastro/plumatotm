@@ -407,12 +407,12 @@ class BirthChartRenderer:
         """Draw the outer zodiac signs ring."""
         # Draw outer circle
         outer_circle = Circle(self.center, self.sign_ring_outer, fill=False, 
-                            color='black', linewidth=4)
+                            color='black', linewidth=2)
         ax.add_patch(outer_circle)
         
         # Draw inner circle
         inner_circle = Circle(self.center, self.sign_ring_inner, fill=False, 
-                            color='black', linewidth=4)
+                            color='black', linewidth=2)
         ax.add_patch(inner_circle)
         
         # Draw sector dividers (every 30°)
@@ -430,7 +430,7 @@ class BirthChartRenderer:
             x2 += self.center[0]
             y2 += self.center[1]
             
-            ax.plot([x1, x2], [y1, y2], color='black', linewidth=4)
+            ax.plot([x1, x2], [y1, y2], color='black', linewidth=2)
         
         # Place zodiac sign icons at 30° intervals
         signs = ["ARIES", "TAURUS", "GEMINI", "CANCER", "LEO", "VIRGO",
