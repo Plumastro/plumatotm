@@ -13,7 +13,7 @@ from typing import Dict, List, Tuple, Optional, Any
 from zoneinfo import ZoneInfo
 
 try:
-    from timezonefinderL import TimezoneFinder
+    from timezonefinder import TimezoneFinder
     HAS_TIMEZONEFINDER = True
 except ImportError:
     HAS_TIMEZONEFINDER = False
@@ -37,7 +37,7 @@ class BirthChartCalculator:
         if not HAS_FLATLIB:
             raise ImportError("flatlib is required. Install with: pip install flatlib")
         if not HAS_TIMEZONEFINDER:
-            raise ImportError("timezonefinderL is required. Install with: pip install timezonefinderL")
+            raise ImportError("timezonefinder is required. Install with: pip install timezonefinder==6.2.0")
         
         # Supported planets and points (matching plumatotm engine)
         self.planets = [
@@ -92,7 +92,7 @@ class BirthChartCalculator:
             Tuple of (UTC time in HH:MM format, timezone detection method)
         """
         try:
-            # Use timezonefinderL for accurate timezone detection
+            # Use timezonefinder for accurate timezone detection
             tf = TimezoneFinder()
             timezone_name = tf.timezone_at(lat=lat, lng=lon)
             
