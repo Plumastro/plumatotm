@@ -7,7 +7,7 @@ pyswisseph==2.08.00-1
 flatlib==0.2.3
 
 # Data processing
-numpy>=2.3.0
+numpy>=1.18,<2.0
 
 # Date and time handling
 python-dateutil>=2.9.0
