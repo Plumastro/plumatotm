@@ -14,7 +14,7 @@ python-dateutil>=2.9.0
 pytz>=2025.0
 
 # Timezone detection (for local to UTC conversion)
-timezonefinderL>=4.0.0
+timezonefinder==6.2.0
 
 # Visualization (for radar charts)
 matplotlib>=3.10.0

@@ -40,13 +40,13 @@ except ImportError:
     HAS_OPENAI = False
     print("Warning: openai library not available, ChatGPT interpretation will be skipped")
 
-# Try to import timezonefinderL (lightweight version), fall back to manual detection if not available
+# Try to import timezonefinder (reliable version), fall back to manual detection if not available
 try:
-    from timezonefinderL import TimezoneFinder
+    from timezonefinder import TimezoneFinder
     HAS_TIMEZONEFINDER = True
 except ImportError:
     HAS_TIMEZONEFINDER = False
-    print("Warning: timezonefinderL not available. Please install it with: pip install timezonefinderL")
+    print("Warning: timezonefinder not available. Please install it with: pip install timezonefinder==6.2.0")
 
 # Import flatlib for astrological calculations
 try:
@@ -204,19 +204,19 @@ def convert_local_to_utc(date: str, local_time: str, lat: float, lon: float) -> 
         Tuple of (UTC time in HH:MM format, timezone detection method)
     """
     try:
-        # Force timezonefinderL usage - no manual fallback
+        # Force timezonefinder usage - no manual fallback
         if not HAS_TIMEZONEFINDER:
-            raise ValueError("timezonefinderL is required but not available. Please install it with: pip install timezonefinderL")
+            raise ValueError("timezonefinder is required but not available. Please install it with: pip install timezonefinder==6.2.0")
         
-        # Use timezonefinderL for accurate timezone detection
+        # Use timezonefinder for accurate timezone detection
         tf = TimezoneFinder()
         timezone_name = tf.timezone_at(lat=lat, lng=lon)
         
         if not timezone_name:
-            raise ValueError(f"timezonefinderL could not determine timezone for coordinates ({lat}, {lon}). Please check coordinates or install timezonefinderL with: pip install timezonefinderL")
+            raise ValueError(f"timezonefinder could not determine timezone for coordinates ({lat}, {lon}). Please check coordinates or install timezonefinder with: pip install timezonefinder==6.2.0")
         
         # Special correction for Israel coordinates
-        # timezonefinderL sometimes returns Asia/Hebron instead of Asia/Jerusalem for Israeli coordinates
+        # timezonefinder sometimes returns Asia/Hebron instead of Asia/Jerusalem for Israeli coordinates
         if timezone_name == "Asia/Hebron" and 31.0 <= lat <= 33.5 and 34.0 <= lon <= 35.5:
             timezone_name = "Asia/Jerusalem"
             detection_method = "timezonefinder_corrected_israel"
