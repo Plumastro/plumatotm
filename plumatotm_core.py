@@ -1236,42 +1236,24 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         step_timers['true_false_table'] = time_module.time() - step_start
         print(f"⏱️  True/False table: {step_timers['true_false_table']:.3f}s")
         
-        # 8. Generate outputs and ChatGPT interpretation in parallel
+        # 8. Generate outputs
         step_start = time_module.time()
+        self.generate_outputs(planet_signs, planet_houses, dynamic_weights, raw_scores, 
+                            weighted_scores, animal_totals, percentage_strength, true_false_table, 
+                            utc_time, timezone_method, openai_api_key, planet_positions,
+                            date, time, lat, lon, user_name)
+        step_timers['output_generation'] = time_module.time() - step_start
+        print(f"⏱️  Output generation: {step_timers['output_generation']:.3f}s")
         
-        # Vraie parallélisation : ChatGPT ET output_generation en même temps
-        from concurrent.futures import ThreadPoolExecutor
+        # 9. Generate ChatGPT interpretation (sequential)
+        step_start = time_module.time()
+        interpretation = self.generate_chatgpt_interpretation(
+            planet_signs, planet_houses, true_false_table, animal_totals, openai_api_key
+        )
+        step_timers['chatgpt_interpretation'] = time_module.time() - step_start
+        print(f"⏱️  ChatGPT interpretation: {step_timers['chatgpt_interpretation']:.3f}s")
         
-        print("🚀 Starting ChatGPT and output generation in parallel...")
-        
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            # ChatGPT en parallèle
-            chatgpt_future = executor.submit(
-                self.generate_chatgpt_interpretation,
-                planet_signs, planet_houses, true_false_table, animal_totals, openai_api_key
-            )
-            
-            # Output generation en parallèle
-            output_future = executor.submit(
-                self.generate_outputs,
-                planet_signs, planet_houses, dynamic_weights, raw_scores, 
-                weighted_scores, animal_totals, percentage_strength, true_false_table, 
-                utc_time, timezone_method, openai_api_key, planet_positions,
-                date, time, lat, lon, user_name
-            )
-            
-            # Attendre les deux résultats
-            print("⏳ Waiting for parallel operations to complete...")
-            interpretation = chatgpt_future.result(timeout=30)
-            output_result = output_future.result()
-        
-        # Timing combiné
-        parallel_duration = time_module.time() - step_start
-        step_timers['output_generation'] = parallel_duration
-        step_timers['chatgpt_interpretation'] = parallel_duration
-        print(f"⏱️  Parallel operations (ChatGPT + Output): {parallel_duration:.3f}s")
-        
-        # 9. Process ChatGPT interpretation result
+        # 10. Process ChatGPT interpretation result
         if interpretation:
             interpretation_file = "outputs/chatgpt_interpretation.json"
             interpretation_txt_file = "outputs/chatgpt_interpretation.txt"
