@@ -225,13 +225,8 @@ def convert_local_to_utc(date: str, local_time: str, lat: float, lon: float) -> 
         if not timezone_name:
             raise ValueError(f"timezonefinder could not determine timezone for coordinates ({lat}, {lon}). Please check coordinates or install timezonefinder with: pip install timezonefinder==6.2.0")
         
-        # Special correction for Israel coordinates
-        # timezonefinder sometimes returns Asia/Hebron instead of Asia/Jerusalem for Israeli coordinates
-        if timezone_name == "Asia/Hebron" and 31.0 <= lat <= 33.5 and 34.0 <= lon <= 35.5:
-            timezone_name = "Asia/Jerusalem"
-            detection_method = "timezonefinder_corrected_israel"
-        else:
-            detection_method = "timezonefinder_automatic"
+        # Faire confiance à TimezoneFinder - base de données fiable
+        detection_method = "timezonefinder_automatic"
         
         # Parse date and time components
         y, m, d = map(int, date.split("-"))
@@ -427,20 +422,11 @@ class BirthChartAnalyzer:
             # Get UTC offset for the coordinates - déjà calculé dans convert_local_to_utc
             utc_time, timezone_method = convert_local_to_utc(date, time, lat, lon)
             
-            # Extraire timezone_name du method pour éviter le recalcul
+            # Utiliser directement le cache TimezoneFinder - méthode simplifiée
             global _tf_instance
-            if "timezonefinder_corrected_israel" in timezone_method:
-                timezone_name = "Asia/Jerusalem"
-            elif "timezonefinder_automatic" in timezone_method:
-                # Utiliser le cache TimezoneFinder pour récupérer le nom de timezone
-                if _tf_instance is None:
-                    _tf_instance = TimezoneFinder()
-                timezone_name = _tf_instance.timezone_at(lat=lat, lng=lon)
-            else:
-                # Fallback si method inconnu
-                if _tf_instance is None:
-                    _tf_instance = TimezoneFinder()
-                timezone_name = _tf_instance.timezone_at(lat=lat, lng=lon)
+            if _tf_instance is None:
+                _tf_instance = TimezoneFinder()
+            timezone_name = _tf_instance.timezone_at(lat=lat, lng=lon)
             
             # Calculate UTC offset in hours (réutiliser les calculs déjà faits)
             from datetime import datetime, timezone as tz
@@ -1113,24 +1099,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         except Exception as e:
             print(f"⚠️  Radar chart generation failed: {e}")
         
-        # 10. Generate ChatGPT interpretation (truly parallel)
-        chatgpt_future = None
-        try:
-            from concurrent.futures import ThreadPoolExecutor
-            import threading
-            
-            # Start ChatGPT interpretation in parallel thread
-            print("🤖 Starting ChatGPT interpretation in parallel...")
-            self._chatgpt_executor = ThreadPoolExecutor(max_workers=1)
-            self._chatgpt_future = self._chatgpt_executor.submit(
-                self.generate_chatgpt_interpretation,
-                planet_signs, planet_houses, true_false_table, animal_totals, openai_api_key
-            )
-            print("⏳ ChatGPT running in background, continuing with other operations...")
-            
-        except Exception as e:
-            print(f"⚠️  ChatGPT parallel execution setup failed: {e}")
-            self._chatgpt_future = None
+        # ChatGPT interpretation sera lancée en parallèle avec output_generation plus tard
         
         # 10. Generate animal statistics if available and birth data provided
         if STATISTICS_AVAILABLE and birth_date and birth_time and lat is not None and lon is not None:
@@ -1267,55 +1236,65 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         step_timers['true_false_table'] = time_module.time() - step_start
         print(f"⏱️  True/False table: {step_timers['true_false_table']:.3f}s")
         
-        # 8. Generate outputs
+        # 8. Generate outputs and ChatGPT interpretation in parallel
         step_start = time_module.time()
-        self.generate_outputs(planet_signs, planet_houses, dynamic_weights, raw_scores, 
-                            weighted_scores, animal_totals, percentage_strength, true_false_table, 
-                            utc_time, timezone_method, openai_api_key, planet_positions,
-                            date, time, lat, lon, user_name)
-        step_timers['output_generation'] = time_module.time() - step_start
-        print(f"⏱️  Output generation: {step_timers['output_generation']:.3f}s")
         
-        # 9. Wait for ChatGPT interpretation to complete (if started)
-        if hasattr(self, '_chatgpt_future') and self._chatgpt_future is not None:
-            try:
-                step_start = time_module.time()
-                print("⏳ Waiting for ChatGPT interpretation to complete...")
-                interpretation = self._chatgpt_future.result(timeout=30)  # 30 second timeout
-                step_timers['chatgpt_interpretation'] = time_module.time() - step_start
-                print(f"⏱️  ChatGPT interpretation: {step_timers['chatgpt_interpretation']:.3f}s")
-                
-                if interpretation:
-                    interpretation_file = "outputs/chatgpt_interpretation.json"
-                    interpretation_txt_file = "outputs/chatgpt_interpretation.txt"
-                    
-                    # Create a copy with properly formatted interpretation
-                    formatted_interpretation = interpretation.copy()
-                    formatted_interpretation["interpretation"] = formatted_interpretation["interpretation"].replace("\\n", "\n")
-                    
-                    # Save JSON file
-                    with open(interpretation_file, 'w', encoding='utf-8') as f:
-                        json.dump(formatted_interpretation, f, indent=2, ensure_ascii=False)
-                    
-                    # Save text file with proper line breaks
-                    with open(interpretation_txt_file, 'w', encoding='utf-8') as f:
-                        f.write(f"Animal totem: {formatted_interpretation['top1_animal']}\n")
-                        f.write(f"Planètes corrélées: {', '.join(formatted_interpretation['true_planets'])}\n\n")
-                        f.write("Interprétation:\n")
-                        f.write(formatted_interpretation["interpretation"])
-                    
-                    print(f"✅ ChatGPT interpretation completed and saved to: {interpretation_file}")
-                    print(f"📝 Formatted interpretation saved to: {interpretation_txt_file}")
-                else:
-                    print("⚠️  ChatGPT interpretation generation failed")
-                    
-            except Exception as e:
-                print(f"⚠️  ChatGPT interpretation failed: {e}")
-                # Continue execution even if ChatGPT fails
-            finally:
-                # Clean up the executor
-                if hasattr(self, '_chatgpt_executor'):
-                    self._chatgpt_executor.shutdown(wait=False)
+        # Vraie parallélisation : ChatGPT ET output_generation en même temps
+        from concurrent.futures import ThreadPoolExecutor
+        
+        print("🚀 Starting ChatGPT and output generation in parallel...")
+        
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            # ChatGPT en parallèle
+            chatgpt_future = executor.submit(
+                self.generate_chatgpt_interpretation,
+                planet_signs, planet_houses, true_false_table, animal_totals, openai_api_key
+            )
+            
+            # Output generation en parallèle
+            output_future = executor.submit(
+                self.generate_outputs,
+                planet_signs, planet_houses, dynamic_weights, raw_scores, 
+                weighted_scores, animal_totals, percentage_strength, true_false_table, 
+                utc_time, timezone_method, openai_api_key, planet_positions,
+                date, time, lat, lon, user_name
+            )
+            
+            # Attendre les deux résultats
+            print("⏳ Waiting for parallel operations to complete...")
+            interpretation = chatgpt_future.result(timeout=30)
+            output_result = output_future.result()
+        
+        # Timing combiné
+        parallel_duration = time_module.time() - step_start
+        step_timers['output_generation'] = parallel_duration
+        step_timers['chatgpt_interpretation'] = parallel_duration
+        print(f"⏱️  Parallel operations (ChatGPT + Output): {parallel_duration:.3f}s")
+        
+        # 9. Process ChatGPT interpretation result
+        if interpretation:
+            interpretation_file = "outputs/chatgpt_interpretation.json"
+            interpretation_txt_file = "outputs/chatgpt_interpretation.txt"
+            
+            # Create a copy with properly formatted interpretation
+            formatted_interpretation = interpretation.copy()
+            formatted_interpretation["interpretation"] = formatted_interpretation["interpretation"].replace("\\n", "\n")
+            
+            # Save JSON file
+            with open(interpretation_file, 'w', encoding='utf-8') as f:
+                json.dump(formatted_interpretation, f, indent=2, ensure_ascii=False)
+            
+            # Save text file with proper line breaks
+            with open(interpretation_txt_file, 'w', encoding='utf-8') as f:
+                f.write(f"Animal totem: {formatted_interpretation['top1_animal']}\n")
+                f.write(f"Planètes corrélées: {', '.join(formatted_interpretation['true_planets'])}\n\n")
+                f.write("Interprétation:\n")
+                f.write(formatted_interpretation["interpretation"])
+            
+            print(f"✅ ChatGPT interpretation completed and saved to: {interpretation_file}")
+            print(f"📝 Formatted interpretation saved to: {interpretation_txt_file}")
+        else:
+            print("⚠️  ChatGPT interpretation generation failed")
         
         # Memory cleanup after all computations
         del raw_scores  # Free memory after all uses
