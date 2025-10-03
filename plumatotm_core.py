@@ -190,6 +190,9 @@ def _get_corrected_house_number(planet_lon: float, houses) -> int:
     
     return correct_house
 
+# Cache global persistant pour TimezoneFinder
+_tf_instance = None
+
 def convert_local_to_utc(date: str, local_time: str, lat: float, lon: float) -> tuple[str, str]:
     """
     Convert local time to UTC based on coordinates.
@@ -203,14 +206,21 @@ def convert_local_to_utc(date: str, local_time: str, lat: float, lon: float) -> 
     Returns:
         Tuple of (UTC time in HH:MM format, timezone detection method)
     """
+    global _tf_instance
+    
     try:
         # Force timezonefinder usage - no manual fallback
         if not HAS_TIMEZONEFINDER:
             raise ValueError("timezonefinder is required but not available. Please install it with: pip install timezonefinder==6.2.0")
         
-        # Use timezonefinder for accurate timezone detection
-        tf = TimezoneFinder()
-        timezone_name = tf.timezone_at(lat=lat, lng=lon)
+        # Initialiser TimezoneFinder une seule fois (cache persistant)
+        if _tf_instance is None:
+            print("🔄 Initializing TimezoneFinder (one-time setup)...")
+            _tf_instance = TimezoneFinder()
+            print("✅ TimezoneFinder cached for all future requests")
+        
+        # Utiliser l'instance mise en cache
+        timezone_name = _tf_instance.timezone_at(lat=lat, lng=lon)
         
         if not timezone_name:
             raise ValueError(f"timezonefinder could not determine timezone for coordinates ({lat}, {lon}). Please check coordinates or install timezonefinder with: pip install timezonefinder==6.2.0")
