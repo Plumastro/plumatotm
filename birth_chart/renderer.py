@@ -364,7 +364,7 @@ class BirthChartRenderer:
             plt.tight_layout()
             plt.savefig(output_path, dpi=self.dpi, bbox_inches='tight',
                        facecolor='none', transparent=True, pad_inches=0,
-                       format='png', optimize=False, quality=95)
+                       format='png')
             plt.close()
             
             logger.info(f"Birth chart saved to: {output_path}")
