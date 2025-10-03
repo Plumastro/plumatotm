@@ -110,35 +110,35 @@ def health():
 
 # Dictionnaires pour les descriptions des planètes et explications des maisons
 PLANET_DESCRIPTIONS = {
-    "AC": "Ta motivation pour vivre.",
-    "Ascendant": "Ta motivation pour vivre.",
-    "Sun": "Ton identité et là où tu brilles.",
-    "Moon": "Ton corps et tes émotions.",
-    "Mercury": "Comment et dans quel domaine tu communiques.",
-    "Venus": "Comment et dans quel domaine tu crées du lien.",
-    "Mars": "Comment et dans quel domaine tu passes à l'action.",
-    "Jupiter": "Comment et dans quel domaine tu crées l'abondance.",
-    "Saturn": "Comment et dans quel domaine tu poses des limites.",
-    "Uranus": "Comment et dans quel domaine tu innoves et bouscules.",
-    "Neptune": "Comment et dans quel domaine tu utilises ton imagination.",
-    "Pluto": "Comment et dans quel domaine tu détiens un pouvoir secret.",
-    "MC": "Ton image publique et ta vocation.",
-    "North Node": "Comment et dans quel domaine tu es insatiable."
+    "AC": "Ta motivation pour vivre",
+    "Ascendant": "Ton impulsion de vie",
+    "Sun": "Ton identité et là où tu brilles",
+    "Moon": "Ton corps et tes émotions",
+    "Mercury": "Comment et dans quel domaine tu communiques",
+    "Venus": "Comment et dans quel domaine tu crées du lien",
+    "Mars": "Comment et dans quel domaine tu passes à l'action",
+    "Jupiter": "Comment et dans quel domaine tu crées l'abondance",
+    "Saturn": "Comment et dans quel domaine tu poses des limites",
+    "Uranus": "Comment et dans quel domaine tu innoves et bouscules",
+    "Neptune": "Comment et dans quel domaine tu utilises ton imagination",
+    "Pluto": "Comment et dans quel domaine tu détiens un pouvoir secret",
+    "MC": "Ton image publique et ta vocation",
+    "North Node": "Comment et dans quel domaine tu es insatiable"
 }
 
 HOUSE_EXPLANATIONS = {
-    1: "Maison I, celle du soi, de l'apparence, de la vitalité et de l'élan de vie.",
-    2: "Maison II, celle des biens, des ressources et des talents.",
-    3: "Maison III, celle de la communication, des routines quotidiennes, de la fratrie et de la famille élargie.",
-    4: "Maison IV, celle des parents, des figures nourricières, des fondations et du foyer.",
-    5: "Maison V, celle du plaisir, de la romance, de l'énergie créative et des enfants.",
-    6: "Maison VI, celle du travail, de la santé et des animaux.",
-    7: "Maison VII, celle des partenariats engagés.",
-    8: "Maison VIII, celle des fins, de la santé mentale et des ressources d'autrui.",
-    9: "Maison IX, celle des voyages, de l'éducation, de la religion, de la spiritualité et de la philosophie.",
-    10: "Maison X, celle de la carrière et des rôles publics.",
-    11: "Maison XI, celle de la communauté, des amis et de la bonne fortune.",
-    12: "Maison XII, celle des peines, des pertes et de la vie cachée."
+    1: "Maison I, celle du soi, de l'apparence, de la vitalité et de l'élan de vie",
+    2: "Maison II, celle des biens, des ressources et des talents",
+    3: "Maison III, celle de la communication, des routines quotidiennes, de la fratrie et de la famille élargie",
+    4: "Maison IV, celle des parents, des figures nourricières, des fondations et du foyer",
+    5: "Maison V, celle du plaisir, de la romance, de l'énergie créative et des enfants",
+    6: "Maison VI, celle du travail, de la santé et des animaux",
+    7: "Maison VII, celle des partenariats engagés",
+    8: "Maison VIII, celle des fins, de la santé mentale et des ressources d'autrui",
+    9: "Maison IX, celle des voyages, de l'éducation, de la religion, de la spiritualité et de la philosophie",
+    10: "Maison X, celle de la carrière et des rôles publics",
+    11: "Maison XI, celle de la communauté, des amis et de la bonne fortune",
+    12: "Maison XII, celle des peines, des pertes et de la vie cachée"
 }
 
 # Mapping des noms anglais vers français pour les planètes
@@ -172,6 +172,22 @@ SIGN_NAME_MAPPING = {
     "CAPRICORN": "Capricorne",
     "AQUARIUS": "Verseau",
     "PISCES": "Poissons"
+}
+
+# Mapping des numéros de maisons vers chiffres romains
+HOUSE_ROMAN_MAPPING = {
+    1: "I",
+    2: "II", 
+    3: "III",
+    4: "IV",
+    5: "V",
+    6: "VI",
+    7: "VII",
+    8: "VIII",
+    9: "IX",
+    10: "X",
+    11: "XI",
+    12: "XII"
 }
 
 def generate_planetary_positions_summary():
@@ -224,9 +240,19 @@ def generate_planetary_positions_summary():
                 degrees = int(pos_data.get("degrees", 0))
                 minutes = int(pos_data.get("minutes", 0))
                 angle = f"{degrees}°{minutes:02d}'"
+            else:
+                # Fallback: try to calculate from total longitude if available
+                # This is a backup method in case planet_positions is not available
+                if 'total_longitude' in birth_chart_data.get('planet_positions', {}).get(planet_key, {}):
+                    total_longitude = birth_chart_data['planet_positions'][planet_key]['total_longitude']
+                    sign_degrees = total_longitude % 30  # Degrees within the sign (0-29)
+                    degrees = int(sign_degrees)
+                    minutes = int((sign_degrees - degrees) * 60)
+                    angle = f"{degrees}°{minutes:02d}'"
             
             # Get house number and explanation
             house_num = planet_houses.get(planet_key, 1)
+            house_roman = HOUSE_ROMAN_MAPPING.get(house_num, "I")
             house_explanation = HOUSE_EXPLANATIONS.get(house_num, "")
             
             planetary_entry = {
@@ -234,7 +260,7 @@ def generate_planetary_positions_summary():
                 "DESCRIPTION": description,
                 "SIGNE": sign_fr,
                 "ANGLE": angle,
-                "MAISON": f"Maison {house_num}",
+                "MAISON": f"Maison {house_roman}",
                 "MAISON EXPLICATION": house_explanation
             }
             

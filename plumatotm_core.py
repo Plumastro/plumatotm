@@ -1003,7 +1003,8 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         # 1. Birth Chart Data (JSON) - includes both signs and houses
         birth_chart_data = {
             "planet_signs": planet_signs,
-            "planet_houses": planet_houses
+            "planet_houses": planet_houses,
+            "planet_positions": planet_positions
         }
 
         # Add UTC time and timezone detection method if provided
