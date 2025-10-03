@@ -374,33 +374,64 @@ def cleanup_memory():
         import gc
         import sys
         
-        # Force garbage collection
-        gc.collect()
-        
-        # Clear any cached data in the analyzer if it exists
+        # Clear analyzer cache
         global analyzer
         if analyzer is not None:
-            # Clear any cached data that might be stored in the analyzer
+            # Clear scores data (safe after load_analysis_results)
+            if hasattr(analyzer, 'scores_data'):
+                analyzer.scores_data = None
+            if hasattr(analyzer, 'animals'):
+                analyzer.animals = None
+            if hasattr(analyzer, '_scores_data_loaded'):
+                analyzer._scores_data_loaded = False
+            
+            # Clear animal translations (safe after load_analysis_results)
+            if hasattr(analyzer, 'animal_translations'):
+                analyzer.animal_translations.clear()
+            if hasattr(analyzer, '_animal_translations_loaded'):
+                analyzer._animal_translations_loaded = False
+            
+            # Clear any other cached data
             if hasattr(analyzer, 'loaded_icons'):
                 analyzer.loaded_icons.clear()
-            if hasattr(analyzer, 'animal_translations'):
-                # Don't clear translations as they're needed for next run
-                pass
         
-        # Clear any matplotlib cache
+        # Clear matplotlib cache
         try:
             import matplotlib.pyplot as plt
             plt.close('all')
         except:
             pass
         
-        # Force another garbage collection
+        # Force garbage collection
         gc.collect()
         
         print("🧹 Memory cleanup completed")
         
     except Exception as e:
         print(f"⚠️  Warning: Memory cleanup failed: {e}")
+
+def cleanup_output_files():
+    """Remove all output files after processing to save disk space."""
+    import os
+    import glob
+    
+    output_patterns = [
+        "outputs/*.json",
+        "outputs/*.png", 
+        "outputs/*.txt"
+    ]
+    
+    files_removed = 0
+    for pattern in output_patterns:
+        for file_path in glob.glob(pattern):
+            try:
+                os.remove(file_path)
+                files_removed += 1
+            except Exception as e:
+                print(f"⚠️  Could not remove {file_path}: {e}")
+    
+    if files_removed > 0:
+        print(f"🗑️  Cleaned {files_removed} output files")
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
@@ -576,12 +607,18 @@ def analyze():
         
         # Explicit memory cleanup after analysis
         cleanup_memory()
+        cleanup_output_files()
         
         return Response(json_response, mimetype='application/json')
         
     except Exception as e:
         print(f"❌ Analysis error: {e}")
         print(traceback.format_exc())
+        
+        # Cleanup even on error
+        cleanup_memory()
+        cleanup_output_files()
+        
         return jsonify({
             "status": "error",
             "message": str(e),

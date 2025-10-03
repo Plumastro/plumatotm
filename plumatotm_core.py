@@ -294,6 +294,17 @@ class BirthChartAnalyzer:
         if not self._animal_translations_loaded and self.translations_csv_path and os.path.exists(self.translations_csv_path):
             self.animal_translations = self._load_animal_translations(self.translations_csv_path)
             self._animal_translations_loaded = True
+    
+    def clear_scores_cache(self):
+        """Clear scores data from memory to free up space."""
+        self.scores_data = None
+        self.animals = None
+        self._scores_data_loaded = False
+    
+    def clear_translations_cache(self):
+        """Clear animal translations from memory to free up space."""
+        self.animal_translations.clear()
+        self._animal_translations_loaded = False
         
     def _load_scores_from_csv(self, scores_csv_path: str) -> Dict:
         """Load and validate the animal scores from CSV file."""
