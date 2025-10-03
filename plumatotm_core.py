@@ -1137,81 +1137,24 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         except Exception as e:
             print(f"⚠️  Radar chart generation failed: {e}")
         
-        # 10. Generate ChatGPT interpretation (in parallel)
+        # 10. Generate ChatGPT interpretation (truly parallel)
+        chatgpt_future = None
         try:
             from concurrent.futures import ThreadPoolExecutor
             import threading
             
             # Start ChatGPT interpretation in parallel thread
             print("🤖 Starting ChatGPT interpretation in parallel...")
-            with ThreadPoolExecutor(max_workers=1) as executor:
-                chatgpt_future = executor.submit(
-                    self.generate_chatgpt_interpretation,
-                    planet_signs, planet_houses, true_false_table, animal_totals, openai_api_key
-                )
-                
-                # Continue with other operations while ChatGPT runs
-                print("⏳ ChatGPT running in background, continuing with other operations...")
-                
-                # Wait for ChatGPT to complete (with timeout)
-                try:
-                    interpretation = chatgpt_future.result(timeout=30)  # 30 second timeout
-                    
-                    if interpretation:
-                        interpretation_file = "outputs/chatgpt_interpretation.json"
-                        interpretation_txt_file = "outputs/chatgpt_interpretation.txt"
-                        
-                        # Create a copy with properly formatted interpretation
-                        formatted_interpretation = interpretation.copy()
-                        formatted_interpretation["interpretation"] = formatted_interpretation["interpretation"].replace("\\n", "\n")
-                        
-                        # Save JSON file
-                        with open(interpretation_file, 'w', encoding='utf-8') as f:
-                            json.dump(formatted_interpretation, f, indent=2, ensure_ascii=False)
-                        
-                        # Save text file with proper line breaks
-                        with open(interpretation_txt_file, 'w', encoding='utf-8') as f:
-                            f.write(f"Animal totem: {formatted_interpretation['top1_animal']}\n")
-                            f.write(f"Planètes corrélées: {', '.join(formatted_interpretation['true_planets'])}\n\n")
-                            f.write("Interprétation:\n")
-                            f.write(formatted_interpretation["interpretation"])
-                        
-                        print(f"✅ ChatGPT interpretation completed and saved to: {interpretation_file}")
-                        print(f"📝 Formatted interpretation saved to: {interpretation_txt_file}")
-                    else:
-                        print("⚠️  ChatGPT interpretation generation failed")
-                        
-                except Exception as e:
-                    print(f"⚠️  ChatGPT interpretation failed: {e}")
-                    # Continue execution even if ChatGPT fails
-                    
+            self._chatgpt_executor = ThreadPoolExecutor(max_workers=1)
+            self._chatgpt_future = self._chatgpt_executor.submit(
+                self.generate_chatgpt_interpretation,
+                planet_signs, planet_houses, true_false_table, animal_totals, openai_api_key
+            )
+            print("⏳ ChatGPT running in background, continuing with other operations...")
+            
         except Exception as e:
             print(f"⚠️  ChatGPT parallel execution setup failed: {e}")
-            # Fallback to sequential execution
-            try:
-                interpretation = self.generate_chatgpt_interpretation(
-                    planet_signs, planet_houses, true_false_table, animal_totals, openai_api_key
-                )
-                if interpretation:
-                    interpretation_file = "outputs/chatgpt_interpretation.json"
-                    interpretation_txt_file = "outputs/chatgpt_interpretation.txt"
-                    
-                    formatted_interpretation = interpretation.copy()
-                    formatted_interpretation["interpretation"] = formatted_interpretation["interpretation"].replace("\\n", "\n")
-                    
-                    with open(interpretation_file, 'w', encoding='utf-8') as f:
-                        json.dump(formatted_interpretation, f, indent=2, ensure_ascii=False)
-                    
-                    with open(interpretation_txt_file, 'w', encoding='utf-8') as f:
-                        f.write(f"Animal totem: {formatted_interpretation['top1_animal']}\n")
-                        f.write(f"Planètes corrélées: {', '.join(formatted_interpretation['true_planets'])}\n\n")
-                        f.write("Interprétation:\n")
-                        f.write(formatted_interpretation["interpretation"])
-                    
-                    print(f"✅ ChatGPT interpretation completed (fallback) and saved to: {interpretation_file}")
-                    print(f"📝 Formatted interpretation saved to: {interpretation_txt_file}")
-            except Exception as fallback_error:
-                print(f"⚠️  ChatGPT interpretation fallback also failed: {fallback_error}")
+            self._chatgpt_future = None
         
         # 10. Generate animal statistics if available and birth data provided
         if STATISTICS_AVAILABLE and birth_date and birth_time and lat is not None and lon is not None:
@@ -1306,6 +1249,44 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                             weighted_scores, animal_totals, percentage_strength, true_false_table, 
                             utc_time, timezone_method, openai_api_key, planet_positions,
                             date, time, lat, lon, user_name)
+        
+        # 9. Wait for ChatGPT interpretation to complete (if started)
+        if hasattr(self, '_chatgpt_future') and self._chatgpt_future is not None:
+            try:
+                print("⏳ Waiting for ChatGPT interpretation to complete...")
+                interpretation = self._chatgpt_future.result(timeout=30)  # 30 second timeout
+                
+                if interpretation:
+                    interpretation_file = "outputs/chatgpt_interpretation.json"
+                    interpretation_txt_file = "outputs/chatgpt_interpretation.txt"
+                    
+                    # Create a copy with properly formatted interpretation
+                    formatted_interpretation = interpretation.copy()
+                    formatted_interpretation["interpretation"] = formatted_interpretation["interpretation"].replace("\\n", "\n")
+                    
+                    # Save JSON file
+                    with open(interpretation_file, 'w', encoding='utf-8') as f:
+                        json.dump(formatted_interpretation, f, indent=2, ensure_ascii=False)
+                    
+                    # Save text file with proper line breaks
+                    with open(interpretation_txt_file, 'w', encoding='utf-8') as f:
+                        f.write(f"Animal totem: {formatted_interpretation['top1_animal']}\n")
+                        f.write(f"Planètes corrélées: {', '.join(formatted_interpretation['true_planets'])}\n\n")
+                        f.write("Interprétation:\n")
+                        f.write(formatted_interpretation["interpretation"])
+                    
+                    print(f"✅ ChatGPT interpretation completed and saved to: {interpretation_file}")
+                    print(f"📝 Formatted interpretation saved to: {interpretation_txt_file}")
+                else:
+                    print("⚠️  ChatGPT interpretation generation failed")
+                    
+            except Exception as e:
+                print(f"⚠️  ChatGPT interpretation failed: {e}")
+                # Continue execution even if ChatGPT fails
+            finally:
+                # Clean up the executor
+                if hasattr(self, '_chatgpt_executor'):
+                    self._chatgpt_executor.shutdown(wait=False)
         
         # Memory cleanup after all computations
         del raw_scores  # Free memory after all uses

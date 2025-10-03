@@ -105,6 +105,29 @@ class AnimalStatisticsGenerator:
         
         return result
     
+    def generate_simple_animal_data(self, plumid: str, current_top1_animal: str) -> Dict:
+        """
+        Génère des données d'animaux simplifiées sans calculs de pourcentages.
+        
+        Args:
+            plumid: ID unique de l'utilisateur
+            current_top1_animal: Animal top1 de l'utilisateur
+            
+        Returns:
+            Dictionnaire avec les données simplifiées
+        """
+        print("📊 Génération de données d'animaux simplifiées (sans pourcentages)...")
+        
+        result = {
+            'user_plumid': plumid,
+            'user_current_animal': current_top1_animal,
+            'user_animal_percentage': 0.0,  # Désactivé
+            'all_animals_percentages': {}   # Désactivé
+        }
+        
+        print("✅ Données d'animaux simplifiées générées")
+        return result
+    
     def generate_animal_proportion(self, plumid: str, current_top1_animal: str) -> Dict:
         """
         Génère les statistiques d'animaux pour l'output animal_proportion.json.
@@ -196,8 +219,8 @@ class AnimalStatisticsGenerator:
         # Traiter l'utilisateur
         user_result = self.process_user(plumid, top1_animal, user_name)
         
-        # Générer les statistiques
-        statistics = self.generate_animal_proportion(plumid, top1_animal)
+        # Générer les statistiques (sans calculs de pourcentages)
+        statistics = self.generate_simple_animal_data(plumid, top1_animal)
         
         # Ajouter les informations de traitement
         statistics['user_processing'] = user_result
