@@ -428,17 +428,16 @@ class BirthChartAnalyzer:
             utc_time, timezone_method = convert_local_to_utc(date, time, lat, lon)
             
             # Extraire timezone_name du method pour éviter le recalcul
+            global _tf_instance
             if "timezonefinder_corrected_israel" in timezone_method:
                 timezone_name = "Asia/Jerusalem"
             elif "timezonefinder_automatic" in timezone_method:
                 # Utiliser le cache TimezoneFinder pour récupérer le nom de timezone
-                global _tf_instance
                 if _tf_instance is None:
                     _tf_instance = TimezoneFinder()
                 timezone_name = _tf_instance.timezone_at(lat=lat, lng=lon)
             else:
                 # Fallback si method inconnu
-                global _tf_instance
                 if _tf_instance is None:
                     _tf_instance = TimezoneFinder()
                 timezone_name = _tf_instance.timezone_at(lat=lat, lng=lon)
