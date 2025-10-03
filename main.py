@@ -233,22 +233,13 @@ def generate_planetary_positions_summary():
             sign_en = planet_signs[planet_key]
             sign_fr = SIGN_NAME_MAPPING.get(sign_en, sign_en)
             
-            # Get angle (degrees and minutes)
+            # Get angle (degrees and minutes) - must match french_birth_chart exactly
             angle = "0°00'"  # Default
             if planet_key in planet_positions:
                 pos_data = planet_positions[planet_key]
                 degrees = int(pos_data.get("degrees", 0))
                 minutes = int(pos_data.get("minutes", 0))
                 angle = f"{degrees}°{minutes:02d}'"
-            else:
-                # Fallback: try to calculate from total longitude if available
-                # This is a backup method in case planet_positions is not available
-                if 'total_longitude' in birth_chart_data.get('planet_positions', {}).get(planet_key, {}):
-                    total_longitude = birth_chart_data['planet_positions'][planet_key]['total_longitude']
-                    sign_degrees = total_longitude % 30  # Degrees within the sign (0-29)
-                    degrees = int(sign_degrees)
-                    minutes = int((sign_degrees - degrees) * 60)
-                    angle = f"{degrees}°{minutes:02d}'"
             
             # Get house number and explanation
             house_num = planet_houses.get(planet_key, 1)
