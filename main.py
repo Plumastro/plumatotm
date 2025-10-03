@@ -108,6 +108,144 @@ def health():
         "supabase_ready": supabase_manager is not None and supabase_manager.is_available()
     })
 
+# Dictionnaires pour les descriptions des planètes et explications des maisons
+PLANET_DESCRIPTIONS = {
+    "AC": "Ta motivation pour vivre.",
+    "Ascendant": "Ta motivation pour vivre.",
+    "Sun": "Ton identité et là où tu brilles.",
+    "Moon": "Ton corps et tes émotions.",
+    "Mercury": "Comment et dans quel domaine tu communiques.",
+    "Venus": "Comment et dans quel domaine tu crées du lien.",
+    "Mars": "Comment et dans quel domaine tu passes à l'action.",
+    "Jupiter": "Comment et dans quel domaine tu crées l'abondance.",
+    "Saturn": "Comment et dans quel domaine tu poses des limites.",
+    "Uranus": "Comment et dans quel domaine tu innoves et bouscules.",
+    "Neptune": "Comment et dans quel domaine tu utilises ton imagination.",
+    "Pluto": "Comment et dans quel domaine tu détiens un pouvoir secret.",
+    "MC": "Ton image publique et ta vocation.",
+    "North Node": "Comment et dans quel domaine tu es insatiable."
+}
+
+HOUSE_EXPLANATIONS = {
+    1: "Maison I, celle du soi, de l'apparence, de la vitalité et de l'élan de vie.",
+    2: "Maison II, celle des biens, des ressources et des talents.",
+    3: "Maison III, celle de la communication, des routines quotidiennes, de la fratrie et de la famille élargie.",
+    4: "Maison IV, celle des parents, des figures nourricières, des fondations et du foyer.",
+    5: "Maison V, celle du plaisir, de la romance, de l'énergie créative et des enfants.",
+    6: "Maison VI, celle du travail, de la santé et des animaux.",
+    7: "Maison VII, celle des partenariats engagés.",
+    8: "Maison VIII, celle des fins, de la santé mentale et des ressources d'autrui.",
+    9: "Maison IX, celle des voyages, de l'éducation, de la religion, de la spiritualité et de la philosophie.",
+    10: "Maison X, celle de la carrière et des rôles publics.",
+    11: "Maison XI, celle de la communauté, des amis et de la bonne fortune.",
+    12: "Maison XII, celle des peines, des pertes et de la vie cachée."
+}
+
+# Mapping des noms anglais vers français pour les planètes
+PLANET_NAME_MAPPING = {
+    "Sun": "Soleil",
+    "Moon": "Lune", 
+    "Mercury": "Mercure",
+    "Venus": "Vénus",
+    "Mars": "Mars",
+    "Jupiter": "Jupiter",
+    "Saturn": "Saturne",
+    "Uranus": "Uranus",
+    "Neptune": "Neptune",
+    "Pluto": "Pluton",
+    "North Node": "Nœud Nord",
+    "Ascendant": "Ascendant",
+    "MC": "MC"
+}
+
+# Mapping des signes anglais vers français
+SIGN_NAME_MAPPING = {
+    "ARIES": "Bélier",
+    "TAURUS": "Taureau",
+    "GEMINI": "Gémeaux", 
+    "CANCER": "Cancer",
+    "LEO": "Lion",
+    "VIRGO": "Vierge",
+    "LIBRA": "Balance",
+    "SCORPIO": "Scorpion",
+    "SAGITTARIUS": "Sagittaire",
+    "CAPRICORN": "Capricorne",
+    "AQUARIUS": "Verseau",
+    "PISCES": "Poissons"
+}
+
+def generate_planetary_positions_summary():
+    """Generate the PLANETARY POSITIONS SUMMARY from birth chart data."""
+    try:
+        # Load birth chart data
+        birth_chart_path = "outputs/birth_chart.json"
+        if not os.path.exists(birth_chart_path):
+            print("⚠️  Birth chart file not found")
+            return []
+        
+        with open(birth_chart_path, 'r', encoding='utf-8') as f:
+            birth_chart_data = json.load(f)
+        
+        planet_signs = birth_chart_data.get('planet_signs', {})
+        planet_houses = birth_chart_data.get('planet_houses', {})
+        
+        # Load detailed positions if available
+        planet_positions = {}
+        if 'planet_positions' in birth_chart_data:
+            planet_positions = birth_chart_data['planet_positions']
+        
+        planetary_summary = []
+        
+        # Define the order of planets/points to process
+        planet_order = [
+            "Sun", "Ascendant", "Moon", "Mercury", "Venus", "Mars", 
+            "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", 
+            "North Node", "MC"
+        ]
+        
+        for planet_key in planet_order:
+            if planet_key not in planet_signs:
+                continue
+                
+            # Get planet name in French
+            planet_fr = PLANET_NAME_MAPPING.get(planet_key, planet_key)
+            
+            # Get description
+            description = PLANET_DESCRIPTIONS.get(planet_key, "")
+            
+            # Get sign in French
+            sign_en = planet_signs[planet_key]
+            sign_fr = SIGN_NAME_MAPPING.get(sign_en, sign_en)
+            
+            # Get angle (degrees and minutes)
+            angle = "0°00'"  # Default
+            if planet_key in planet_positions:
+                pos_data = planet_positions[planet_key]
+                degrees = int(pos_data.get("degrees", 0))
+                minutes = int(pos_data.get("minutes", 0))
+                angle = f"{degrees}°{minutes:02d}'"
+            
+            # Get house number and explanation
+            house_num = planet_houses.get(planet_key, 1)
+            house_explanation = HOUSE_EXPLANATIONS.get(house_num, "")
+            
+            planetary_entry = {
+                "PLANETE": planet_fr,
+                "DESCRIPTION": description,
+                "SIGNE": sign_fr,
+                "ANGLE": angle,
+                "MAISON": f"Maison {house_num}",
+                "MAISON EXPLICATION": house_explanation
+            }
+            
+            planetary_summary.append(planetary_entry)
+        
+        return planetary_summary
+        
+    except Exception as e:
+        print(f"⚠️  Error generating planetary positions summary: {e}")
+        return []
+
 def load_analysis_results():
     """Load and format analysis results for API response."""
     results = {}
@@ -202,6 +340,11 @@ def load_analysis_results():
             with open(interpretation_path, 'r', encoding='utf-8') as f:
                 interpretation_data = json.load(f)
                 results['interpretation'] = interpretation_data.get('interpretation', '')
+        
+        # 5. Generate PLANETARY POSITIONS SUMMARY
+        planetary_summary = generate_planetary_positions_summary()
+        if planetary_summary:
+            results['PLANETARY POSITIONS SUMMARY'] = planetary_summary
         
     except Exception as e:
         print(f"⚠️  Warning: Could not load some analysis results: {e}")
