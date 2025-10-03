@@ -15,6 +15,9 @@ import os
 from typing import Dict, List, Tuple, Optional
 from PIL import Image
 
+# Cache global pour les icônes redimensionnées
+_radar_icon_cache = {}
+
 class RadarChartGenerator:
     """Generates radar charts for animal-planet correlations."""
     
@@ -74,7 +77,7 @@ class RadarChartGenerator:
             self._load_custom_icons()
     
     def _load_custom_icons(self):
-        """Load custom PNG icons for planets."""
+        """Load custom PNG icons for planets with caching."""
         icon_mapping = {
             "Sun": ["sun.png", "Sun.png", "SUN.png"],
             "Ascendant": ["AC.png", "ac.png", "ascendant.png", "Ascendant.png", "ASC.png", "asc.png"],
@@ -95,13 +98,26 @@ class RadarChartGenerator:
             for name in possible_names:
                 icon_path = os.path.join(self.icons_folder, name)
                 if os.path.exists(icon_path):
+                    # Create cache key with path and size
+                    cache_key = f"{icon_path}_64x64"
+                    
+                    # Check global cache first
+                    if cache_key in _radar_icon_cache:
+                        self.custom_icons[planet] = _radar_icon_cache[cache_key]
+                        print(f"✅ Loaded custom PNG icon from cache for {planet}: {name} (64x64)")
+                        break
+                    
                     try:
                         # Load and resize the PNG icon (from 750x750 to 64x64)
                         from PIL import Image
                         icon = Image.open(icon_path)
                         # Resize to a reasonable size for the radar chart
                         icon = icon.resize((64, 64), Image.Resampling.LANCZOS)
+                        
+                        # Store in both caches
+                        _radar_icon_cache[cache_key] = icon
                         self.custom_icons[planet] = icon
+                        
                         print(f"✅ Loaded custom PNG icon for {planet}: {name} (resized to 64x64)")
                         break
                     except Exception as e:

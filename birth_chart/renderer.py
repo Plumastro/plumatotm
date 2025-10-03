@@ -19,13 +19,16 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 logger = logging.getLogger(__name__)
 
+# Cache global pour les icônes redimensionnées
+_icon_cache = {}
+
 class BirthChartRenderer:
     """Renders birth charts as PNG images."""
     
     def __init__(self, icons_dir: str = "icons"):
         self.icons_dir = icons_dir
         self.canvas_size = 1000  # Réduit de 1500 à 1000 (-33% de pixels)
-        self.dpi = 75  # Réduit de 100 à 75 (-25% de DPI)
+        self.dpi = 100  # Restauré à 100 pour une meilleure qualité
         
         # Chart dimensions according to FRS specifications
         # Centre: (500, 500), Rayon utile R ≈ 467px (même proportion)
@@ -128,7 +131,8 @@ class BirthChartRenderer:
         }
     
     def _load_icon(self, name: str, size: int) -> Optional[np.ndarray]:
-        """Load an icon from the icons directory."""
+        """Load an icon from the icons directory with caching."""
+        # Check instance cache first
         if name in self.loaded_icons:
             return self.loaded_icons[name]
         
@@ -139,6 +143,15 @@ class BirthChartRenderer:
         for filename in self.icon_mappings[name]:
             icon_path = os.path.join(self.icons_dir, filename)
             if os.path.exists(icon_path):
+                # Create cache key with path and size
+                cache_key = f"{icon_path}_{size}"
+                
+                # Check global cache first
+                if cache_key in _icon_cache:
+                    self.loaded_icons[name] = _icon_cache[cache_key]
+                    logger.debug(f"Loaded icon from cache: {filename} for {name}")
+                    return _icon_cache[cache_key]
+                
                 try:
                     # Load and resize icon with high quality
                     img = Image.open(icon_path).convert("RGBA")
@@ -146,8 +159,12 @@ class BirthChartRenderer:
                     img = img.resize((size, size), Image.Resampling.LANCZOS)
                     # Assurer que l'image a une bonne qualité
                     icon_array = np.asarray(img)
+                    
+                    # Store in both caches
+                    _icon_cache[cache_key] = icon_array
                     self.loaded_icons[name] = icon_array
-                    logger.debug(f"Loaded icon: {filename} for {name}")
+                    
+                    logger.debug(f"Loaded and cached icon: {filename} for {name}")
                     print(f"DEBUG: Loaded icon: {filename} for {name}")  # Debug visible
                     return icon_array
                 except Exception as e:
@@ -343,10 +360,11 @@ class BirthChartRenderer:
             # Ensure output directory exists
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             
-            # Save with transparent background
+            # Save with transparent background and high quality
             plt.tight_layout()
             plt.savefig(output_path, dpi=self.dpi, bbox_inches='tight',
-                       facecolor='none', transparent=True, pad_inches=0)
+                       facecolor='none', transparent=True, pad_inches=0,
+                       format='png', optimize=False, quality=95)
             plt.close()
             
             logger.info(f"Birth chart saved to: {output_path}")
