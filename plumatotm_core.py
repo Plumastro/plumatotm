@@ -306,78 +306,6 @@ class BirthChartAnalyzer:
         self.animal_translations.clear()
         self._animal_translations_loaded = False
     
-    def _generate_birth_chart_png(self, birth_date, birth_time, lat, lon):
-        """Generate birth chart PNG in a standalone function for parallel execution."""
-        import time as time_module
-        step_start = time_module.time()
-        
-        try:
-            from birth_chart.service import generate_birth_chart
-            
-            # Check if icons directory exists
-            if not os.path.exists("icons"):
-                print("WARNING: Icons directory not found, birth chart may not render properly")
-            else:
-                print(f"Icons directory found with {len(os.listdir('icons'))} files")
-            
-            # Generate birth chart PNG with simple filename
-            birth_chart_png_path = generate_birth_chart(
-                date=birth_date,
-                time=birth_time,
-                lat=lat,
-                lon=lon,
-                icons_dir="icons",
-                house_system="placidus",
-                zodiac="tropical",
-                output_path="outputs/birth_chart.png"  # Nom simple
-            )
-            print(f"⏱️  Birth chart PNG: {time_module.time() - step_start:.2f}s")
-            print(f"🎨 Birth chart PNG generated: {birth_chart_png_path}")
-            
-            # Verify the file was actually created
-            if not os.path.exists("outputs/birth_chart.png"):
-                print("ERROR: Birth chart PNG file was not created!")
-                raise FileNotFoundError("Birth chart PNG file was not created")
-            
-            return birth_chart_png_path
-            
-        except Exception as e:
-            print(f"ERROR: Could not generate birth chart PNG: {e}")
-            import traceback
-            traceback.print_exc()
-            return None
-    
-    def _generate_radar_charts(self, result_file, icons_folder):
-        """Generate radar charts in a standalone function for parallel execution."""
-        import time as time_module
-        step_start = time_module.time()
-        
-        try:
-            from plumatotm_radar import generate_radar_charts_from_results
-            print("🎨 Generating radar chart...")
-            
-            if icons_folder:
-                print(f"🎨 Using custom icons from: {icons_folder}")
-            else:
-                print("🎨 Using default planet symbols")
-            
-            radar_result = generate_radar_charts_from_results(result_file, icons_folder)
-            print(f"⏱️  Radar charts: {time_module.time() - step_start:.2f}s")
-            if radar_result:
-                print(f"📊 Top 1 radar chart saved: {radar_result['top1_animal_chart']}")
-                print(f"📊 Top 2 radar chart saved: {radar_result['top2_animal_chart']}")
-                print(f"📊 Top 3 radar chart saved: {radar_result['top3_animal_chart']}")
-            else:
-                print("⚠️  Radar chart generation failed")
-            
-            return radar_result
-            
-        except ImportError:
-            print("⚠️  Radar chart module not available")
-            return None
-        except Exception as e:
-            print(f"⚠️  Radar chart generation failed: {e}")
-            return None
         
     def _load_scores_from_csv(self, scores_csv_path: str) -> Dict:
         """Load and validate the animal scores from CSV file."""
@@ -1159,55 +1087,67 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
             json.dump(combined_results, f, indent=2)
         print(f"Combined results saved to: {output_files['result']}")
         
-        # 9. Generate charts in parallel (Birth Chart PNG + Radar Charts)
-        charts_start = time_module.time()
-        print("🎨 Starting parallel chart generation...")
-        
-        try:
-            from concurrent.futures import ThreadPoolExecutor
-            
-            # Prepare parameters for parallel execution
-            icons_folder = "icons" if os.path.exists("icons") else None
-            
-            with ThreadPoolExecutor(max_workers=2) as executor:
-                # Submit both chart generation tasks in parallel
-                futures = {}
-                
-                # Birth Chart PNG (independent)
-                if birth_date and birth_time and lat is not None and lon is not None:
-                    futures['birth_chart'] = executor.submit(
-                        self._generate_birth_chart_png,
-                        birth_date, birth_time, lat, lon
-                    )
-                
-                # Radar Charts (depends on result.json, already created)
-                futures['radar_charts'] = executor.submit(
-                    self._generate_radar_charts,
-                    output_files["result"], icons_folder
-                )
-                
-                # Wait for all chart generation to complete
-                for chart_type, future in futures.items():
-                    try:
-                        result = future.result(timeout=30)  # 30 second timeout
-                        if result:
-                            print(f"✅ {chart_type} generation completed")
-                        else:
-                            print(f"⚠️ {chart_type} generation failed")
-                    except Exception as e:
-                        print(f"⚠️ {chart_type} generation failed: {e}")
-            
-            print(f"⏱️  Parallel charts generation: {time_module.time() - charts_start:.2f}s")
-            
-        except Exception as e:
-            print(f"⚠️ Parallel chart generation failed: {e}")
-            # Fallback to sequential execution
+        # 9. Generate Birth Chart PNG
+        if birth_date and birth_time and lat is not None and lon is not None:
             try:
-                if birth_date and birth_time and lat is not None and lon is not None:
-                    self._generate_birth_chart_png(birth_date, birth_time, lat, lon)
-                self._generate_radar_charts(output_files["result"], icons_folder)
-            except Exception as fallback_error:
-                print(f"⚠️ Fallback chart generation also failed: {fallback_error}")
+                step_start = time_module.time()
+                from birth_chart.service import generate_birth_chart
+                
+                # Check if icons directory exists
+                if not os.path.exists("icons"):
+                    print("WARNING: Icons directory not found, birth chart may not render properly")
+                else:
+                    print(f"Icons directory found with {len(os.listdir('icons'))} files")
+                
+                # Generate birth chart PNG with simple filename
+                birth_chart_png_path = generate_birth_chart(
+                    date=birth_date,
+                    time=birth_time,
+                    lat=lat,
+                    lon=lon,
+                    icons_dir="icons",
+                    house_system="placidus",
+                    zodiac="tropical",
+                    output_path="outputs/birth_chart.png"  # Nom simple
+                )
+                print(f"⏱️  Birth chart PNG: {time_module.time() - step_start:.2f}s")
+                print(f"🎨 Birth chart PNG generated: {birth_chart_png_path}")
+                
+                # Verify the file was actually created
+                if not os.path.exists("outputs/birth_chart.png"):
+                    print("ERROR: Birth chart PNG file was not created!")
+                    raise FileNotFoundError("Birth chart PNG file was not created")
+                
+            except Exception as e:
+                print(f"ERROR: Could not generate birth chart PNG: {e}")
+                import traceback
+                traceback.print_exc()
+                # Don't fail the entire analysis, but make the error more visible
+        
+        # 10. Generate radar chart automatically
+        try:
+            step_start = time_module.time()
+            from plumatotm_radar import generate_radar_charts_from_results
+            print("🎨 Generating radar chart...")
+            # Check if icons folder exists
+            icons_folder = "icons" if os.path.exists("icons") else None
+            if icons_folder:
+                print(f"🎨 Using custom icons from: {icons_folder}")
+            else:
+                print("🎨 Using default planet symbols")
+            
+            radar_result = generate_radar_charts_from_results(output_files["result"], icons_folder)
+            print(f"⏱️  Radar charts: {time_module.time() - step_start:.2f}s")
+            if radar_result:
+                print(f"📊 Top 1 radar chart saved: {radar_result['top1_animal_chart']}")
+                print(f"📊 Top 2 radar chart saved: {radar_result['top2_animal_chart']}")
+                print(f"📊 Top 3 radar chart saved: {radar_result['top3_animal_chart']}")
+            else:
+                print("⚠️  Radar chart generation failed")
+        except ImportError:
+            print("⚠️  Radar chart module not available")
+        except Exception as e:
+            print(f"⚠️  Radar chart generation failed: {e}")
         
         # 10. Generate ChatGPT interpretation (truly parallel)
         chatgpt_future = None
