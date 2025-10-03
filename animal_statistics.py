@@ -55,6 +55,10 @@ class AnimalStatisticsGenerator:
         Returns:
             Dictionnaire avec les informations de traitement
         """
+        import time as time_module
+        
+        process_start = time_module.time()
+        print(f"👤 Processing user: {plumid}")
         result = {
             'plumid': plumid,
             'current_animal': current_top1_animal,
@@ -69,11 +73,15 @@ class AnimalStatisticsGenerator:
             return result
         
         # Vérifier si l'utilisateur existe
+        step_start = time_module.time()
         existing_animal = supabase_manager.get_user_animal(plumid)
+        print(f"⏱️  User lookup: {time_module.time() - step_start:.2f}s")
         
         if existing_animal is None:
             # Nouvel utilisateur
+            step_start = time_module.time()
             success = supabase_manager.add_user(plumid, current_top1_animal, user_name)
+            print(f"⏱️  User creation: {time_module.time() - step_start:.2f}s")
             if success:
                 result['is_new_user'] = True
                 name_display = f" ({user_name})" if user_name else ""
@@ -85,7 +93,9 @@ class AnimalStatisticsGenerator:
             result['previous_animal'] = existing_animal
             if existing_animal != current_top1_animal:
                 # L'animal a changé
+                step_start = time_module.time()
                 success = supabase_manager.update_user_animal(plumid, current_top1_animal, user_name)
+                print(f"⏱️  User update: {time_module.time() - step_start:.2f}s")
                 if success:
                     result['animal_changed'] = True
                     name_display = f" ({user_name})" if user_name else ""
@@ -95,7 +105,9 @@ class AnimalStatisticsGenerator:
             else:
                 # Animal inchangé mais on peut mettre à jour le nom si fourni
                 if user_name:
+                    step_start = time_module.time()
                     success = supabase_manager.update_user_animal(plumid, current_top1_animal, user_name)
+                    print(f"⏱️  Name update: {time_module.time() - step_start:.2f}s")
                     if success:
                         print(f"ℹ️  Nom mis à jour: {plumid} ({user_name})")
                     else:
@@ -103,6 +115,7 @@ class AnimalStatisticsGenerator:
                 else:
                     print(f"ℹ️  Animal inchangé: {current_top1_animal}")
         
+        print(f"⏱️  User processing complete: {time_module.time() - process_start:.2f}s")
         return result
     
     def generate_simple_animal_data(self, plumid: str, current_top1_animal: str) -> Dict:
