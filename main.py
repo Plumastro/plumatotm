@@ -411,14 +411,15 @@ def cleanup_memory():
         print(f"⚠️  Warning: Memory cleanup failed: {e}")
 
 def cleanup_output_files():
-    """Remove all output files after processing to save disk space."""
+    """Remove output files after processing, but keep PNG files for display."""
     import os
     import glob
     
+    # Only clean JSON and TXT files, keep PNG files for display
     output_patterns = [
         "outputs/*.json",
-        "outputs/*.png", 
         "outputs/*.txt"
+        # "outputs/*.png" - KEEP PNG files for display
     ]
     
     files_removed = 0
@@ -431,7 +432,7 @@ def cleanup_output_files():
                 print(f"⚠️  Could not remove {file_path}: {e}")
     
     if files_removed > 0:
-        print(f"🗑️  Cleaned {files_removed} output files")
+        print(f"🗑️  Cleaned {files_removed} output files (PNG files kept for display)")
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
