@@ -328,7 +328,7 @@ class RadarChartGenerator:
         values += values[:1]
         
         # Create the figure
-        fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(projection='polar'), 
+        fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(projection='polar'), 
                               facecolor='none')
         
         # Set background to transparent
@@ -392,7 +392,7 @@ class RadarChartGenerator:
         
         # Save the chart
         plt.tight_layout()
-        plt.savefig(output_path, dpi=75, bbox_inches='tight', facecolor='none', transparent=True)
+        plt.savefig(output_path, dpi=100, bbox_inches='tight', facecolor='none', transparent=True)
         plt.close()
         
         print(f"✅ Radar chart saved to: {output_path}")

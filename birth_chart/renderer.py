@@ -27,13 +27,13 @@ class BirthChartRenderer:
     
     def __init__(self, icons_dir: str = "icons"):
         self.icons_dir = icons_dir
-        self.canvas_size = 1000  # Réduit de 1500 à 1000 (-33% de pixels)
-        self.dpi = 100  # Restauré à 100 pour une meilleure qualité
+        self.canvas_size = 1500  # Restauré à 1500 pour haute qualité
+        self.dpi = 100  # Haute qualité
         
         # Chart dimensions according to FRS specifications
-        # Centre: (500, 500), Rayon utile R ≈ 467px (même proportion)
-        self.center = (500, 500)
-        self.R = 467  # Rayon utile (1000/1500 * 700)
+        # Centre: (750, 750), Rayon utile R ≈ 700px (haute qualité)
+        self.center = (750, 750)
+        self.R = 700  # Rayon utile (haute qualité)
         
         # Rayons spécifiés dans le FRS (en pixels) - COURONNE DES SIGNES 25% PLUS FINE
         self.sign_ring_outer = self.R * 0.97  # R*0.97 (inchangé)
