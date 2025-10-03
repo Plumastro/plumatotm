@@ -975,6 +975,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         import time as time_module
         
         output_start = time_module.time()
+        output_timers = {}
         print(f"📁 Starting output generation...")
         
         # Ensure outputs directory exists
@@ -1110,7 +1111,8 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                     zodiac="tropical",
                     output_path="outputs/birth_chart.png"  # Nom simple
                 )
-                print(f"⏱️  Birth chart PNG: {time_module.time() - step_start:.2f}s")
+                output_timers['birth_chart_png'] = time_module.time() - step_start
+                print(f"⏱️  Birth chart PNG: {output_timers['birth_chart_png']:.3f}s")
                 print(f"🎨 Birth chart PNG generated: {birth_chart_png_path}")
                 
                 # Verify the file was actually created
@@ -1137,7 +1139,8 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                 print("🎨 Using default planet symbols")
             
             radar_result = generate_radar_charts_from_results(output_files["result"], icons_folder)
-            print(f"⏱️  Radar charts: {time_module.time() - step_start:.2f}s")
+            output_timers['radar_charts'] = time_module.time() - step_start
+            print(f"⏱️  Radar charts: {output_timers['radar_charts']:.3f}s")
             if radar_result:
                 print(f"📊 Top 1 radar chart saved: {radar_result['top1_animal_chart']}")
                 print(f"📊 Top 2 radar chart saved: {radar_result['top2_animal_chart']}")
@@ -1188,7 +1191,8 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                     user_name=user_name
                 )
                 
-                print(f"⏱️  Animal statistics: {time_module.time() - step_start:.2f}s")
+                output_timers['animal_statistics'] = time_module.time() - step_start
+                print(f"⏱️  Animal statistics: {output_timers['animal_statistics']:.3f}s")
                 print(f"📊 Animal statistics saved to: outputs/animal_proportion.json")
                 print(f"   User animal percentage: {statistics['user_animal_percentage']}%")
                 print(f"   Total animals tracked: {len(statistics['all_animals_percentages'])}")
@@ -1202,7 +1206,16 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                 print("⚠️  Birth data not provided for statistics")
         
         # Output generation complete
-        print(f"📁 Output generation complete: {time_module.time() - output_start:.2f}s")
+        output_timers['total_output_generation'] = time_module.time() - output_start
+        print(f"📁 Output generation complete: {output_timers['total_output_generation']:.3f}s")
+        
+        # Print detailed output timing summary
+        print(f"\n📊 OUTPUT GENERATION TIMING:")
+        print("-" * 40)
+        for step, duration in output_timers.items():
+            percentage = (duration / output_timers['total_output_generation']) * 100
+            print(f"{step:25}: {duration:6.3f}s ({percentage:5.1f}%)")
+        print("-" * 40)
         
         # Print summary
         print(f"\n=== ANALYSIS SUMMARY ===")
@@ -1220,6 +1233,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         
         # Start timing
         start_time = time_module.time()
+        step_timers = {}
         
         # Format coordinates with proper signs
         lat_sign = "N" if lat >= 0 else "S"
@@ -1234,30 +1248,35 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         # Load animal translations if provided and not already loaded
         step_start = time_module.time()
         self._ensure_animal_translations_loaded()
-        print(f"⏱️  Animal translations loaded: {time_module.time() - step_start:.2f}s")
+        step_timers['animal_translations'] = time_module.time() - step_start
+        print(f"⏱️  Animal translations loaded: {step_timers['animal_translations']:.3f}s")
         
         # Convert local time to UTC automatically
         step_start = time_module.time()
         utc_time, timezone_method = convert_local_to_utc(date, time, lat, lon)
-        print(f"⏱️  Timezone conversion: {time_module.time() - step_start:.2f}s")
+        step_timers['timezone_conversion'] = time_module.time() - step_start
+        print(f"⏱️  Timezone conversion: {step_timers['timezone_conversion']:.3f}s")
         print(f"🕐 Converted to UTC: {utc_time}")
         
         # 1. Compute birth chart with LOCAL time (flatlib expects local time, not UTC)
         step_start = time_module.time()
         planet_signs, planet_houses, planet_positions = self.compute_birth_chart(date, time, lat, lon)
-        print(f"⏱️  Birth chart computation: {time_module.time() - step_start:.2f}s")
+        step_timers['birth_chart_computation'] = time_module.time() - step_start
+        print(f"⏱️  Birth chart computation: {step_timers['birth_chart_computation']:.3f}s")
         print(f"🌍 Birth chart computed: {planet_signs}")
         print(f"🏠 Planet houses: {planet_houses}")
         
         # 2. Compute dynamic planet weights
         step_start = time_module.time()
         dynamic_weights = self.compute_dynamic_planet_weights(planet_signs)
-        print(f"⏱️  Dynamic planet weights: {time_module.time() - step_start:.2f}s")
+        step_timers['dynamic_weights'] = time_module.time() - step_start
+        print(f"⏱️  Dynamic planet weights: {step_timers['dynamic_weights']:.3f}s")
         
         # 3. Compute raw scores
         step_start = time_module.time()
         raw_scores = self.compute_raw_scores(planet_signs)
-        print(f"⏱️  Raw scores computation: {time_module.time() - step_start:.2f}s")
+        step_timers['raw_scores'] = time_module.time() - step_start
+        print(f"⏱️  Raw scores computation: {step_timers['raw_scores']:.3f}s")
         
         # Memory cleanup after raw scores computation
         import gc
@@ -1266,22 +1285,26 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         # 4. Apply dynamic weights
         step_start = time_module.time()
         weighted_scores = self.compute_weighted_scores(raw_scores, dynamic_weights)
-        print(f"⏱️  Weighted scores: {time_module.time() - step_start:.2f}s")
+        step_timers['weighted_scores'] = time_module.time() - step_start
+        print(f"⏱️  Weighted scores: {step_timers['weighted_scores']:.3f}s")
         
         # 5. Compute animal totals
         step_start = time_module.time()
         animal_totals = self.compute_animal_totals(weighted_scores)
-        print(f"⏱️  Animal totals: {time_module.time() - step_start:.2f}s")
+        step_timers['animal_totals'] = time_module.time() - step_start
+        print(f"⏱️  Animal totals: {step_timers['animal_totals']:.3f}s")
         
         # 6. Compute top 3 percentage strength
         step_start = time_module.time()
         percentage_strength = self.compute_top3_percentage_strength(weighted_scores, animal_totals, dynamic_weights)
-        print(f"⏱️  Percentage strength: {time_module.time() - step_start:.2f}s")
+        step_timers['percentage_strength'] = time_module.time() - step_start
+        print(f"⏱️  Percentage strength: {step_timers['percentage_strength']:.3f}s")
         
         # 7. Compute top 3 TRUE/FALSE table
         step_start = time_module.time()
         true_false_table = self.compute_top3_true_false(weighted_scores, animal_totals)
-        print(f"⏱️  True/False table: {time_module.time() - step_start:.2f}s")
+        step_timers['true_false_table'] = time_module.time() - step_start
+        print(f"⏱️  True/False table: {step_timers['true_false_table']:.3f}s")
         
         # 8. Generate outputs
         step_start = time_module.time()
@@ -1289,7 +1312,8 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                             weighted_scores, animal_totals, percentage_strength, true_false_table, 
                             utc_time, timezone_method, openai_api_key, planet_positions,
                             date, time, lat, lon, user_name)
-        print(f"⏱️  Output generation: {time_module.time() - step_start:.2f}s")
+        step_timers['output_generation'] = time_module.time() - step_start
+        print(f"⏱️  Output generation: {step_timers['output_generation']:.3f}s")
         
         # 9. Wait for ChatGPT interpretation to complete (if started)
         if hasattr(self, '_chatgpt_future') and self._chatgpt_future is not None:
@@ -1297,7 +1321,8 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                 step_start = time_module.time()
                 print("⏳ Waiting for ChatGPT interpretation to complete...")
                 interpretation = self._chatgpt_future.result(timeout=30)  # 30 second timeout
-                print(f"⏱️  ChatGPT interpretation: {time_module.time() - step_start:.2f}s")
+                step_timers['chatgpt_interpretation'] = time_module.time() - step_start
+                print(f"⏱️  ChatGPT interpretation: {step_timers['chatgpt_interpretation']:.3f}s")
                 
                 if interpretation:
                     interpretation_file = "outputs/chatgpt_interpretation.json"
@@ -1335,9 +1360,25 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         del raw_scores  # Free memory after all uses
         gc.collect()
         
-        # Final timing
+        # Final timing and summary
         total_time = time_module.time() - start_time
-        print(f"🏁 ANALYSIS COMPLETE: {total_time:.2f}s total")
+        print(f"🏁 ANALYSIS COMPLETE: {total_time:.3f}s total")
+        
+        # Print detailed timing summary
+        print("\n📊 DETAILED TIMING SUMMARY:")
+        print("=" * 50)
+        for step, duration in step_timers.items():
+            percentage = (duration / total_time) * 100
+            print(f"{step:25}: {duration:6.3f}s ({percentage:5.1f}%)")
+        print("=" * 50)
+        print(f"{'TOTAL':25}: {total_time:6.3f}s (100.0%)")
+        
+        # Identify bottlenecks
+        sorted_steps = sorted(step_timers.items(), key=lambda x: x[1], reverse=True)
+        print(f"\n🔍 TOP 3 BOTTLENECKS:")
+        for i, (step, duration) in enumerate(sorted_steps[:3], 1):
+            percentage = (duration / total_time) * 100
+            print(f"{i}. {step}: {duration:.3f}s ({percentage:.1f}%)")
 
 
 def main():
