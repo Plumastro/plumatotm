@@ -424,27 +424,30 @@ class BirthChartAnalyzer:
             # Parse date and time - flatlib expects YYYY/MM/DD format
             date_formatted = date.replace('-', '/')
             
-            # Get UTC offset for the coordinates
+            # Get UTC offset for the coordinates - déjà calculé dans convert_local_to_utc
             utc_time, timezone_method = convert_local_to_utc(date, time, lat, lon)
             
-            # Calculate UTC offset in hours
+            # Extraire timezone_name du method pour éviter le recalcul
+            if "timezonefinder_corrected_israel" in timezone_method:
+                timezone_name = "Asia/Jerusalem"
+            elif "timezonefinder_automatic" in timezone_method:
+                # Utiliser le cache TimezoneFinder pour récupérer le nom de timezone
+                global _tf_instance
+                if _tf_instance is None:
+                    _tf_instance = TimezoneFinder()
+                timezone_name = _tf_instance.timezone_at(lat=lat, lng=lon)
+            else:
+                # Fallback si method inconnu
+                global _tf_instance
+                if _tf_instance is None:
+                    _tf_instance = TimezoneFinder()
+                timezone_name = _tf_instance.timezone_at(lat=lat, lng=lon)
+            
+            # Calculate UTC offset in hours (réutiliser les calculs déjà faits)
             from datetime import datetime, timezone as tz
             y, m, d = map(int, date.split("-"))
             hh, mm = map(int, time.split(":"))
             local_naive = datetime(y, m, d, hh, mm)
-            
-            # Get timezone info
-            if not HAS_TIMEZONEFINDER:
-                raise ValueError("timezonefinderL is required but not available")
-            
-            tf = TimezoneFinder()
-            timezone_name = tf.timezone_at(lat=lat, lng=lon)
-            if not timezone_name:
-                raise ValueError(f"Could not determine timezone for coordinates ({lat}, {lon})")
-            
-            # Special correction for Israel coordinates
-            if timezone_name == "Asia/Hebron" and 31.0 <= lat <= 33.5 and 34.0 <= lon <= 35.5:
-                timezone_name = "Asia/Jerusalem"
             
             # Attach timezone and get UTC offset
             local_dt = local_naive.replace(tzinfo=ZoneInfo(timezone_name))
@@ -455,27 +458,16 @@ class BirthChartAnalyzer:
             
             # Check if date changed during UTC conversion
             utc_date = utc_dt.strftime("%Y/%m/%d")
-            print(f"Date conversion check:")
-            print(f"  Local date: {date_formatted}")
-            print(f"  UTC date: {utc_date}")
-            print(f"  Date changed: {date_formatted != utc_date}")
             
             # Use the correct UTC date and time
-            print(f"Creating flatlib Datetime with UTC time:")
-            print(f"  Date: {utc_date}")
-            print(f"  UTC Time: {utc_time}")
-            print(f"  UTC Offset: 0 (using UTC time directly)")
             dt = Datetime(utc_date, utc_time, 0)
             
             # Check for high latitude and adjust house system if necessary
             if abs(lat) > 66.0:
-                print(f"⚠️  High latitude detected ({lat:.2f}°). Checking if Placidus is valid...")
                 # For high latitudes, some systems fallback to Porphyry
                 house_system = const.HOUSES_PORPHYRIUS
-                print(f"Using Porphyry house system for high latitude")
             else:
                 house_system = const.HOUSES_PLACIDUS
-                print(f"Using Placidus house system")
             
             # Create chart with coordinates and explicit object list
             pos = GeoPos(lat, lon)
@@ -484,26 +476,9 @@ class BirthChartAnalyzer:
             custom_objects = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'North Node']
             chart = Chart(dt, pos, hsys=house_system, IDs=custom_objects)
             
-            # Debug: Print exact house cusps from flatlib
-            print(f"\n=== DEBUG: Exact House Cusps ===")
-            # Use flatlib's built-in house calculation (no Swiss Ephemeris dependency)
-            asc = chart.getAngle(const.ASC)
-            mc = chart.getAngle(const.MC)
-            print(f"ASC: {asc.lon:.3f}°, MC: {mc.lon:.3f}°")
-            
             # Extract planet -> sign mapping and planet -> house mapping
             planet_signs = {}
             planet_houses = {}
-            
-            # Print house system and cusps for debugging
-            house_system_name = "Placidus" if house_system == const.HOUSES_PLACIDUS else "Porphyry"
-            print(f"\nHouse system: {house_system_name}")
-            print(f"Zodiac: Tropical (Western)")
-            print(f"Node: Mean Node")
-            print(f"Topocentric: OFF")
-            print(f"\nHouse cusps ({house_system_name} system):")
-            for i, house in enumerate(chart.houses, 1):
-                print(f"House {i}: {house.lon:.1f}°")
             
             for planet_name in self.supported_planets:
                 try:
@@ -530,32 +505,9 @@ class BirthChartAnalyzer:
                     house_num = _get_corrected_house_number(obj.lon, chart.houses)
                     planet_houses[planet_name] = house_num
                     
-                    # Debug: Check house calculation with offset
-                    if planet_name in ['Sun', 'Moon', 'Mercury', 'Venus']:
-                        print(f"\n=== DEBUG: {planet_name} House Calculation ===")
-                        print(f"Planet longitude: {obj.lon:.3f}°")
-                        
-                        # Show flatlib's calculation with offset
-                        flatlib_house = chart.houses.getHouseByLon(obj.lon)
-                        flatlib_house_num = flatlib_house.num() if flatlib_house else 0
-                        
-                        for i, house in enumerate(chart.houses, 1):
-                            offset_lon = house.lon + house._OFFSET
-                            dist = abs(obj.lon - offset_lon)
-                            if dist > 180:
-                                dist = 360 - dist
-                            in_house = dist < house.size
-                            print(f"House {i}: cusp={house.lon:.3f}°, offset_cusp={offset_lon:.3f}°, distance={dist:.3f}°, in_house={in_house}")
-                        
-                        print(f"Flatlib house (with offset): {flatlib_house_num}")
-                        print(f"Corrected house (no offset): {house_num}")
-                    
                     # Convert longitude to degrees and minutes
                     degrees = int(obj.lon)
                     minutes = (obj.lon - degrees) * 60
-                    
-                    # Print detailed information for debugging
-                    print(f"{planet_name}: {obj.sign} {degrees}°{minutes:02.0f}' (Maison {house_num}) - Longitude: {obj.lon:.3f}°")
                     
                 except Exception as e:
                     print(f"Warning: Could not get {planet_name}: {e}")
