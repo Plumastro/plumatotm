@@ -1137,36 +1137,81 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         except Exception as e:
             print(f"⚠️  Radar chart generation failed: {e}")
         
-        # 10. Generate ChatGPT interpretation
+        # 10. Generate ChatGPT interpretation (in parallel)
         try:
-            interpretation = self.generate_chatgpt_interpretation(
-                planet_signs, planet_houses, true_false_table, animal_totals, openai_api_key
-            )
-            if interpretation:
-                interpretation_file = "outputs/chatgpt_interpretation.json"
-                interpretation_txt_file = "outputs/chatgpt_interpretation.txt"
+            from concurrent.futures import ThreadPoolExecutor
+            import threading
+            
+            # Start ChatGPT interpretation in parallel thread
+            print("🤖 Starting ChatGPT interpretation in parallel...")
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                chatgpt_future = executor.submit(
+                    self.generate_chatgpt_interpretation,
+                    planet_signs, planet_houses, true_false_table, animal_totals, openai_api_key
+                )
                 
-                # Create a copy with properly formatted interpretation
-                formatted_interpretation = interpretation.copy()
-                formatted_interpretation["interpretation"] = formatted_interpretation["interpretation"].replace("\\n", "\n")
+                # Continue with other operations while ChatGPT runs
+                print("⏳ ChatGPT running in background, continuing with other operations...")
                 
-                # Save JSON file
-                with open(interpretation_file, 'w', encoding='utf-8') as f:
-                    json.dump(formatted_interpretation, f, indent=2, ensure_ascii=False)
-                
-                # Save text file with proper line breaks
-                with open(interpretation_txt_file, 'w', encoding='utf-8') as f:
-                    f.write(f"Animal totem: {formatted_interpretation['top1_animal']}\n")
-                    f.write(f"Planètes corrélées: {', '.join(formatted_interpretation['true_planets'])}\n\n")
-                    f.write("Interprétation:\n")
-                    f.write(formatted_interpretation["interpretation"])
-                
-                print(f"🤖 ChatGPT interpretation saved to: {interpretation_file}")
-                print(f"📝 Formatted interpretation saved to: {interpretation_txt_file}")
-            else:
-                print("⚠️  ChatGPT interpretation generation failed")
+                # Wait for ChatGPT to complete (with timeout)
+                try:
+                    interpretation = chatgpt_future.result(timeout=30)  # 30 second timeout
+                    
+                    if interpretation:
+                        interpretation_file = "outputs/chatgpt_interpretation.json"
+                        interpretation_txt_file = "outputs/chatgpt_interpretation.txt"
+                        
+                        # Create a copy with properly formatted interpretation
+                        formatted_interpretation = interpretation.copy()
+                        formatted_interpretation["interpretation"] = formatted_interpretation["interpretation"].replace("\\n", "\n")
+                        
+                        # Save JSON file
+                        with open(interpretation_file, 'w', encoding='utf-8') as f:
+                            json.dump(formatted_interpretation, f, indent=2, ensure_ascii=False)
+                        
+                        # Save text file with proper line breaks
+                        with open(interpretation_txt_file, 'w', encoding='utf-8') as f:
+                            f.write(f"Animal totem: {formatted_interpretation['top1_animal']}\n")
+                            f.write(f"Planètes corrélées: {', '.join(formatted_interpretation['true_planets'])}\n\n")
+                            f.write("Interprétation:\n")
+                            f.write(formatted_interpretation["interpretation"])
+                        
+                        print(f"✅ ChatGPT interpretation completed and saved to: {interpretation_file}")
+                        print(f"📝 Formatted interpretation saved to: {interpretation_txt_file}")
+                    else:
+                        print("⚠️  ChatGPT interpretation generation failed")
+                        
+                except Exception as e:
+                    print(f"⚠️  ChatGPT interpretation failed: {e}")
+                    # Continue execution even if ChatGPT fails
+                    
         except Exception as e:
-            print(f"⚠️  ChatGPT interpretation generation failed: {e}")
+            print(f"⚠️  ChatGPT parallel execution setup failed: {e}")
+            # Fallback to sequential execution
+            try:
+                interpretation = self.generate_chatgpt_interpretation(
+                    planet_signs, planet_houses, true_false_table, animal_totals, openai_api_key
+                )
+                if interpretation:
+                    interpretation_file = "outputs/chatgpt_interpretation.json"
+                    interpretation_txt_file = "outputs/chatgpt_interpretation.txt"
+                    
+                    formatted_interpretation = interpretation.copy()
+                    formatted_interpretation["interpretation"] = formatted_interpretation["interpretation"].replace("\\n", "\n")
+                    
+                    with open(interpretation_file, 'w', encoding='utf-8') as f:
+                        json.dump(formatted_interpretation, f, indent=2, ensure_ascii=False)
+                    
+                    with open(interpretation_txt_file, 'w', encoding='utf-8') as f:
+                        f.write(f"Animal totem: {formatted_interpretation['top1_animal']}\n")
+                        f.write(f"Planètes corrélées: {', '.join(formatted_interpretation['true_planets'])}\n\n")
+                        f.write("Interprétation:\n")
+                        f.write(formatted_interpretation["interpretation"])
+                    
+                    print(f"✅ ChatGPT interpretation completed (fallback) and saved to: {interpretation_file}")
+                    print(f"📝 Formatted interpretation saved to: {interpretation_txt_file}")
+            except Exception as fallback_error:
+                print(f"⚠️  ChatGPT interpretation fallback also failed: {fallback_error}")
         
         # 10. Generate animal statistics if available and birth data provided
         if STATISTICS_AVAILABLE and birth_date and birth_time and lat is not None and lon is not None:
