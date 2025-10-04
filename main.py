@@ -127,18 +127,18 @@ PLANET_DESCRIPTIONS = {
 }
 
 HOUSE_EXPLANATIONS = {
-    1: "Maison I, celle du soi, de l'apparence, de la vitalité et de l'élan de vie",
-    2: "Maison II, celle des biens, des ressources et des talents",
-    3: "Maison III, celle de la communication, des routines quotidiennes, de la fratrie et de la famille élargie",
-    4: "Maison IV, celle des parents, des figures nourricières, des fondations et du foyer",
-    5: "Maison V, celle du plaisir, de la romance, de l'énergie créative et des enfants",
-    6: "Maison VI, celle du travail, de la santé et des animaux",
-    7: "Maison VII, celle des partenariats engagés",
-    8: "Maison VIII, celle des fins, de la santé mentale et des ressources d'autrui",
-    9: "Maison IX, celle des voyages, de l'éducation, de la religion, de la spiritualité et de la philosophie",
-    10: "Maison X, celle de la carrière et des rôles publics",
-    11: "Maison XI, celle de la communauté, des amis et de la bonne fortune",
-    12: "Maison XII, celle des peines, des pertes et de la vie cachée"
+    1: "Maison 1, celle du soi, de l'apparence, de la vitalité et de l'élan de vie",
+    2: "Maison 2, celle des biens, des ressources et des talents",
+    3: "Maison 3, celle de la communication, des routines quotidiennes, de la fratrie et de la famille élargie",
+    4: "Maison 4, celle des parents, des figures nourricières, des fondations et du foyer",
+    5: "Maison 5, celle du plaisir, de la romance, de l'énergie créative et des enfants",
+    6: "Maison 6, celle du travail, de la santé et des animaux",
+    7: "Maison 7, celle des partenariats engagés",
+    8: "Maison 8, celle des fins, de la santé mentale et des ressources d'autrui",
+    9: "Maison 9, celle des voyages, de l'éducation, de la religion, de la spiritualité et de la philosophie",
+    10: "Maison 10, celle de la carrière et des rôles publics",
+    11: "Maison 11, celle de la communauté, des amis et de la bonne fortune",
+    12: "Maison 12, celle des peines, des pertes et de la vie cachée"
 }
 
 # Mapping des noms anglais vers français pour les planètes
@@ -174,21 +174,8 @@ SIGN_NAME_MAPPING = {
     "PISCES": "Poissons"
 }
 
-# Mapping des numéros de maisons vers chiffres romains
-HOUSE_ROMAN_MAPPING = {
-    1: "I",
-    2: "II", 
-    3: "III",
-    4: "IV",
-    5: "V",
-    6: "VI",
-    7: "VII",
-    8: "VIII",
-    9: "IX",
-    10: "X",
-    11: "XI",
-    12: "XII"
-}
+# Mapping des numéros de maisons vers chiffres arabes (plus utilisé, conservé pour compatibilité)
+# Les maisons sont maintenant affichées directement avec des chiffres arabes
 
 def generate_planetary_positions_summary():
     """Generate the PLANETARY POSITIONS SUMMARY from birth chart data."""
@@ -243,7 +230,6 @@ def generate_planetary_positions_summary():
             
             # Get house number and explanation
             house_num = planet_houses.get(planet_key, 1)
-            house_roman = HOUSE_ROMAN_MAPPING.get(house_num, "I")
             house_explanation = HOUSE_EXPLANATIONS.get(house_num, "")
             
             planetary_entry = {
@@ -251,7 +237,7 @@ def generate_planetary_positions_summary():
                 "DESCRIPTION": description,
                 "SIGNE": sign_fr,
                 "ANGLE": angle,
-                "MAISON": f"Maison {house_roman}",
+                "MAISON": f"Maison {house_num}",
                 "MAISON EXPLICATION": house_explanation
             }
             
