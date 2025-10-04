@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PLUMATOTM Animal × Planet Scoring System (Final Working Version)
+PLUMATOTM Animal x Planet Scoring System (Final Working Version)
 
 This program computes animal scores based on birth chart data using astrological
 planets and their zodiac signs, applying predefined weights and scoring tables.
@@ -29,7 +29,7 @@ try:
     STATISTICS_AVAILABLE = True
 except ImportError:
     STATISTICS_AVAILABLE = False
-    print("⚠️  Module de statistiques non disponible")
+    print("WARNING: Module de statistiques non disponible")
 from zoneinfo import ZoneInfo
 
 # OpenAI API for ChatGPT interpretation
@@ -215,9 +215,9 @@ def convert_local_to_utc(date: str, local_time: str, lat: float, lon: float) -> 
         
         # Initialiser TimezoneFinder une seule fois (cache persistant)
         if _tf_instance is None:
-            print("🔄 Initializing TimezoneFinder (one-time setup)...")
+            print("Initializing TimezoneFinder (one-time setup)...")
             _tf_instance = TimezoneFinder()
-            print("✅ TimezoneFinder cached for all future requests")
+            print("TimezoneFinder cached for all future requests")
         
         # Utiliser l'instance mise en cache
         timezone_name = _tf_instance.timezone_at(lat=lat, lng=lon)
@@ -249,7 +249,7 @@ def convert_local_to_utc(date: str, local_time: str, lat: float, lon: float) -> 
         dst_status = "DST ON" if dst_offset > 0 else "DST OFF"
         
         print(f"Timezone detected: {timezone_name} (method: {detection_method})")
-        print(f"Local time: {local_time} → Timezone: {timezone_name} → {dst_status} → UTC time: {utc_time}")
+        print(f"Local time: {local_time} -> Timezone: {timezone_name} -> {dst_status} -> UTC time: {utc_time}")
         print(f"DST offset: {dst_offset:.1f} hours")
         
         return utc_time, detection_method
@@ -406,11 +406,11 @@ class BirthChartAnalyzer:
                         'ArticleAnimalFR': article_fr
                     }
             
-            print(f"✅ Loaded {len(translations)} animal translations from {translations_csv_path}")
+            print(f"SUCCESS: Loaded {len(translations)} animal translations from {translations_csv_path}")
             return translations
             
         except Exception as e:
-            print(f"⚠️  Warning: Could not load animal translations from {translations_csv_path}: {e}")
+            print(f"WARNING: Could not load animal translations from {translations_csv_path}: {e}")
             return {}
     
     def compute_birth_chart(self, date: str, time: str, lat: float, lon: float) -> Tuple[Dict[str, str], Dict[str, int], Dict[str, Dict[str, float]]]:
@@ -565,7 +565,7 @@ class BirthChartAnalyzer:
             dynamic_weight = base_weight * multiplier
             dynamic_weights[planet] = dynamic_weight
             
-            print(f"{planet} weight: {base_weight} × {multiplier} = {dynamic_weight:.2f}")
+            print(f"{planet} weight: {base_weight} x {multiplier} = {dynamic_weight:.2f}")
         
         return dynamic_weights
     
@@ -786,7 +786,7 @@ class BirthChartAnalyzer:
             Dictionary containing the interpretation or None if failed
         """
         if not HAS_OPENAI:
-            print("⚠️  OpenAI library not available, skipping ChatGPT interpretation")
+            print("WARNING: OpenAI library not available, skipping ChatGPT interpretation")
             return None
         
         try:
@@ -873,11 +873,11 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                     if os.path.exists('api_key.txt'):
                         with open('api_key.txt', 'r') as f:
                             api_key = f.read().strip()
-                        print("✅ OpenAI API key loaded from api_key.txt")
+                        print("SUCCESS: OpenAI API key loaded from api_key.txt")
                 except Exception as e:
-                    print(f"⚠️  Could not load API key from file: {e}")
+                    print(f"WARNING: Could not load API key from file: {e}")
             if not api_key:
-                print("⚠️  OpenAI API key not provided (use --openai_api_key, set OPENAI_API_KEY env var, or create api_key.txt), skipping ChatGPT interpretation")
+                print("WARNING: OpenAI API key not provided (use --openai_api_key, set OPENAI_API_KEY env var, or create api_key.txt), skipping ChatGPT interpretation")
                 return None
             
             # Initialize OpenAI client
@@ -923,7 +923,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         
         output_start = time_module.time()
         output_timers = {}
-        print(f"📁 Starting output generation...")
+        print(f"OUTPUT: Starting output generation...")
         
         # Ensure outputs directory exists
         os.makedirs("outputs", exist_ok=True)
@@ -1059,8 +1059,8 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                     output_path="outputs/birth_chart.png"  # Nom simple
                 )
                 output_timers['birth_chart_png'] = time_module.time() - step_start
-                print(f"⏱️  Birth chart PNG: {output_timers['birth_chart_png']:.3f}s")
-                print(f"🎨 Birth chart PNG generated: {birth_chart_png_path}")
+                print(f"TIMER: Birth chart PNG: {output_timers['birth_chart_png']:.3f}s")
+                print(f"CHART: Birth chart PNG generated: {birth_chart_png_path}")
                 
                 # Verify the file was actually created
                 if not os.path.exists("outputs/birth_chart.png"):
@@ -1077,27 +1077,27 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         try:
             step_start = time_module.time()
             from plumatotm_radar import generate_radar_charts_from_results
-            print("🎨 Generating radar chart...")
+            print("CHART: Generating radar chart...")
             # Check if icons folder exists
             icons_folder = "icons" if os.path.exists("icons") else None
             if icons_folder:
-                print(f"🎨 Using custom icons from: {icons_folder}")
+                print(f"CHART: Using custom icons from: {icons_folder}")
             else:
-                print("🎨 Using default planet symbols")
+                print("CHART: Using default planet symbols")
             
             radar_result = generate_radar_charts_from_results(output_files["result"], icons_folder)
             output_timers['radar_charts'] = time_module.time() - step_start
-            print(f"⏱️  Radar charts: {output_timers['radar_charts']:.3f}s")
+            print(f"TIMER: Radar charts: {output_timers['radar_charts']:.3f}s")
             if radar_result:
-                print(f"📊 Top 1 radar chart saved: {radar_result['top1_animal_chart']}")
-                print(f"📊 Top 2 radar chart saved: {radar_result['top2_animal_chart']}")
-                print(f"📊 Top 3 radar chart saved: {radar_result['top3_animal_chart']}")
+                print(f"STATS: Top 1 radar chart saved: {radar_result['top1_animal_chart']}")
+                print(f"STATS: Top 2 radar chart saved: {radar_result['top2_animal_chart']}")
+                print(f"STATS: Top 3 radar chart saved: {radar_result['top3_animal_chart']}")
             else:
-                print("⚠️  Radar chart generation failed")
+                print("WARNING: Radar chart generation failed")
         except ImportError:
-            print("⚠️  Radar chart module not available")
+            print("WARNING: Radar chart module not available")
         except Exception as e:
-            print(f"⚠️  Radar chart generation failed: {e}")
+            print(f"WARNING: Radar chart generation failed: {e}")
         
         # ChatGPT interpretation sera lancée en parallèle avec output_generation plus tard
         
@@ -1105,7 +1105,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         if STATISTICS_AVAILABLE and birth_date and birth_time and lat is not None and lon is not None:
             try:
                 step_start = time_module.time()
-                print("📊 Generating animal statistics...")
+                print("STATS: Generating animal statistics...")
                 
                 # Get top 1 animal
                 top1_animal = animal_totals[0][0]  # First tuple, first element (animal name)
@@ -1122,25 +1122,25 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                 )
                 
                 output_timers['animal_statistics'] = time_module.time() - step_start
-                print(f"⏱️  Animal statistics: {output_timers['animal_statistics']:.3f}s")
-                print(f"📊 Animal statistics saved to: outputs/animal_proportion.json")
+                print(f"TIMER: Animal statistics: {output_timers['animal_statistics']:.3f}s")
+                print(f"STATS: Animal statistics saved to: outputs/animal_proportion.json")
                 print(f"   User animal percentage: {statistics['user_animal_percentage']}%")
                 print(f"   Total animals tracked: {len(statistics['all_animals_percentages'])}")
                 
             except Exception as e:
-                print(f"⚠️  Animal statistics generation failed: {e}")
+                print(f"WARNING: Animal statistics generation failed: {e}")
         else:
             if not STATISTICS_AVAILABLE:
-                print("⚠️  Animal statistics module not available")
+                print("WARNING: Animal statistics module not available")
             else:
-                print("⚠️  Birth data not provided for statistics")
+                print("WARNING: Birth data not provided for statistics")
         
         # Output generation complete
         output_timers['total_output_generation'] = time_module.time() - output_start
-        print(f"📁 Output generation complete: {output_timers['total_output_generation']:.3f}s")
+        print(f"OUTPUT: Output generation complete: {output_timers['total_output_generation']:.3f}s")
         
         # Print detailed output timing summary
-        print(f"\n📊 OUTPUT GENERATION TIMING:")
+        print(f"\nSTATS: OUTPUT GENERATION TIMING:")
         print("-" * 40)
         for step, duration in output_timers.items():
             percentage = (duration / output_timers['total_output_generation']) * 100
@@ -1171,42 +1171,42 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         lat_abs = abs(lat)
         lon_abs = abs(lon)
         
-        print(f"🚀 Starting analysis for birth data: {date} {time}")
-        print(f"📍 Coordinates: {lat_abs:.5f}°{lat_sign}, {lon_abs:.5f}°{lon_sign}")
-        print(f"📍 Raw coordinates: ({lat:.5f}, {lon:.5f})")
+        print(f"STARTING: Starting analysis for birth data: {date} {time}")
+        print(f"COORDS: Coordinates: {lat_abs:.5f}°{lat_sign}, {lon_abs:.5f}°{lon_sign}")
+        print(f"COORDS: Raw coordinates: ({lat:.5f}, {lon:.5f})")
         
         # Load animal translations if provided and not already loaded
         step_start = time_module.time()
         self._ensure_animal_translations_loaded()
         step_timers['animal_translations'] = time_module.time() - step_start
-        print(f"⏱️  Animal translations loaded: {step_timers['animal_translations']:.3f}s")
+        print(f"TIMER:  Animal translations loaded: {step_timers['animal_translations']:.3f}s")
         
         # Convert local time to UTC automatically
         step_start = time_module.time()
         utc_time, timezone_method = convert_local_to_utc(date, time, lat, lon)
         step_timers['timezone_conversion'] = time_module.time() - step_start
-        print(f"⏱️  Timezone conversion: {step_timers['timezone_conversion']:.3f}s")
-        print(f"🕐 Converted to UTC: {utc_time}")
+        print(f"TIMER:  Timezone conversion: {step_timers['timezone_conversion']:.3f}s")
+        print(f"UTC: Converted to UTC: {utc_time}")
         
         # 1. Compute birth chart with LOCAL time (flatlib expects local time, not UTC)
         step_start = time_module.time()
         planet_signs, planet_houses, planet_positions = self.compute_birth_chart(date, time, lat, lon)
         step_timers['birth_chart_computation'] = time_module.time() - step_start
-        print(f"⏱️  Birth chart computation: {step_timers['birth_chart_computation']:.3f}s")
-        print(f"🌍 Birth chart computed: {planet_signs}")
-        print(f"🏠 Planet houses: {planet_houses}")
+        print(f"TIMER:  Birth chart computation: {step_timers['birth_chart_computation']:.3f}s")
+        print(f"CHART: Birth chart computed: {planet_signs}")
+        print(f"HOUSES: Planet houses: {planet_houses}")
         
         # 2. Compute dynamic planet weights
         step_start = time_module.time()
         dynamic_weights = self.compute_dynamic_planet_weights(planet_signs)
         step_timers['dynamic_weights'] = time_module.time() - step_start
-        print(f"⏱️  Dynamic planet weights: {step_timers['dynamic_weights']:.3f}s")
+        print(f"TIMER:  Dynamic planet weights: {step_timers['dynamic_weights']:.3f}s")
         
         # 3. Compute raw scores
         step_start = time_module.time()
         raw_scores = self.compute_raw_scores(planet_signs)
         step_timers['raw_scores'] = time_module.time() - step_start
-        print(f"⏱️  Raw scores computation: {step_timers['raw_scores']:.3f}s")
+        print(f"TIMER:  Raw scores computation: {step_timers['raw_scores']:.3f}s")
         
         # Memory cleanup after raw scores computation
         import gc
@@ -1216,25 +1216,25 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         step_start = time_module.time()
         weighted_scores = self.compute_weighted_scores(raw_scores, dynamic_weights)
         step_timers['weighted_scores'] = time_module.time() - step_start
-        print(f"⏱️  Weighted scores: {step_timers['weighted_scores']:.3f}s")
+        print(f"TIMER:  Weighted scores: {step_timers['weighted_scores']:.3f}s")
         
         # 5. Compute animal totals
         step_start = time_module.time()
         animal_totals = self.compute_animal_totals(weighted_scores)
         step_timers['animal_totals'] = time_module.time() - step_start
-        print(f"⏱️  Animal totals: {step_timers['animal_totals']:.3f}s")
+        print(f"TIMER:  Animal totals: {step_timers['animal_totals']:.3f}s")
         
         # 6. Compute top 3 percentage strength
         step_start = time_module.time()
         percentage_strength = self.compute_top3_percentage_strength(weighted_scores, animal_totals, dynamic_weights)
         step_timers['percentage_strength'] = time_module.time() - step_start
-        print(f"⏱️  Percentage strength: {step_timers['percentage_strength']:.3f}s")
+        print(f"TIMER:  Percentage strength: {step_timers['percentage_strength']:.3f}s")
         
         # 7. Compute top 3 TRUE/FALSE table
         step_start = time_module.time()
         true_false_table = self.compute_top3_true_false(weighted_scores, animal_totals)
         step_timers['true_false_table'] = time_module.time() - step_start
-        print(f"⏱️  True/False table: {step_timers['true_false_table']:.3f}s")
+        print(f"TIMER:  True/False table: {step_timers['true_false_table']:.3f}s")
         
         # 8. Generate outputs
         step_start = time_module.time()
@@ -1243,7 +1243,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                             utc_time, timezone_method, openai_api_key, planet_positions,
                             date, time, lat, lon, user_name)
         step_timers['output_generation'] = time_module.time() - step_start
-        print(f"⏱️  Output generation: {step_timers['output_generation']:.3f}s")
+        print(f"TIMER:  Output generation: {step_timers['output_generation']:.3f}s")
         
         # 9. Generate ChatGPT interpretation (sequential)
         step_start = time_module.time()
@@ -1251,7 +1251,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
             planet_signs, planet_houses, true_false_table, animal_totals, openai_api_key
         )
         step_timers['chatgpt_interpretation'] = time_module.time() - step_start
-        print(f"⏱️  ChatGPT interpretation: {step_timers['chatgpt_interpretation']:.3f}s")
+        print(f"TIMER:  ChatGPT interpretation: {step_timers['chatgpt_interpretation']:.3f}s")
         
         # 10. Process ChatGPT interpretation result
         if interpretation:
@@ -1273,10 +1273,10 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
                 f.write("Interprétation:\n")
                 f.write(formatted_interpretation["interpretation"])
             
-            print(f"✅ ChatGPT interpretation completed and saved to: {interpretation_file}")
-            print(f"📝 Formatted interpretation saved to: {interpretation_txt_file}")
+            print(f"SUCCESS: ChatGPT interpretation completed and saved to: {interpretation_file}")
+            print(f"FORMAT: Formatted interpretation saved to: {interpretation_txt_file}")
         else:
-            print("⚠️  ChatGPT interpretation generation failed")
+            print("WARNING: ChatGPT interpretation generation failed")
         
         # Memory cleanup after all computations
         del raw_scores  # Free memory after all uses
@@ -1287,7 +1287,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         print(f"🏁 ANALYSIS COMPLETE: {total_time:.3f}s total")
         
         # Print detailed timing summary
-        print("\n📊 DETAILED TIMING SUMMARY:")
+        print("\nSTATS: DETAILED TIMING SUMMARY:")
         print("=" * 50)
         for step, duration in step_timers.items():
             percentage = (duration / total_time) * 100
@@ -1306,7 +1306,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
 def main():
     """Main CLI function."""
     parser = argparse.ArgumentParser(
-        description="PLUMATOTM Animal × Planet Scoring System (Final Working Version)",
+        description="PLUMATOTM Animal x Planet Scoring System (Final Working Version)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

@@ -31,37 +31,37 @@ class RadarChartGenerator:
         # Icons folder for custom PNG icons
         self.icons_folder = icons_folder
         
-        # Planet symbols (Unicode)
+        # Planet symbols (ASCII safe)
         self.planet_symbols = {
-            "Sun": "☉",
+            "Sun": "Sol",
             "Ascendant": "Asc",
-            "Moon": "☽",
-            "Mercury": "☿",
-            "Venus": "♀",
-            "Mars": "♂",
-            "Jupiter": "♃",
-            "Saturn": "♄",
-            "Uranus": "♅",
-            "Neptune": "♆",
-            "Pluto": "♇",
-            "North Node": "☊",
+            "Moon": "Lun",
+            "Mercury": "Mer",
+            "Venus": "Ven",
+            "Mars": "Mar",
+            "Jupiter": "Jup",
+            "Saturn": "Sat",
+            "Uranus": "Ura",
+            "Neptune": "Nep",
+            "Pluto": "Plu",
+            "North Node": "NN",
             "MC": "MC"
         }
         
-        # Zodiac sign symbols (Unicode)
+        # Zodiac sign symbols (ASCII safe)
         self.sign_symbols = {
-            "ARIES": "♈",
-            "TAURUS": "♉",
-            "GEMINI": "♊",
-            "CANCER": "♋",
-            "LEO": "♌",
-            "VIRGO": "♍",
-            "LIBRA": "♎",
-            "SCORPIO": "♏",
-            "SAGITTARIUS": "♐",
-            "CAPRICORN": "♑",
-            "AQUARIUS": "♒",
-            "PISCES": "♓"
+            "ARIES": "Ari",
+            "TAURUS": "Tau",
+            "GEMINI": "Gem",
+            "CANCER": "Can",
+            "LEO": "Leo",
+            "VIRGO": "Vir",
+            "LIBRA": "Lib",
+            "SCORPIO": "Sco",
+            "SAGITTARIUS": "Sag",
+            "CAPRICORN": "Cap",
+            "AQUARIUS": "Aqu",
+            "PISCES": "Pis"
         }
         
         # Planet weights for node sizing
@@ -104,7 +104,7 @@ class RadarChartGenerator:
                     # Check global cache first
                     if cache_key in _radar_icon_cache:
                         self.custom_icons[planet] = _radar_icon_cache[cache_key]
-                        print(f"✅ Loaded custom PNG icon from cache for {planet}: {name} (64x64)")
+                        print(f"SUCCESS: Loaded custom PNG icon from cache for {planet}: {name} (64x64)")
                         break
                     
                     try:
@@ -118,7 +118,7 @@ class RadarChartGenerator:
                         _radar_icon_cache[cache_key] = icon
                         self.custom_icons[planet] = icon
                         
-                        print(f"✅ Loaded custom PNG icon for {planet}: {name} (resized to 64x64)")
+                        print(f"SUCCESS: Loaded custom PNG icon for {planet}: {name} (resized to 64x64)")
                         break
                     except Exception as e:
                         print(f"⚠️  Could not load icon {name} for {planet}: {e}")
@@ -395,7 +395,7 @@ class RadarChartGenerator:
         plt.savefig(output_path, dpi=100, bbox_inches='tight', facecolor='none', transparent=True)
         plt.close()
         
-        print(f"✅ Radar chart saved to: {output_path}")
+        print(f"SUCCESS: Radar chart saved to: {output_path}")
     
     def _load_rgba_icon(self, icon_path):
         """Load PNG icon as RGBA to avoid colormap issues."""
@@ -532,7 +532,7 @@ def generate_radar_charts_from_results(result_file: str = "outputs/result.json",
         }
         
     except Exception as e:
-        print(f"❌ Error generating radar chart: {e}")
+        print(f"ERROR: Error generating radar chart: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -542,13 +542,13 @@ if __name__ == "__main__":
     try:
         chart = generate_radar_charts_from_results()
         if chart:
-            print("🎉 Radar charts generated successfully!")
-            print(f"📊 Top 1 animal chart: {chart['top1_animal_chart']}")
-            print(f"📊 Top 2 animal chart: {chart['top2_animal_chart']}")
-            print(f"📊 Top 3 animal chart: {chart['top3_animal_chart']}")
+            print("SUCCESS: Radar charts generated successfully!")
+            print(f"SUCCESS: Top 1 animal chart: {chart['top1_animal_chart']}")
+            print(f"SUCCESS: Top 2 animal chart: {chart['top2_animal_chart']}")
+            print(f"SUCCESS: Top 3 animal chart: {chart['top3_animal_chart']}")
         else:
-            print("❌ Failed to generate radar charts")
+            print("ERROR: Failed to generate radar charts")
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"ERROR: {e}")
         import traceback
         traceback.print_exc()
