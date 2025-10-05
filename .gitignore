@@ -70,11 +70,6 @@ api_key.txt
 
 # Local book generation files (NEVER push to GitHub)
 livre/
-livre_generator.py
 generate_book.py
-generate_book_simple.py
-generate_livre.py
 aspects_patterns_generator.py
-test_complete.py
-test_radar.py
 test_*.py

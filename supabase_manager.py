@@ -14,7 +14,7 @@ try:
     SUPABASE_AVAILABLE = True
 except ImportError:
     SUPABASE_AVAILABLE = False
-    print("⚠️  Supabase non installé. Installez avec: pip install supabase")
+    print("WARNING: Supabase non installé. Installez avec: pip install supabase")
 
 class SupabaseManager:
     """Gestionnaire des opérations Supabase pour PLUMATOTM."""
@@ -27,18 +27,18 @@ class SupabaseManager:
     def _initialize_client(self):
         """Initialise le client Supabase."""
         if not SUPABASE_AVAILABLE:
-            print("❌ Supabase non disponible")
+            print("ERROR: Supabase non disponible")
             return
         
         if not supabase_config.is_configured():
-            print("⚠️  Supabase non configuré. Définissez SUPABASE_URL et SUPABASE_ANON_KEY")
+            print("WARNING: Supabase non configuré. Définissez SUPABASE_URL et SUPABASE_ANON_KEY")
             return
         
         try:
             self.client = create_client(supabase_config.url, supabase_config.key)
-            print("✅ Client Supabase initialisé")
+            print("SUCCESS: Client Supabase initialisé")
         except Exception as e:
-            print(f"❌ Erreur d'initialisation Supabase: {e}")
+            print(f"ERROR: Erreur d'initialisation Supabase: {e}")
             self.client = None
     
     def is_available(self) -> bool:
@@ -70,12 +70,12 @@ class SupabaseManager:
         try:
             # Note: Cette opération nécessite des privilèges d'administration
             # En production, créez la table manuellement dans l'interface Supabase
-            print("ℹ️  Créez manuellement la table dans l'interface Supabase:")
+            print("INFO: Créez manuellement la table dans l'interface Supabase:")
             print(f"   Table: {self.table_name}")
             print("   Colonnes: plumid (TEXT PRIMARY KEY), top1_animal (TEXT), created_at (TIMESTAMP), updated_at (TIMESTAMP)")
             return True
         except Exception as e:
-            print(f"❌ Erreur création table: {e}")
+            print(f"ERROR: Erreur création table: {e}")
             return False
     
     def get_user_animal(self, plumid: str) -> Optional[str]:
@@ -99,7 +99,7 @@ class SupabaseManager:
             return None
             
         except Exception as e:
-            print(f"❌ Erreur récupération utilisateur: {e}")
+            print(f"ERROR: Erreur récupération utilisateur: {e}")
             return None
     
     def add_user(self, plumid: str, top1_animal: str, user_name: str = None) -> bool:
@@ -131,12 +131,12 @@ class SupabaseManager:
             
             if response.data:
                 name_display = f" ({user_name})" if user_name else ""
-                print(f"✅ Utilisateur ajouté: {plumid} -> {top1_animal}{name_display}")
+                print(f"SUCCESS: Utilisateur ajouté: {plumid} -> {top1_animal}{name_display}")
                 return True
             return False
             
         except Exception as e:
-            print(f"❌ Erreur ajout utilisateur: {e}")
+            print(f"ERROR: Erreur ajout utilisateur: {e}")
             return False
     
     def update_user_animal(self, plumid: str, top1_animal: str, user_name: str = None) -> bool:
@@ -168,12 +168,12 @@ class SupabaseManager:
             
             if response.data:
                 name_display = f" ({user_name})" if user_name else ""
-                print(f"✅ Utilisateur mis à jour: {plumid} -> {top1_animal}{name_display}")
+                print(f"SUCCESS: Utilisateur mis à jour: {plumid} -> {top1_animal}{name_display}")
                 return True
             return False
             
         except Exception as e:
-            print(f"❌ Erreur mise à jour utilisateur: {e}")
+            print(f"ERROR: Erreur mise à jour utilisateur: {e}")
             return False
     
     def get_animal_statistics(self) -> Dict[str, float]:
@@ -210,7 +210,7 @@ class SupabaseManager:
             return animal_percentages
             
         except Exception as e:
-            print(f"❌ Erreur récupération statistiques: {e}")
+            print(f"ERROR: Erreur récupération statistiques: {e}")
             return {}
     
     def get_user_percentage(self, plumid: str, top1_animal: str) -> float:
@@ -244,7 +244,7 @@ class SupabaseManager:
             return round(percentage, 2)
             
         except Exception as e:
-            print(f"❌ Erreur calcul pourcentage utilisateur: {e}")
+            print(f"ERROR: Erreur calcul pourcentage utilisateur: {e}")
             return 0.0
 
 # Instance globale
@@ -252,11 +252,11 @@ supabase_manager = SupabaseManager()
 
 # Test du gestionnaire
 if __name__ == "__main__":
-    print("🧪 Test du gestionnaire Supabase")
+    print("TEST: Test du gestionnaire Supabase")
     print(f"Supabase disponible: {supabase_manager.is_available()}")
     
     if supabase_manager.is_available():
-        print("✅ Gestionnaire Supabase opérationnel")
+        print("SUCCESS: Gestionnaire Supabase opérationnel")
     else:
-        print("❌ Gestionnaire Supabase non disponible")
+        print("ERROR: Gestionnaire Supabase non disponible")
         print("Configurez SUPABASE_URL et SUPABASE_ANON_KEY dans vos variables d'environnement")
