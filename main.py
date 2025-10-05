@@ -21,7 +21,7 @@ try:
     SUPABASE_AVAILABLE = True
 except ImportError:
     SUPABASE_AVAILABLE = False
-    print("⚠️  Supabase not available. Install with: pip install supabase")
+    print("WARNING: Supabase not available. Install with: pip install supabase")
 
 app = Flask(__name__)
 
@@ -38,29 +38,29 @@ def initialize_analyzer():
     """Initialize the analyzer with required files"""
     global analyzer
     try:
-        print("🔍 Testing flatlib import...")
+        print("Testing flatlib import...")
         import flatlib
-        print(f"✅ flatlib imported successfully (version: {getattr(flatlib, '__version__', 'unknown')})")
+        print(f"SUCCESS: flatlib imported successfully (version: {getattr(flatlib, '__version__', 'unknown')})")
         
-        print("🔍 Importing BirthChartAnalyzer...")
+        print("Importing BirthChartAnalyzer...")
         from plumatotm_core import BirthChartAnalyzer
-        print("✅ BirthChartAnalyzer imported successfully")
+        print("SUCCESS: BirthChartAnalyzer imported successfully")
         
-        print("🔍 Initializing analyzer...")
+        print("Initializing analyzer...")
         analyzer = BirthChartAnalyzer(
             scores_csv_path="plumatotm_raw_scores_trad.csv",
             weights_csv_path="plumatotm_planets_weights.csv", 
             multipliers_csv_path="plumatotm_planets_multiplier.csv",
             translations_csv_path="plumatotm_raw_scores_trad.csv"
         )
-        print("✅ PLUMATOTM Analyzer initialized successfully")
+        print("SUCCESS: PLUMATOTM Analyzer initialized successfully")
         return True
     except ImportError as e:
-        print(f"❌ Import error: {e}")
-        print("💡 This might be a flatlib installation issue on Render")
+        print(f"ERROR: Import error: {e}")
+        print("INFO: This might be a flatlib installation issue on Render")
         return False
     except Exception as e:
-        print(f"❌ Failed to initialize analyzer: {e}")
+        print(f"ERROR: Failed to initialize analyzer: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -72,16 +72,16 @@ def initialize_supabase():
         try:
             supabase_manager = SupabaseManager()
             if supabase_manager.is_available():
-                print("✅ Supabase manager initialized successfully")
+                print("SUCCESS: Supabase manager initialized successfully")
                 return True
             else:
-                print("⚠️  Supabase manager not available (check configuration)")
+                print("WARNING: Supabase manager not available (check configuration)")
                 return False
         except Exception as e:
-            print(f"❌ Failed to initialize Supabase manager: {e}")
+            print(f"ERROR: Failed to initialize Supabase manager: {e}")
             return False
     else:
-        print("⚠️  Supabase not available")
+        print("WARNING: Supabase not available")
         return False
 
 @app.route('/')
@@ -183,7 +183,7 @@ def generate_planetary_positions_summary():
         # Load birth chart data
         birth_chart_path = "outputs/birth_chart.json"
         if not os.path.exists(birth_chart_path):
-            print("⚠️  Birth chart file not found")
+            print("WARNING: Birth chart file not found")
             return []
         
         with open(birth_chart_path, 'r', encoding='utf-8') as f:
@@ -246,7 +246,7 @@ def generate_planetary_positions_summary():
         return planetary_summary
         
     except Exception as e:
-        print(f"⚠️  Error generating planetary positions summary: {e}")
+        print(f"WARNING: Error generating planetary positions summary: {e}")
         return []
 
 def load_analysis_results():
@@ -350,7 +350,7 @@ def load_analysis_results():
             results['PLANETARY POSITIONS SUMMARY'] = planetary_summary
         
     except Exception as e:
-        print(f"⚠️  Warning: Could not load some analysis results: {e}")
+        print(f"WARNING: Could not load some analysis results: {e}")
     
     return results
 
@@ -391,10 +391,10 @@ def cleanup_memory():
         # Force garbage collection
         gc.collect()
         
-        print("🧹 Memory cleanup completed")
+        print("Memory cleanup completed")
         
     except Exception as e:
-        print(f"⚠️  Warning: Memory cleanup failed: {e}")
+        print(f"WARNING: Memory cleanup failed: {e}")
 
 def cleanup_output_files():
     """Remove output files after processing, but keep PNG files for display."""
@@ -415,10 +415,10 @@ def cleanup_output_files():
                 os.remove(file_path)
                 files_removed += 1
             except Exception as e:
-                print(f"⚠️  Could not remove {file_path}: {e}")
+                print(f"WARNING: Could not remove {file_path}: {e}")
     
     if files_removed > 0:
-        print(f"🗑️  Cleaned {files_removed} output files (PNG files kept for display)")
+        print(f"Cleaned {files_removed} output files (PNG files kept for display)")
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
@@ -521,25 +521,25 @@ def analyze():
                             supabase_success = supabase_manager.update_user_animal(plumid, top1_animal, name)
                             if supabase_success:
                                 supabase_updated = True
-                                print(f"✅ Supabase updated existing user: {name} -> {top1_animal} (PlumID: {plumid})")
+                                print(f"SUCCESS: Supabase updated existing user: {name} -> {top1_animal} (PlumID: {plumid})")
                             else:
-                                print(f"⚠️  Supabase update failed for existing user {name}")
+                                print(f"WARNING: Supabase update failed for existing user {name}")
                         else:
                             # User doesn't exist, add new record
                             supabase_success = supabase_manager.add_user(plumid, top1_animal, name)
                             if supabase_success:
                                 supabase_updated = True
-                                print(f"✅ Supabase added new user: {name} -> {top1_animal} (PlumID: {plumid})")
+                                print(f"SUCCESS: Supabase added new user: {name} -> {top1_animal} (PlumID: {plumid})")
                             else:
-                                print(f"⚠️  Supabase add failed for new user {name}")
+                                print(f"WARNING: Supabase add failed for new user {name}")
                     else:
-                        print("⚠️  No top1 animal found for Supabase update")
+                        print("WARNING: No top1 animal found for Supabase update")
                         
                 except Exception as supabase_error:
-                    print(f"⚠️  Supabase error: {supabase_error}")
+                    print(f"WARNING: Supabase error: {supabase_error}")
             
         except Exception as e:
-            print(f"❌ Analysis failed: {e}")
+            print(f"ERROR: Analysis failed: {e}")
             import traceback
             traceback.print_exc()
             return jsonify({
@@ -599,7 +599,7 @@ def analyze():
         return Response(json_response, mimetype='application/json')
         
     except Exception as e:
-        print(f"❌ Analysis error: {e}")
+        print(f"ERROR: Analysis error: {e}")
         print(traceback.format_exc())
         
         # Cleanup even on error
@@ -622,9 +622,9 @@ def get_file(filename):
         file_path = os.path.join(outputs_dir, filename)
         
         # Debug logging
-        print(f"🔍 Looking for file: {file_path}")
-        print(f"📁 Outputs directory exists: {os.path.exists(outputs_dir)}")
-        print(f"📄 File exists: {os.path.exists(file_path)}")
+        print(f"Looking for file: {file_path}")
+        print(f"Outputs directory exists: {os.path.exists(outputs_dir)}")
+        print(f"File exists: {os.path.exists(file_path)}")
         
         if os.path.exists(file_path):
             return send_file(file_path)
@@ -644,7 +644,7 @@ def get_file(filename):
                     "outputs_dir": outputs_dir
                 }), 404
     except Exception as e:
-        print(f"❌ Error serving file {filename}: {e}")
+        print(f"ERROR: Error serving file {filename}: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/files')
@@ -655,19 +655,19 @@ def list_files():
         current_dir = os.path.dirname(os.path.abspath(__file__))
         outputs_dir = os.path.join(current_dir, "outputs")
         
-        print(f"🔍 Looking for outputs directory: {outputs_dir}")
-        print(f"📁 Directory exists: {os.path.exists(outputs_dir)}")
+        print(f"Looking for outputs directory: {outputs_dir}")
+        print(f"Directory exists: {os.path.exists(outputs_dir)}")
         
         if os.path.exists(outputs_dir):
             files = os.listdir(outputs_dir)
-            print(f"📋 Found {len(files)} files: {files}")
+            print(f"Found {len(files)} files: {files}")
             return jsonify({
                 "files": files,
                 "count": len(files),
                 "outputs_dir": outputs_dir
             })
         else:
-            print(f"❌ Outputs directory not found: {outputs_dir}")
+            print(f"ERROR: Outputs directory not found: {outputs_dir}")
             return jsonify({
                 "files": [], 
                 "count": 0,
@@ -675,15 +675,15 @@ def list_files():
                 "outputs_dir": outputs_dir
             })
     except Exception as e:
-        print(f"❌ Error listing files: {e}")
+        print(f"ERROR: Error listing files: {e}")
         return jsonify({"error": str(e)}), 500
 
 # Initialize analyzer and Supabase at module level (after function definition)
-print("🚀 Starting PLUMATOTM API...")
+print("Starting PLUMATOTM API...")
 if initialize_analyzer():
-    print("✅ Analyzer ready")
+    print("SUCCESS: Analyzer ready")
 else:
-    print("❌ Failed to start API - analyzer initialization failed")
+    print("ERROR: Failed to start API - analyzer initialization failed")
     exit(1)
 
 # Initialize Supabase (optional - API will work without it)

@@ -1284,7 +1284,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         
         # Final timing and summary
         total_time = time_module.time() - start_time
-        print(f"🏁 ANALYSIS COMPLETE: {total_time:.3f}s total")
+        print(f"ANALYSIS COMPLETE: {total_time:.3f}s total")
         
         # Print detailed timing summary
         print("\nSTATS: DETAILED TIMING SUMMARY:")
@@ -1297,7 +1297,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         
         # Identify bottlenecks
         sorted_steps = sorted(step_timers.items(), key=lambda x: x[1], reverse=True)
-        print(f"\n🔍 TOP 3 BOTTLENECKS:")
+        print(f"\nTOP 3 BOTTLENECKS:")
         for i, (step, duration) in enumerate(sorted_steps[:3], 1):
             percentage = (duration / total_time) * 100
             print(f"{i}. {step}: {duration:.3f}s ({percentage:.1f}%)")

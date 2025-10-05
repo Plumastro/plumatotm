@@ -121,7 +121,7 @@ class RadarChartGenerator:
                         print(f"SUCCESS: Loaded custom PNG icon for {planet}: {name} (resized to 64x64)")
                         break
                     except Exception as e:
-                        print(f"⚠️  Could not load icon {name} for {planet}: {e}")
+                        print(f"WARNING: Could not load icon {name} for {planet}: {e}")
     
     def generate_top_animal_radar(self, result_data: Dict, output_path: str = "outputs/top1_animal_radar.png"):
         """
@@ -471,7 +471,7 @@ class RadarChartGenerator:
                     try:
                         rgba_cache[icon_path] = self._load_rgba_icon(icon_path)
                     except Exception as e:
-                        print(f"⚠️  Error loading RGBA icon for {planet}: {e}")
+                        print(f"WARNING: Error loading RGBA icon for {planet}: {e}")
                         continue
                 
                 if icon_path in rgba_cache:
