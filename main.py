@@ -299,19 +299,48 @@ def get_animal_pose_colour(sun_ascendant_sign):
             print(f"WARNING: {csv_path} not found")
             return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
         
+        # Try different encodings
+        encodings = ['utf-8', 'utf-8-sig', 'latin1', 'cp1252']
+        reader = None
+        
+        for encoding in encodings:
+            try:
+                with open(csv_path, 'r', encoding=encoding) as f:
+                    reader = csv.DictReader(f)
+                    # Test if we can read the first row
+                    first_row = next(reader, None)
+                    if first_row and 'Signe Soleil-Ascendant' in first_row:
+                        print(f"SUCCESS: CSV loaded with encoding {encoding}")
+                        break
+                    else:
+                        print(f"WARNING: Wrong encoding {encoding}, trying next...")
+                        continue
+            except Exception as enc_error:
+                print(f"WARNING: Encoding {encoding} failed: {enc_error}")
+                continue
+        
+        if reader is None:
+            print("ERROR: Could not read CSV with any encoding")
+            return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
+        
+        # Search for the sign combination
         with open(csv_path, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
-                if row['Signe Soleil-Ascendant'] == sun_ascendant_sign:
-                    action = row['Action/Attitude illustrable']
-                    bicolore = row['Bicolore']
+                if row.get('Signe Soleil-Ascendant', '').strip() == sun_ascendant_sign.strip():
+                    action = row.get('Action/Attitude illustrable', 'Pose inconnue')
+                    bicolore = row.get('Bicolore', 'Ton 1 : inconnu et Ton 2 : inconnu')
+                    print(f"FOUND: {sun_ascendant_sign} -> {action}")
                     return action, bicolore
         
-        print(f"WARNING: No match found for {sun_ascendant_sign}")
+        print(f"WARNING: No match found for '{sun_ascendant_sign}' in CSV")
+        print(f"DEBUG: Available signs (first 5): {list(csv.DictReader(open(csv_path, 'r', encoding='utf-8')))[:5]}")
         return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
         
     except Exception as e:
         print(f"ERROR: Could not read animal pose colour CSV: {e}")
+        import traceback
+        traceback.print_exc()
         return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
 
 def generate_animal_summary(order_name_nb, animal_totem, genre, sun_ascendant_sign):
@@ -916,8 +945,13 @@ def process_order():
         top1_data = top3_summary.get('Top1', {})
         animal_totem = top1_data.get('animal', 'Animal inconnu')
         
+        print(f"DEBUG: birth_chart_data keys: {list(birth_chart_data.keys()) if birth_chart_data else 'None'}")
+        print(f"DEBUG: top3_summary keys: {list(top3_summary.keys()) if top3_summary else 'None'}")
+        print(f"DEBUG: animal_totem: {animal_totem}")
+        
         # Get Sun-Ascendant sign for pose lookup
         sun_ascendant_sign = get_sun_ascendant_sign(birth_chart_data)
+        print(f"DEBUG: sun_ascendant_sign: {sun_ascendant_sign}")
         
         # Generate Animal Summary
         animal_summary = generate_animal_summary(
