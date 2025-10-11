@@ -1080,23 +1080,25 @@ def process_order():
             radar2_path = "livre/top2_animal_radar.png"
             radar3_path = "livre/top3_animal_radar.png"
             
-            # Upload to Google Drive
+            # Upload to Google Drive (include prompt_chatgpt.txt)
+            prompt_chatgpt_path = "livre/prompt_chatgpt.txt"
             drive_upload_result = upload_order_to_drive(
                 order_name_nb,
                 birth_chart_path,
                 radar1_path,
                 radar2_path,
-                radar3_path
+                radar3_path,
+                prompt_chatgpt_path
             )
             
             if drive_upload_result:
-                print(f"✅ Google Drive upload successful!")
-                print(f"📁 Folder URL: https://drive.google.com/drive/folders/{drive_upload_result['order_folder_id']}")
+                print(f"[OK] Google Drive upload successful!")
+                print(f"[FOLDER] URL: {drive_upload_result['folder_url']}")
             else:
-                print("⚠️ Google Drive upload failed (continuing anyway)")
+                print("[WARN] Google Drive upload failed (continuing anyway)")
                 
         except Exception as e:
-            print(f"⚠️ Google Drive upload error (non-critical): {e}")
+            print(f"[WARN] Google Drive upload error (non-critical): {e}")
             import traceback
             traceback.print_exc()
         
@@ -1118,7 +1120,7 @@ def process_order():
             },
             "google_drive": {
                 "uploaded": drive_upload_result is not None,
-                "folder_url": f"https://drive.google.com/drive/folders/{drive_upload_result['order_folder_id']}" if drive_upload_result else None,
+                "Lien google drive": drive_upload_result['folder_url'] if drive_upload_result else None,
                 "files_uploaded": drive_upload_result['uploaded_files'] if drive_upload_result else {}
             }
         }

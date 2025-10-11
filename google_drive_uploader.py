@@ -228,7 +228,7 @@ class GoogleDriveUploader:
             print(f"[ERROR] Error uploading file {filename}: {error}")
             return None
     
-    def upload_order_files(self, order_name_nb, birth_chart_path, radar1_path, radar2_path, radar3_path):
+    def upload_order_files(self, order_name_nb, birth_chart_path, radar1_path, radar2_path, radar3_path, prompt_chatgpt_path=None):
         """
         Upload all files for an order to Google Drive
         
@@ -238,9 +238,10 @@ class GoogleDriveUploader:
             radar1_path: Path to radar chart 1 PNG
             radar2_path: Path to radar chart 2 PNG
             radar3_path: Path to radar chart 3 PNG
+            prompt_chatgpt_path: Path to prompt_chatgpt.txt (optional)
             
         Returns:
-            dict: Results with folder_id and uploaded file IDs
+            dict: Results with folder_id, folder_url and uploaded file IDs
         """
         print(f"\n[UPLOAD] Starting Google Drive upload for order: {order_name_nb}")
         
@@ -248,8 +249,12 @@ class GoogleDriveUploader:
             # Get or create order folder
             order_folder_id = self.get_or_create_folder(order_name_nb, self.PARENT_FOLDER_ID)
             
+            # Generate folder URL
+            folder_url = f"https://drive.google.com/drive/folders/{order_folder_id}"
+            
             results = {
                 'order_folder_id': order_folder_id,
+                'folder_url': folder_url,
                 'uploaded_files': {}
             }
             
@@ -261,6 +266,10 @@ class GoogleDriveUploader:
                 'radar3.png': radar3_path
             }
             
+            # Add prompt_chatgpt.txt if provided
+            if prompt_chatgpt_path:
+                files_to_upload['prompt_chatgpt.txt'] = prompt_chatgpt_path
+            
             for filename, file_path in files_to_upload.items():
                 if file_path and os.path.exists(file_path):
                     file_id = self.upload_file(file_path, order_folder_id, filename)
@@ -270,7 +279,7 @@ class GoogleDriveUploader:
                     results['uploaded_files'][filename] = None
             
             print(f"[OK] Google Drive upload completed for order: {order_name_nb}")
-            print(f"[FOLDER] URL: https://drive.google.com/drive/folders/{order_folder_id}")
+            print(f"[FOLDER] URL: {folder_url}")
             
             return results
             
@@ -282,7 +291,7 @@ class GoogleDriveUploader:
 
 
 # Convenience function for easy import
-def upload_order_to_drive(order_name_nb, birth_chart_path, radar1_path, radar2_path, radar3_path):
+def upload_order_to_drive(order_name_nb, birth_chart_path, radar1_path, radar2_path, radar3_path, prompt_chatgpt_path=None):
     """
     Convenience function to upload order files to Google Drive
     
@@ -292,6 +301,7 @@ def upload_order_to_drive(order_name_nb, birth_chart_path, radar1_path, radar2_p
         radar1_path: Path to radar chart 1 PNG
         radar2_path: Path to radar chart 2 PNG
         radar3_path: Path to radar chart 3 PNG
+        prompt_chatgpt_path: Path to prompt_chatgpt.txt (optional)
         
     Returns:
         dict: Upload results or None if failed
@@ -303,7 +313,8 @@ def upload_order_to_drive(order_name_nb, birth_chart_path, radar1_path, radar2_p
             birth_chart_path,
             radar1_path,
             radar2_path,
-            radar3_path
+            radar3_path,
+            prompt_chatgpt_path
         )
     except Exception as e:
         print(f"[ERROR] Failed to upload to Google Drive: {e}")
