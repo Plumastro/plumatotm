@@ -1111,7 +1111,10 @@ def process_order():
                 "order_name_nb": order_name_nb,
                 "prenom": prenom_capitalized,
                 "nom": nom_capitalized,
-                "animal_summary": animal_summary
+                "animal_summary": animal_summary,
+                "Place of birth": parsed_data['lieu_naissance'],
+                "Date of birth": parsed_data['date_naissance'],
+                "Local time of birth": parsed_data['heure_naissance']
             },
             "prompts": {
                 "Prompt1reCouv": prompt1re_couv,

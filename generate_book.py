@@ -767,8 +767,7 @@ Respecte les contraintes de longueur de texte pour chaque page.
     planetary_positions_content = generate_planetary_positions_content()
     
     # Générer le prompt complet
-    prompt = f"""
-{planetary_positions_content}
+    prompt = f"""{planetary_positions_content}
 Aspects and configurations : {aspects_text}{patterns_text}
 You are an expert astrologer from the Plumastro team.
 
