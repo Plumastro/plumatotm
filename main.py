@@ -323,18 +323,20 @@ def get_animal_pose_colour(sun_ascendant_sign):
             print("ERROR: Could not read CSV with any encoding")
             return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
         
-        # Search for the sign combination
-        with open(csv_path, 'r', encoding='utf-8') as f:
+        # Search for the sign combination - handle BOM in CSV
+        with open(csv_path, 'r', encoding='utf-8-sig') as f:
             reader = csv.DictReader(f)
             for row in reader:
-                if row.get('Signe Soleil-Ascendant', '').strip() == sun_ascendant_sign.strip():
+                # Handle both with and without BOM
+                sign_key = row.get('Signe Soleil-Ascendant', '') or row.get('\ufeffSigne Soleil-Ascendant', '')
+                if sign_key.strip() == sun_ascendant_sign.strip():
                     action = row.get('Action/Attitude illustrable', 'Pose inconnue')
                     bicolore = row.get('Bicolore', 'Ton 1 : inconnu et Ton 2 : inconnu')
                     print(f"FOUND: {sun_ascendant_sign} -> {action}")
                     return action, bicolore
         
         print(f"WARNING: No match found for '{sun_ascendant_sign}' in CSV")
-        print(f"DEBUG: Available signs (first 5): {list(csv.DictReader(open(csv_path, 'r', encoding='utf-8')))[:5]}")
+        print(f"DEBUG: Available signs (first 5): {list(csv.DictReader(open(csv_path, 'r', encoding='utf-8-sig')))[:5]}")
         return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
         
     except Exception as e:
@@ -945,9 +947,20 @@ def process_order():
         top1_data = top3_summary.get('Top1', {})
         animal_totem = top1_data.get('animal', 'Animal inconnu')
         
-        print(f"DEBUG: birth_chart_data keys: {list(birth_chart_data.keys()) if birth_chart_data else 'None'}")
+        print(f"DEBUG: analysis_results keys: {list(analysis_results.keys())}")
+        print(f"DEBUG: birth_chart_data: {birth_chart_data}")
         print(f"DEBUG: top3_summary keys: {list(top3_summary.keys()) if top3_summary else 'None'}")
         print(f"DEBUG: animal_totem: {animal_totem}")
+        
+        # Try to load birth chart data directly from file if not in analysis_results
+        if not birth_chart_data:
+            try:
+                with open("outputs/birth_chart.json", 'r', encoding='utf-8') as f:
+                    birth_chart_data = json.load(f)
+                print(f"DEBUG: Loaded birth_chart directly from file: {list(birth_chart_data.keys())}")
+            except Exception as e:
+                print(f"WARNING: Could not load birth_chart.json: {e}")
+                birth_chart_data = {}
         
         # Get Sun-Ascendant sign for pose lookup
         sun_ascendant_sign = get_sun_ascendant_sign(birth_chart_data)
