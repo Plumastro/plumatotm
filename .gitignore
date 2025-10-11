@@ -70,6 +70,4 @@ api_key.txt
 
 # Local book generation files (NEVER push to GitHub)
 livre/
-generate_book.py
-aspects_patterns_generator.py
 test_*.py

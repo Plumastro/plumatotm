@@ -127,18 +127,18 @@ PLANET_DESCRIPTIONS = {
 }
 
 HOUSE_EXPLANATIONS = {
-    1: "Maison 1, celle du soi, de l'apparence, de la vitalité et de l'élan de vie",
-    2: "Maison 2, celle des biens, des ressources et des talents",
-    3: "Maison 3, celle de la communication, des routines quotidiennes, de la fratrie et de la famille élargie",
-    4: "Maison 4, celle des parents, des figures nourricières, des fondations et du foyer",
-    5: "Maison 5, celle du plaisir, de la romance, de l'énergie créative et des enfants",
-    6: "Maison 6, celle du travail, de la santé et des animaux",
-    7: "Maison 7, celle des partenariats engagés",
-    8: "Maison 8, celle des fins, de la santé mentale et des ressources d'autrui",
-    9: "Maison 9, celle des voyages, de l'éducation, de la religion, de la spiritualité et de la philosophie",
-    10: "Maison 10, celle de la carrière et des rôles publics",
-    11: "Maison 11, celle de la communauté, des amis et de la bonne fortune",
-    12: "Maison 12, celle des peines, des pertes et de la vie cachée"
+    1: "Maison 1, celle de l’identité et de la vitalité",
+    2: "Maison 2, celle des biens et des talents",
+    3: "Maison 3, celle de la communication et de la fratrie",
+    4: "Maison 4, celle du foyer et des racines",
+    5: "Maison 5, celle de la créativité et du plaisir",
+    6: "Maison 6, celle du travail et de la santé",
+    7: "Maison 7, celle des partenariats et de l’union",
+    8: "Maison 8, celle de la transformation et de l’héritage",
+    9: "Maison 9, celle des voyages et de la spiritualité",
+    10: "Maison 10, celle de la carrière et de la réputation",
+    11: "Maison 11, celle des amis et de la communauté",
+    12: "Maison 12, celle de l’inconscient et de l’isolement"
 }
 
 # Mapping des noms anglais vers français pour les planètes
@@ -176,6 +176,74 @@ SIGN_NAME_MAPPING = {
 
 # Mapping des numéros de maisons vers chiffres arabes (plus utilisé, conservé pour compatibilité)
 # Les maisons sont maintenant affichées directement avec des chiffres arabes
+
+def generate_top_aspects(date, time, lat, lon):
+    """Generate the TOP 10 ASPECTS for the birth chart."""
+    try:
+        # Import the aspects generator
+        from aspects_patterns_generator import AspectsPatternsGenerator
+        
+        # Generate aspects and patterns
+        generator = AspectsPatternsGenerator()
+        aspects_patterns_data = generator.generate_aspects_patterns(date, time, lat, lon)
+        
+        # Traductions des aspects
+        aspect_translations = {
+            "Conjunction": "Conjonction",
+            "Opposition": "Opposition",
+            "Square": "Carré",
+            "Trine": "Trigone",
+            "Sextile": "Sextile",
+            "Quincunx": "Quinconce",
+            "Semisextile": "Semi-sextile",
+            "Semisquare": "Semi-carré",
+            "Quintile": "Quintile",
+            "Sesquiquintile": "Sesqui-quintile",
+            "Biquintile": "Bi-quintile",
+            "Semiquintile": "Semi-quintile"
+        }
+        
+        # Traductions des planètes
+        planet_translations = {
+            "Sun": "Soleil",
+            "Moon": "Lune",
+            "Mercury": "Mercure",
+            "Venus": "Vénus",
+            "Mars": "Mars",
+            "Jupiter": "Jupiter",
+            "Saturn": "Saturne",
+            "Uranus": "Uranus",
+            "Neptune": "Neptune",
+            "Pluto": "Pluton",
+            "North Node": "Nœud Nord",
+            "Ascendant": "Ascendant",
+            "MC": "MC"
+        }
+        
+        # Trier les aspects par orbe croissant (plus l'orbe est petit, plus l'aspect est puissant)
+        sorted_aspects = sorted(aspects_patterns_data['aspects'], key=lambda x: x['orb'])[:10]
+        
+        # Créer le dictionnaire des TOP 10 aspects
+        top_aspects = {}
+        for i in range(1, 11):  # ASPECT1 à ASPECT10
+            if i <= len(sorted_aspects):
+                aspect = sorted_aspects[i-1]
+                planet1_fr = planet_translations.get(aspect['planet1'], aspect['planet1'])
+                planet2_fr = planet_translations.get(aspect['planet2'], aspect['planet2'])
+                aspect_fr = aspect_translations.get(aspect['aspect'], aspect['aspect'])
+                top_aspects[f"ASPECT{i}"] = f"{planet1_fr} {aspect_fr} {planet2_fr} (orb: {aspect['orb']}°)"
+            else:
+                # Si moins de 10 aspects, laisser vide
+                top_aspects[f"ASPECT{i}"] = ""
+        
+        return top_aspects
+        
+    except Exception as e:
+        print(f"WARNING: Error generating top aspects: {e}")
+        import traceback
+        traceback.print_exc()
+        # Return empty aspects if error
+        return {f"ASPECT{i}": "" for i in range(1, 11)}
 
 def generate_planetary_positions_summary():
     """Generate the PLANETARY POSITIONS SUMMARY from birth chart data."""
@@ -498,6 +566,12 @@ def analyze():
             
             # Load additional results for frontend
             analysis_results = load_analysis_results()
+            
+            # Generate TOP 10 ASPECTS
+            print("🌟 Generating TOP 10 ASPECTS...")
+            top_aspects = generate_top_aspects(date, time, lat, lon)
+            analysis_results['TOP ASPECTS'] = top_aspects
+            print(f"✅ TOP 10 ASPECTS generated successfully")
             
             # Update Supabase with user data
             supabase_updated = False
