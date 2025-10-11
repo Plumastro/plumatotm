@@ -1012,8 +1012,7 @@ Aspects and configurations : {aspects_text}{patterns_text} Explique en Francais 
                 "Prompt1reCouv": prompt1re_couv,
                 "Prompt4emeCouv": prompt4eme_couv,
                 "prompt_chatgpt": prompt_chatgpt
-            },
-            "analysis_data": analysis_results
+            }
         }
         
         # Cleanup memory
