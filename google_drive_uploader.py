@@ -39,12 +39,21 @@ class GoogleDriveUploader:
     def _authenticate(self):
         """Authenticate with Google Drive API using OAuth or Service Account"""
         try:
-            # Try OAuth first (for personal Drive)
-            if os.path.exists(self.token_path):
-                print("[INFO] Using OAuth authentication...")
+            # Try OAuth from environment variable first (for production)
+            token_from_env = os.environ.get('GOOGLE_DRIVE_TOKEN')
+            if token_from_env:
+                print("[INFO] Using OAuth authentication from environment variable...")
+                import json
+                token_data = json.loads(token_from_env)
+                creds = Credentials.from_authorized_user_info(token_data, self.SCOPES)
+                self.service = build('drive', 'v3', credentials=creds)
+                print("[OK] Google Drive authentication successful (OAuth from env)")
+            # Try OAuth from file (for local development)
+            elif os.path.exists(self.token_path):
+                print("[INFO] Using OAuth authentication from file...")
                 creds = Credentials.from_authorized_user_file(self.token_path, self.SCOPES)
                 self.service = build('drive', 'v3', credentials=creds)
-                print("[OK] Google Drive authentication successful (OAuth)")
+                print("[OK] Google Drive authentication successful (OAuth from file)")
             # Fallback to Service Account (requires Shared Drive)
             elif os.path.exists(self.service_account_path):
                 print("[INFO] Using Service Account authentication...")
@@ -58,7 +67,8 @@ class GoogleDriveUploader:
             else:
                 raise FileNotFoundError(
                     f"No credentials found. Expected:\n"
-                    f"  - {self.token_path} (OAuth, recommended)\n"
+                    f"  - GOOGLE_DRIVE_TOKEN environment variable (production)\n"
+                    f"  - {self.token_path} (OAuth file, local development)\n"
                     f"  - {self.service_account_path} (Service Account, requires Shared Drive)\n"
                     f"Run 'python setup_google_drive_oauth.py' to set up OAuth."
                 )
