@@ -197,7 +197,7 @@ def generate_planetary_positions_paragraphs():
         # Grouper les planètes selon les 3 paragraphes demandés
         paragraph1_planets = ["Soleil", "Ascendant", "Lune"]
         paragraph2_planets = ["Mercure", "Vénus", "Mars", "Jupiter", "Saturne", "Uranus", "Neptune", "Pluton"]
-        paragraph3_planets = ["MC", "Nœud Nord"]
+        paragraph3_planets = ["Nœud Nord", "MC"]
         
         paragraphs = []
         
@@ -231,21 +231,19 @@ def generate_planetary_positions_paragraphs():
         
         # Paragraphe 3
         para3_lines = []
-        # Process planets in the correct order: MC first, then Nœud Nord
-        for planet_name in paragraph3_planets:
-            for planet_data in planetary_summary:
-                if planet_data.get('PLANETE', '') == planet_name:
-                    angle = planet_data.get('ANGLE', '')
-                    sign = planet_data.get('SIGNE', '')
-                    maison_explanation = planet_data.get('MAISON EXPLICATION', '')
-                    maison_num = planet_data.get('MAISON', '')
-                    para3_lines.append(f"{planet_name} en {angle} {sign} dans la {maison_num}")
-                    break
+        for planet_data in planetary_summary:
+            planet_name = planet_data.get('PLANETE', '')
+            if planet_name in paragraph3_planets:
+                angle = planet_data.get('ANGLE', '')
+                sign = planet_data.get('SIGNE', '')
+                maison_explanation = planet_data.get('MAISON EXPLICATION', '')
+                maison_num = planet_data.get('MAISON', '')
+                para3_lines.append(f"{planet_name} en {angle} {sign} dans la {maison_num}")
         
         if para3_lines:
             paragraphs.append('\n'.join(para3_lines))
         
-        return '\n\n\n\n\n'.join(paragraphs)
+        return '\n\n'.join(paragraphs)
         
     except Exception as e:
         print(f"Erreur lors de la génération des paragraphes planétaires: {e}")
@@ -349,9 +347,9 @@ def generate_chatgpt_prompt(input_data, aspects_patterns_data):
         "MEGA_SHORT": "60-80 mots",
         "V_SHORT": "100-140 mots",
         "SHORT": "155-190 mots",
-        "MID": "180-220 mots",
+        "MID": "190-230 mots",
         "LONG": "240-270 mots",
-        "V_LONG": "300-330 mots"
+        "V_LONG": "280-320 mots"
     }
     
     # Dictionnaires de traduction
@@ -408,7 +406,7 @@ def generate_chatgpt_prompt(input_data, aspects_patterns_data):
         "Stellium": "Stellium",
         "Multiple Aspect": "Aspect Multiple",
         "Multiple Planet Square": "Carré Multiple",
-        "Yod": "Doigt de Dieu"
+        "Yod": "Yod"
     }
     
     # Charger les résultats d'analyse
@@ -465,40 +463,19 @@ def generate_chatgpt_prompt(input_data, aspects_patterns_data):
                     patterns_text += f"    {planet_fr} {aspect_fr} (orb: {aspecting_planet['orb']}°)\n"
                     
             elif pattern['type'] == 'Multiple Planet Square':
-                if 'target_planet' in pattern:
-                    # Ancien format
-                    target_planet_fr = planet_translations.get(pattern['target_planet'], pattern['target_planet'])
+                target_planet_fr = planet_translations.get(pattern['target_planet'], pattern['target_planet'])
+                # Traduire le signe dans la position
+                target_position_fr = pattern['target_position']
+                for eng, fr in sign_translations.items():
+                    target_position_fr = target_position_fr.replace(eng, fr)
+                patterns_text += f"  {target_planet_fr} en {target_position_fr}\n"
+                for squaring_planet in pattern['squaring_planets']:
+                    planet_fr = planet_translations.get(squaring_planet['planet'], squaring_planet['planet'])
                     # Traduire le signe dans la position
-                    target_position_fr = pattern['target_position']
-                    for eng, fr in sign_translations.items():
-                        target_position_fr = target_position_fr.replace(eng, fr)
-                    patterns_text += f"  {target_planet_fr} en {target_position_fr}\n"
-                    for squaring_planet in pattern['squaring_planets']:
-                        planet_fr = planet_translations.get(squaring_planet['planet'], squaring_planet['planet'])
-                        # Traduire le signe dans la position
-                        position_fr = squaring_planet['position']
-                        for eng, fr in sign_translations.items():
-                            position_fr = position_fr.replace(eng, fr)
-                        patterns_text += f"  {planet_fr} en {position_fr}\n"
-                else:
-                    # Nouveau format
-                    for planet in pattern.get('planets', []):
-                        planet_name_fr = planet_translations.get(planet['name'], planet['name'])
-                        # Traduire le signe dans la position
-                        position_fr = planet['position']
-                        for eng, fr in sign_translations.items():
-                            position_fr = position_fr.replace(eng, fr)
-                        patterns_text += f"  {planet_name_fr} en {position_fr}\n"
-                    
-            elif pattern['type'] == 'Berceau':
-                # Format Cradle/Berceau
-                for planet in pattern.get('planets', []):
-                    planet_name_fr = planet_translations.get(planet['name'], planet['name'])
-                    # Traduire le signe dans la position
-                    position_fr = planet['position']
+                    position_fr = squaring_planet['position']
                     for eng, fr in sign_translations.items():
                         position_fr = position_fr.replace(eng, fr)
-                    patterns_text += f"  {planet_name_fr} en {position_fr}\n"
+                    patterns_text += f"  {planet_fr} en {position_fr}\n"
                     
             elif pattern['type'] == 'Yod':
                 for planet in pattern['planets']:
@@ -574,108 +551,64 @@ def generate_chatgpt_prompt(input_data, aspects_patterns_data):
     
     # Définir les instructions pour les pages selon si la planète est dans le top 8 ou non
     TOP_8_PAGES_GUIDANCE = f"""- Page 1 ({TEXT_LENGTHS['MID']}): in 2 paragraphs, describe the planet's position in sign and house. Explain what the sign and house mean and how they influence the planet.
-- Page 2 [{TEXT_LENGTHS['MID']}]: in 2 paragraphs, provide a deeper personal interpretation. Explain clearly the influence of this planet on the subject's identity and life. Focus on personality analysis based on planetary position, considering also aspects. Give clear plumastro analysis of the personality. DO NOT mention the animal totem.
-- Page 3 [{TEXT_LENGTHS['MEGA_SHORT']}]: analyze the connection between this planet and the animal totem. Explain how this planetary energy resonates with the totem's characteristics. Do not write "animal totem" in the text."""
+- Page 2 ({TEXT_LENGTHS['MID']}): in 2 paragraphs, provide a deeper personal interpretation. Explain clearly the influence of this planet on the subject's identity and life. Focus on personality analysis based on planetary position, considering also aspects. Give clear plumastro analysis of the personality. DO NOT mention the animal totem.
+- Page 3 ({TEXT_LENGTHS['MEGA_SHORT']}): analyze the connection between this planet and the animal totem. Explain how this planetary energy resonates with the totem's characteristics."""
 
     NOT_TOP_8_PAGES_GUIDANCE = f"""- Page 1 ({TEXT_LENGTHS['MID']}): in 2 paragraphs, describe the planet's position in sign and house. Explain what the sign and house mean and how they influence the planet.
-- Page 2 [{TEXT_LENGTHS['V_LONG']}]: in 2 or 3 paragraphs, provide a deeper personal interpretation. Explain clearly the influence of this planet on the subject's identity and life. Focus on personality analysis based on planetary position, here you have to consider aspects, more than just the planet and its location. Give clear plumastro analysis of the personality. DO NOT mention the animal totem."""
+- Page 2 ({TEXT_LENGTHS['V_LONG']}): in 2 or 3 paragraphs, provide a deeper personal interpretation. Explain clearly the influence of this planet on the subject's identity and life. Focus on personality analysis based on planetary position, here you have to consider aspects, more than just the planet and its location. Give clear plumastro analysis of the personality. DO NOT mention the animal totem."""
     
-    # Traductions des planètes pour correspondance
-    planet_translations = {
-        "Soleil": "Sun", "Lune": "Moon", "Mercure": "Mercury", "Vénus": "Venus",
-        "Mars": "Mars", "Jupiter": "Jupiter", "Saturne": "Saturn", "Uranus": "Uranus",
-        "Neptune": "Neptune", "Pluton": "Pluto", "Nœud Nord": "North Node",
-        "Ascendant": "Ascendant", "Milieu de Ciel": "MC"
-    }
-    
-    # Traductions inverses
-    planet_translations_inv = {v: k for k, v in planet_translations.items()}
-    
-    # Traductions des aspects
-    aspect_translations = {
-        "Conjunction": "Conjonction", "Opposition": "Opposition", "Square": "Carré",
-        "Trine": "Trigone", "Sextile": "Sextile", "Quincunx": "Quinconce",
-        "Semisextile": "Semi-sextile", "Semisquare": "Semi-carré", "Quintile": "Quintile",
-        "Sesquiquintile": "Sesqui-quintile", "Biquintile": "Bi-quintile", "Semiquintile": "Semi-quintile"
-    }
-    
-    # Traductions des signes
-    sign_translations = {
-        "Aries": "Bélier", "Taurus": "Taureau", "Gemini": "Gémeaux",
-        "Cancer": "Cancer", "Leo": "Lion", "Virgo": "Vierge",
-        "Libra": "Balance", "Scorpio": "Scorpion", "Sagittarius": "Sagittaire",
-        "Capricorn": "Capricorne", "Aquarius": "Verseau", "Pisces": "Poissons"
-    }
-    
-    # Créer une instance du générateur pour la distribution optimale
-    from aspects_patterns_generator import AspectsPatternsGenerator
-    generator_instance = AspectsPatternsGenerator()
-    
-    # Distribuer les mentions de manière optimale
-    assignments = generator_instance.distribute_mentions_optimally(
-        aspects_patterns_data['aspects'], 
-        aspects_patterns_data['patterns']
-    )
-    
-    # Fonction pour extraire les aspects et patterns assignés à une planète
-    def get_planet_specific_aspects_and_patterns(planet_name, aspects_patterns_data, assignments):
-        """Extrait les aspects et patterns ASSIGNÉS à une planète donnée"""
-        planet_en = planet_translations.get(planet_name, planet_name)
-        
-        # Obtenir les mentions assignées à cette planète
-        mentions = generator_instance.get_planet_mentions(
-            planet_en, 
-            aspects_patterns_data['aspects'], 
-            aspects_patterns_data['patterns'], 
-            assignments
-        )
-        
+    # Fonction pour extraire les aspects et patterns spécifiques à une planète
+    def get_planet_specific_aspects_and_patterns(planet_name, aspects_patterns_data):
+        """Extrait les aspects et patterns spécifiques à une planète donnée"""
         planet_aspects = []
         planet_patterns = []
         
-        # Formater les aspects assignés
-        for aspect in mentions['aspects']:
-            planet1_fr = planet_translations_inv.get(aspect['planet1'], aspect['planet1'])
-            planet2_fr = planet_translations_inv.get(aspect['planet2'], aspect['planet2'])
-            aspect_fr = aspect_translations.get(aspect['aspect'], aspect['aspect'])
-            planet_aspects.append(f"{planet1_fr} {aspect_fr} {planet2_fr} (orb: {aspect['orb']}°)")
+        # Traductions des planètes pour correspondance
+        planet_translations = {
+            "Soleil": "Sun", "Lune": "Moon", "Mercure": "Mercury", "Vénus": "Venus",
+            "Mars": "Mars", "Jupiter": "Jupiter", "Saturne": "Saturn", "Uranus": "Uranus",
+            "Neptune": "Neptune", "Pluton": "Pluto", "Nœud Nord": "North Node",
+            "Ascendant": "Ascendant", "Milieu de Ciel": "MC"
+        }
         
-        # Formater les configurations assignées
-        for pattern in mentions['patterns']:
-            # Traduire le type de pattern
-            pattern_type_fr = pattern_translations.get(pattern['type'], pattern['type'])
-            
+        planet_en = planet_translations.get(planet_name, planet_name)
+        
+        # Extraire les aspects
+        for aspect in aspects_patterns_data['aspects']:
+            if (aspect['planet1'] == planet_en or aspect['planet2'] == planet_en):
+                # Traduire les noms des planètes en français
+                planet1_fr = {v: k for k, v in planet_translations.items()}.get(aspect['planet1'], aspect['planet1'])
+                planet2_fr = {v: k for k, v in planet_translations.items()}.get(aspect['planet2'], aspect['planet2'])
+                
+                # Traduire le type d'aspect
+                aspect_translations = {
+                    "Conjunction": "Conjonction", "Opposition": "Opposition", "Square": "Carré",
+                    "Trine": "Trigone", "Sextile": "Sextile", "Quincunx": "Quinconce",
+                    "Semisextile": "Semi-sextile", "Semisquare": "Semi-carré", "Quintile": "Quintile",
+                    "Sesquiquintile": "Sesqui-quintile", "Biquintile": "Bi-quintile", "Semiquintile": "Semi-quintile"
+                }
+                aspect_fr = aspect_translations.get(aspect['aspect'], aspect['aspect'])
+                
+                planet_aspects.append(f"{planet1_fr} {aspect_fr} {planet2_fr} (orb: {aspect['orb']}°)")
+        
+        # Extraire les patterns
+        for pattern in aspects_patterns_data['patterns']:
             if 'planets' in pattern:
-                # Extraire les noms des planètes
-                planet_names = []
                 for planet_info in pattern['planets']:
                     if isinstance(planet_info, dict) and 'name' in planet_info:
-                        p_name = planet_info['name']
-                        p_position = planet_info['position']
-                        
-                        # Traduire les signes en français
-                        for sign_en, sign_fr in sign_translations.items():
-                            p_position = p_position.replace(sign_en, sign_fr)
-                        
-                        planet_names.append(f"{planet_translations_inv.get(p_name, p_name)} en {p_position}")
-                
-                if planet_names:
-                    planet_patterns.append(f"{pattern_type_fr}: {', '.join(planet_names)}")
+                        planet_name_in_pattern = {v: k for k, v in planet_translations.items()}.get(planet_info['name'], planet_info['name'])
+                        if planet_name_in_pattern == planet_name:
+                            planet_patterns.append(f"{pattern['type']}: {planet_info['name']} en {planet_info['position']}")
             elif 'target_planet' in pattern:
-                target_fr = planet_translations_inv.get(pattern['target_planet'], pattern['target_planet'])
-                target_position = pattern.get('target_position', '')
-                
-                # Traduire les signes en français
-                for sign_en, sign_fr in sign_translations.items():
-                    target_position = target_position.replace(sign_en, sign_fr)
-                
-                planet_patterns.append(f"{pattern_type_fr}: {target_fr} en {target_position}")
+                target_planet_fr = {v: k for k, v in planet_translations.items()}.get(pattern['target_planet'], pattern['target_planet'])
+                if target_planet_fr == planet_name:
+                    planet_patterns.append(f"{pattern['type']}: {target_planet_fr} en {pattern['target_position']}")
         
         return planet_aspects, planet_patterns
     
     # Générer la liste des planètes avec leurs instructions de pages
     planets_sequence = ["Soleil", "Ascendant", "Lune", "Mercure", "Vénus", "Mars", "Jupiter", "Saturne", "Uranus", "Neptune", "Pluton", "Milieu de Ciel", "Nœud Nord"]
-    planets_paragraphs = []  # Liste pour stocker les 13 paragraphes séparés
+    planets_pages_guidance = ""
     
     if animal_totem_data:
         top1 = animal_totem_data[0]
@@ -683,8 +616,8 @@ def generate_chatgpt_prompt(input_data, aspects_patterns_data):
         top_planets_names = [planet['planet'] for planet in top_planets] if top_planets else []
         
         for planet in planets_sequence:
-            # Obtenir les aspects et patterns ASSIGNÉS à cette planète (distribution optimale)
-            planet_aspects, planet_patterns = get_planet_specific_aspects_and_patterns(planet, aspects_patterns_data, assignments)
+            # Obtenir les aspects et patterns spécifiques à cette planète
+            planet_aspects, planet_patterns = get_planet_specific_aspects_and_patterns(planet, aspects_patterns_data)
             
             # Construire la section des aspects et patterns
             aspects_section = ""
@@ -698,33 +631,10 @@ def generate_chatgpt_prompt(input_data, aspects_patterns_data):
                 for pattern in planet_patterns:
                     aspects_section += f"- {pattern}\n"
             
-            # Créer un paragraphe complet pour cette planète
-            planet_paragraph = f"""LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
-Next Section :
-PLANETARY ANALYSIS
-
-"""
-            
             if planet in top_planets_names:
-                planet_paragraph += f"{planet} :\n{TOP_8_PAGES_GUIDANCE}{aspects_section}\n"
+                planets_pages_guidance += f"\n{planet} (TOP 8 - 3 pages):\n{TOP_8_PAGES_GUIDANCE}{aspects_section}\n"
             else:
-                planet_paragraph += f"{planet} :\n{NOT_TOP_8_PAGES_GUIDANCE}{aspects_section}\n"
-            
-            planet_paragraph += """
-Important rules:
-Vary the structure from one planet to the next, avoid repetitions
-Sometimes begin with the sign, sometimes with the house, sometimes with an aspect.
-Alternate descriptive style (evocative imagery) and analytical style (reasoning).
-the planet amalysis must always be placed in the context of the full chart, never isolated.
-Les numeros des maisons sont ecrits en chiffres arabes.
-Souviens toi : pas de tiets "-" / "—"
-Respecte les contraintes de longueur de texte pour chaque page.
-"""
-            
-            planets_paragraphs.append(planet_paragraph)
-    
-    # Joindre tous les paragraphes avec des sauts de ligne
-    planets_pages_guidance = "\n\n\n\n\n\n\n\n\n\n\n".join(planets_paragraphs)
+                planets_pages_guidance += f"\n{planet} (NOT TOP 8 - 2 pages):\n{NOT_TOP_8_PAGES_GUIDANCE}{aspects_section}\n"
     
     # Générer la liste des top 10 aspects les plus puissants
     top_10_aspects = ""
@@ -768,24 +678,26 @@ Respecte les contraintes de longueur de texte pour chaque page.
     
     # Générer le prompt complet
     prompt = f"""
+    
 {planetary_positions_content}
 Aspects and configurations : {aspects_text}{patterns_text}
+
+
+
+
+
+
+
+
+
+
 You are an expert astrologer from the Plumastro team.
-
-
-
-
-
-
-
-
-
 Your mission is to write a highly personalised astrology book in French, using tutoiement, based on the client's complete natal chart. The text must sound alive, precise, and warm, as if it were written directly for them by the Plumastro team.
 Your name is {astrologue_name} from Plumastro
 
 1. Client Information
 
-Prenom : {'-'.join([word[:1].upper() + word[1:].lower() for word in input_data.get('prenom', '').split('-')]) if input_data.get('prenom', '') else ''}
+Prenom : {input_data.get('prenom', '')}
 
 Lieu de naissance : {input_data.get('lieu_naissance', '').split(' — ')[0]}
 
@@ -809,6 +721,7 @@ You must write section by section. After each section, you will wait for me to s
 INTRODUCTION
 TON ANIMAL TOTEM
 PLANETARY ANALYSIS
+ASPECTS PLANÉTAIRES
 COMPATIBILITÉS AVEC LES SIGNES
 LES TRANSITS DE VIE
 SYNTHÈSE DE LA PERSONNALITÉ
@@ -816,12 +729,10 @@ SYNTHÈSE DE LA PERSONNALITÉ
 
 3. Writing Constraints
 Language: French only.
-As an astrologer, your analysis must be sincere and honest, without any sugarcoating or flattery.
 Style: Expert astrologer, direct tutoiement.
 Tone: Alive, deep, personal, never vague or flat. Don't use "Enfin, Ainsi, Cependant, etc..."
 Formatting:
 No emojis.
-N'utilise pas le mot "féconde" ou "fécond"
 No dashes or long "–" "—" → always use commas or slash instead.
 Evite les formulations trop litteraires comme "en somme" ou "enfin", sois naturel dans ton style d'expression. Tu es astrologue de l'equipe Plumastro
 Each page = maximum 2 paragraphs.
@@ -847,11 +758,7 @@ After each section, stop and wait for me to say "OK" before continuing.
 
 
 
-{'-'.join([word[:1].upper() + word[1:].lower() for word in input_data.get('prenom', '').split('-')]) if input_data.get('prenom', '') else ''},
-
-
-
-
+{input_data.get('prenom', '').capitalize()},
 
 LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
 Next Section :
@@ -862,17 +769,8 @@ Give a short synthesis of the subject's personality to tease the deeper analysis
 Mention the spiritual animal clearly
 Present yourself within the Plumastro team "Je vais analyser tout ton theme et t'accompagner..."
 Explain briefly what the book will analyse next.
-Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
-Your name is {astrologue_name} from Plumastro
+Souviens toi : pas de tiets "-" / "—"
 
-
-
-
-
-
-
-
-///////////RAJOUTE CARTE CIEL/////////////////
 
 
 
@@ -895,22 +793,38 @@ Your name is {astrologue_name} from Plumastro
 
 
 
-{top_10_aspects}
-
-
-
-
-
-
-
-
-
-///////////RAJOUTE RADAR/////////////////
-
 
 
 
 {animal_totem_info_part1}
+
+
+
+
+
+
+
+
+LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
+Next Section :
+TON ANIMAL TOTEM (1 page) ({TEXT_LENGTHS['V_LONG']})
+CORRESPONDANCE AVEC L'ANIMAL TOTEM  {animal_totem_data[0]['determinant'] if len(animal_totem_data) > 1 else 'animal totem'}
+Explain with 2 paragraphs followed by the transition to the next chapterhow the animal totem corresponds to the subject's personality.
+Focus your analysis on the top 8 planets where there is a strong connection with the personality and animal totem. You can mention more or less planets if you feel it's necessary. Don't mention any score.
+{animal_totem_info_part2}
+You can also mention aspects or patterns if they feel symbolic.
+Mention also some correlations with 2 other animals that have a connection (even if it's not as strong as the animal totem)  {animal_totem_data[1]['determinant'] if len(animal_totem_data) > 1 else 'le deuxième animal'} and {animal_totem_data[2]['determinant'] if len(animal_totem_data) > 2 else 'le troisième animal'} without mentioning any planets but purely focusing on the overall symbol of the animal and the connection with the subject's personality.
+End this page with 
+Create a subtle transition into the upcoming planetary analysis. Here is just an example but make your own depending on the subject "Pour bien comprendre les facettes de ta personnalite, et ton lien intime avec [ici mettre l'animal totem], commencons maintenant l'analyse detaillee des positions planétaires"
+Tone: deep, inviting, excited, plumastro-style
+Souviens toi : pas de tiets "-" / "—"
+
+
+
+
+
+
+
 
 
 
@@ -924,34 +838,17 @@ Your name is {astrologue_name} from Plumastro
 
 LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
 Next Section :
-TON ANIMAL TOTEM
-Lien spirituel avec l'animal totem (1 page) ({TEXT_LENGTHS['V_LONG']}) : Decris la CORRESPONDANCE AVEC L'ANIMAL TOTEM  {animal_totem_data[0]['determinant'] if len(animal_totem_data) > 1 else 'animal totem'}
-Using the birth chart, understand the personality of the subject and then create link with the animal totem.Focus only on the link between the personality and the animal totem. Focus on creating connections between the personality of the subject and the symbol of the animal.
-
-Spiritual link with the 2 other animals and transition to planetary analysis (1 page) ({TEXT_LENGTHS['LONG']}) : 
-Mention also some correlations and spiritual link with 2 other animals that have a connection (even if it's not as strong as the animal totem)  {animal_totem_data[1]['determinant'] if len(animal_totem_data) > 1 else 'le deuxième animal'} and {animal_totem_data[2]['determinant'] if len(animal_totem_data) > 2 else 'le troisième animal'} without mentioning any planets but purely focusing on the overall symbol of the animal and the connection with the subject's personality.
-describe the link with the 2 animals and then connect it back to the animal totem reinforcing the link between the subject and animal totem. And finish with a transition to the upcoming planetary analysis
-Tone: deep, inviting, excited, plumastro-style
-Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
-Souviens toi : tu t'addresses directement au sujet
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+PLANETARY ANALYSIS (2-3 pages per planet/key point)
+PLANETS AND THEIR PAGES TO WRITE:
 {planets_pages_guidance}
+Important rules:
+No two planets should start the same way. Avoid formulaic repetition. Vary:
+Sometimes begin with the sign, sometimes with the house, sometimes with an aspect.
+Alternate descriptive style (evocative imagery) and analytical style (reasoning).
+Vary rhythm: monoblock vs 2 short paragraphs.
+Each planet must always be placed in the context of the full chart, never isolated.
+Give me the pages for the Planet/point to cover in the specific order I sent. Je veux une progression exactement dans l’ordre astrologique "Soleil", "Ascendant", "Lune", "Mercure", "Vénus", "Mars", "Jupiter", "Saturne", "Uranus", "Neptune", "Pluton", "Milieu de Ciel", "Nœud Nord". And after each planet, I'll say "OK" and you'll give me the pages for the next planet/point.
+Souviens toi : pas de tiets "-" / "—"
 
 
 
@@ -968,6 +865,30 @@ Souviens toi : tu t'addresses directement au sujet
 
 
 
+
+
+{top_10_aspects}
+
+
+
+
+
+
+
+
+
+LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
+Next Section :
+ASPECTS PLANÉTAIRES (3 pages total)
+Page 1 ({TEXT_LENGTHS['V_SHORT']}): explain what aspects are and how they shape personality.
+Page 2 ({TEXT_LENGTHS['LONG']}): analyse main aspects and explain the meaning for the subject(part 1).
+Page 3 ({TEXT_LENGTHS['V_LONG']}): analyse configurations and then continue with other interactions, if there's no configurations analyse more aspects (part 2).
+Pour rappel, voici la liste des TOP 10 ASPECTS LES PLUS PUISSANTS (par ordre d'orbe croissant) :
+{top_10_aspects}
+CONFIGURATIONS DETECTEES :
+{patterns_text}
+Utilise en priorite ces aspects et configurations dans l'analyse Plumastro mais tu peux egalement utiliser d'autres aspects qui ont ete donne dans le debut du prompt.
+Souviens toi : pas de tiets "-" / "—"
 
 
 
@@ -985,11 +906,11 @@ Souviens toi : tu t'addresses directement au sujet
 LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
 Next Section :
 COMPATIBILITÉS AVEC LES SIGNES (2 pages total)
-Page 1 ({TEXT_LENGTHS['V_LONG']}): introduce compatibility concept in astrology, then cover Feu & Terre, consider the entire birth chart in the analysis.
-Page 2 ({TEXT_LENGTHS['V_LONG']}): cover Air & Eau, consider the entire birth chart in the analysis. End this page providing an idea of what type of personality and sign a subject's lover could have. Be specific to 2 or 3 signs maximum that vibrate the most with the subject.
+Page 1 ({TEXT_LENGTHS['V_LONG']}): introduce compatibility logic, then cover Feu & Terre.
+Page 2 ({TEXT_LENGTHS['V_LONG']}): cover Air & Eau
 For each element, go through each sign and put each sign in perspective with the entire personality of the subject, for signs where there is a key interaction you can give an example of how they could match in real life.
-Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
-Souviens toi : tu t'addresses directement au sujet
+Souviens toi : pas de tiets "-" / "—"
+
 
 
 
@@ -1012,13 +933,11 @@ Explain what planetary transits are.
 Describe key life periods and ages of transformation. On page1 focus on early stage of life, page2 is mid-life and page3 end-life. Make it a continuous flow for all 3 pages
 Consider the age of the subject now to speak in the past and future depending on the age you're analysing. Go deep in the analysis here as an astrology expert, correlate transits with the birth chart to describe clearly the key life moments of the subject based on the birth chart.
 Always tie predictions to the subject's natal chart.
-Deliver personalised guidance, not generic trends. Sois clair et precis sur l'interpretation des moments de vie et de ce que le sujet a vecu ou va vivre.
+Deliver personalised guidance, not generic trends.
 Write ages of the subject in numbers, don't write years (e.g. 2028)
+Write House numbers in numbers, not letters.
 Ton of voice : Plumastro style, direct, warm, personal, professional but Gen-Z friendly.
-Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
-Quand tu ecris des ages, ecris l'age suivi du mot "ans"
-Fais des phrases completes et claires, pas juste des phrases partielles. Sois clair et precis.
-Si tu mentionnes une maison, indique le mot "maison" et son numero en chiffre arabe.
+Souviens toi : pas de tiets "-" / "—"
 
 
 
@@ -1036,13 +955,13 @@ LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'R
 Next Section :
 SYNTHÈSE DE LA PERSONNALITÉ
 Page 1 {TEXT_LENGTHS['V_LONG']}
-Page 2 {TEXT_LENGTHS['MID']}
+Page 2 {TEXT_LENGTHS['LONG']}
 Start with the subject's first name (once only here).
 Summarise the entire personality by weaving together: planetary influences, aspects. (Don't talk about transits)
 Make the animal totem central: show many symbolic links between the chart and the animal.
 Give personalised advice and inspiration, like a letter signed by {astrologue_name} from Plumastro, I want the last paragraph to start with a variation of "De la part de {astrologue_name} et de l'équipe Plumastro je t'adresse ce livre comme une lettre personnelle,..." puis un conseil, une guidance sur elle et utiliser au mieux ses atouts personnels
 Tone: warm, insightful, empowering.
-Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
+Souviens toi : pas de tiets "-" / "—"
 
 
 
@@ -1084,7 +1003,7 @@ def parse_input_format(input_text):
             key = line.split(':')[0].strip()
             value = line.split(':', 1)[1].strip()
             # Vérifier que c'est une vraie clé (pas une heure)
-            known_keys = ["Genre", "Nom", "Prenom", "Prénom", "Lieu de naissance", "_Ville - Pays", "_Ville - Région", "_Ville - Latitude", "_Ville - Longitude", "Date de naissance", "Heure de naissance"]
+            known_keys = ["Genre", "Nom", "Prenom", "Lieu de naissance", "_Ville - Pays", "_Ville - Région", "_Ville - Latitude", "_Ville - Longitude", "Date de naissance", "Heure de naissance"]
             if key not in known_keys:
                 i += 1
                 continue
@@ -1109,7 +1028,7 @@ def parse_input_format(input_text):
                 data['genre'] = value
             elif key == "Nom":
                 data['nom'] = value
-            elif key in ["Prenom", "Prénom"]:
+            elif key == "Prenom":
                 data['prenom'] = value
             elif key == "Lieu de naissance":
                 data['lieu_naissance'] = value
@@ -1133,45 +1052,66 @@ def parse_input_format(input_text):
     return data
 
 def get_user_input():
-    """Récupère les données de l'utilisateur depuis le fichier 'INPUT TO GENERATE BOOK.txt'"""
-    input_file = "INPUT TO GENERATE BOOK.txt"
+    """Récupère les données de l'utilisateur via le format spécifique"""
+    print("Générateur de livre Plumastro")
+    print("=" * 50)
+    print("Entrez les données au format suivant:")
+    print()
+    print("Genre :")
+    print("Homme")
+    print()
+    print("Nom :")
+    print("Jean")
+    print()
+    print("Prenom :")
+    print("Pierre")
+    print()
+    print("Lieu de naissance :")
+    print("Dax — Nouvelle-Aquitaine")
+    print()
+    print("_Ville - Pays :")
+    print("France")
+    print()
+    print("_Ville - Région :")
+    print("Nouvelle-Aquitaine")
+    print()
+    print("_Ville - Latitude :")
+    print("43.7084065")
+    print()
+    print("_Ville - Longitude :")
+    print("-1.0518771")
+    print()
+    print("Date de naissance :")
+    print("1882-01-11")
+    print()
+    print("Heure de naissance :")
+    print("03:45")
+    print()
+    print("Collez votre input ici (ou tapez 'quit' pour quitter):")
+    print("-" * 50)
     
-    if not os.path.exists(input_file):
-        print("Put your input in INPUT TO GENERATE BOOK.txt")
-        return None
+    # Collecter toutes les lignes jusqu'à ce que l'utilisateur tape une ligne vide
+    lines = []
+    while True:
+        try:
+            line = input()
+            if line.lower() == 'quit':
+                return None
+            lines.append(line)
+            # Si on a une ligne vide après avoir collecté des données, on arrête
+            if line.strip() == '' and len(lines) > 10:
+                break
+        except EOFError:
+            break
     
-    try:
-        with open(input_file, 'r', encoding='utf-8') as f:
-            input_text = f.read()
-        
-        # Vérifier si le fichier est vide
-        if not input_text.strip():
-            print("Put your input in INPUT TO GENERATE BOOK.txt")
-            return None
-        
-        print(f"Lecture des données depuis '{input_file}'...")
-        data = parse_input_format(input_text)
-        
-        # Vérifier si les données essentielles sont présentes
-        if not data or not data.get('prenom') or not data.get('date_naissance'):
-            print("Put your input in INPUT TO GENERATE BOOK.txt")
-            return None
-        
-        return data
-        
-    except Exception as e:
-        print("Put your input in INPUT TO GENERATE BOOK.txt")
-        return None
+    input_text = '\n'.join(lines)
+    return parse_input_format(input_text)
 
 def generate_book(input_data=None):
     """Fonction principale pour générer un livre"""
     
     if input_data is None:
         input_data = get_user_input()
-    
-    if input_data is None:
-        print("Erreur: Impossible de lire les données d'entrée.")
-        return False
     
     print(f"\nGénération du livre pour {input_data.get('prenom', '')} {input_data.get('nom', '')}")
     print("=" * 60)
@@ -1217,7 +1157,7 @@ def generate_book(input_data=None):
                     for planet in pattern['planets']:
                         print(f"  {planet['name']} in {planet['position']}")
                 elif pattern['type'] == 'Yod':
-                    print("  DOIGT DE DIEU DETECTE!")
+                    print("  YOD DETECTE!")
                     for planet in pattern['planets']:
                         print(f"  {planet['name']} in {planet['position']}")
                 elif pattern['type'] == 'Stellium':
@@ -1225,19 +1165,9 @@ def generate_book(input_data=None):
                     for planet in pattern['planets']:
                         print(f"  {planet['name']} in {planet['position']}")
                 elif pattern['type'] == 'Multiple Planet Square':
-                    if 'target_planet' in pattern:
-                        # Ancien format
-                        print(f"  {pattern['target_planet']} in {pattern['target_position']}")
-                        for squaring_planet in pattern['squaring_planets']:
-                            print(f"  {squaring_planet['planet']} in {squaring_planet['position']}")
-                    else:
-                        # Nouveau format
-                        for planet in pattern.get('planets', []):
-                            print(f"  {planet['name']} in {planet['position']}")
-                elif pattern['type'] == 'Berceau':
-                    # Format Cradle/Berceau
-                    for planet in pattern.get('planets', []):
-                        print(f"  {planet['name']} in {planet['position']}")
+                    print(f"  {pattern['target_planet']} in {pattern['target_position']}")
+                    for squaring_planet in pattern['squaring_planets']:
+                        print(f"  {squaring_planet['planet']} in {squaring_planet['position']}")
         else:
             print("\nAucun pattern majeur détecté")
         

@@ -40,6 +40,12 @@ gunicorn>=21.0.0
 supabase>=2.0.0
 python-dotenv>=1.0.0
 
+# Google Drive integration
+google-auth>=2.0.0
+google-auth-oauthlib>=1.0.0
+google-auth-httplib2>=0.2.0
+google-api-python-client>=2.0.0
+
 # Functional Requirements Specification:
 # - Generate ChatGPT interpretation of why the top1 animal matches the subject's personality
 # - Interpretation should be based on birth_chart.json and the 6 planets marked "TRUE" in top3_true_false.json for the top1 animal

@@ -1,0 +1,29 @@
+Genre :
+Femme
+
+Nom :
+Palamara
+
+Prénom :
+Christine
+
+Lieu de naissance :
+Genève — Genève
+
+_Ville - Pays :
+Suisse
+
+_Ville - Région :
+Genève
+
+_Ville - Latitude :
+46.2017559
+
+_Ville - Longitude :
+6.1466014
+
+Date de naissance :
+1968-03-03
+
+Heure de naissance :
+22:30

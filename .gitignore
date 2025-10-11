@@ -64,6 +64,8 @@ outputs/3_radar_animation.gif
 
 # API Keys
 api_key.txt
+google_drive_credentials.json
+google_drive_token.json
 
 # Logs
 *.log

@@ -1068,6 +1068,38 @@ def process_order():
             traceback.print_exc()
             prompt_chatgpt = "ChatGPT prompt generation failed"
         
+        # Upload files to Google Drive
+        drive_upload_result = None
+        try:
+            print("\n📤 Uploading files to Google Drive...")
+            from google_drive_uploader import upload_order_to_drive
+            
+            # Define file paths (from livre/ folder after generate_book.py runs)
+            birth_chart_path = "livre/birth_chart.png"
+            radar1_path = "livre/top1_animal_radar.png"
+            radar2_path = "livre/top2_animal_radar.png"
+            radar3_path = "livre/top3_animal_radar.png"
+            
+            # Upload to Google Drive
+            drive_upload_result = upload_order_to_drive(
+                order_name_nb,
+                birth_chart_path,
+                radar1_path,
+                radar2_path,
+                radar3_path
+            )
+            
+            if drive_upload_result:
+                print(f"✅ Google Drive upload successful!")
+                print(f"📁 Folder URL: https://drive.google.com/drive/folders/{drive_upload_result['order_folder_id']}")
+            else:
+                print("⚠️ Google Drive upload failed (continuing anyway)")
+                
+        except Exception as e:
+            print(f"⚠️ Google Drive upload error (non-critical): {e}")
+            import traceback
+            traceback.print_exc()
+        
         # Prepare response
         response_data = {
             "status": "success",
@@ -1083,6 +1115,11 @@ def process_order():
                 "Prompt1reCouv": prompt1re_couv,
                 "Prompt4emeCouv": prompt4eme_couv,
                 "prompt_chatgpt": prompt_chatgpt
+            },
+            "google_drive": {
+                "uploaded": drive_upload_result is not None,
+                "folder_url": f"https://drive.google.com/drive/folders/{drive_upload_result['order_folder_id']}" if drive_upload_result else None,
+                "files_uploaded": drive_upload_result['uploaded_files'] if drive_upload_result else {}
             }
         }
         
