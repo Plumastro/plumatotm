@@ -787,7 +787,7 @@ Your name is {astrologue_name} from Plumastro
 
 1. Client Information
 
-Prenom : {input_data.get('prenom', '')}
+Prenom : {'-'.join([word[:1].upper() + word[1:].lower() for word in input_data.get('prenom', '').split('-')]) if input_data.get('prenom', '') else ''},
 
 Lieu de naissance : {input_data.get('lieu_naissance', '').split(' — ')[0]}
 
@@ -849,7 +849,7 @@ After each section, stop and wait for me to say "OK" before continuing.
 
 
 
-{input_data.get('prenom', '').capitalize()},
+{'-'.join([word[:1].upper() + word[1:].lower() for word in input_data.get('prenom', '').split('-')]) if input_data.get('prenom', '') else ''},
 
 
 

@@ -1000,10 +1000,19 @@ def process_order():
             for pattern in aspects_patterns_data['patterns']:
                 patterns_text += f"{pattern['type']}\n"
         
-        # Prompt4emeCouv (simplified since we now have the full prompt_chatgpt.txt)
-        prompt4eme_couv = f"""This illustration attached is the cover you made of a Plumastro book about my client's astrological personality. Animal symbolising astrologically the client on the illustration : {animal_summary}
-
-Explique en Francais en approximativement 500 (entre 440 et 560) caracteres pourquoi tu as fait cette illustration avec cette animal, cette position, ces couleurs pour decrire le client ? Tu es un expert astrologue, et explique le de maniere poetique. Tout le texte doit etre en français, pas d'anglais. N'utilise pas de tiret pour ponctuer tes phrases. Parles des positions des planètes marquantes qui ont une forte influence sur la personnalite. Voici une reference de description que tu as faite pour un autre client : "Abeille de velours, elle traverse les ronces avec une grâce instinctive. Sa force est calme, enracinée, mais toujours en mouvement — elle sait où cueillir, où guérir. Chaque battement d'aile parle d'un monde intérieur dense, patient, infiniment loyal. Elle avance sans bruit, portée par une sagesse ancienne, tissant entre les roses un chemin secret. Autour d'elle, tout respire l'équilibre et la douceur farouche d'un être qui ne cède rien, sauf à l'amour." et une autre reference pour un autre client : "Lama d'améthyste, il avance avec une paix fière, porteur d'un feu intérieur maîtrisé. Il cherche du sens, des sommets, une vérité à incarner. Sa nature profonde l'enracine : il aime la lenteur, la sensualité, la constance des choses simples. Il observe le monde avec patience, ajuste chaque geste, affine chaque pensée. Derrière sa douceur calme, brûle une quête sincère : celle d'un être digne, lucide, attentif à ce qui compte, guidé par un éclat que rien ne peut éteindre." Garde ce ton poetique, pour decrire l'image d'un point de vue astrologique"""
+        # Generate planetary paragraphs for Prompt4emeCouv (reuse from generate_book.py)
+        planetary_paragraphs = ""
+        try:
+            from generate_book import generate_planetary_positions_paragraphs
+            planetary_paragraphs = generate_planetary_positions_paragraphs()
+            print(f"DEBUG: Generated planetary paragraphs ({len(planetary_paragraphs)} chars)")
+        except Exception as e:
+            print(f"WARNING: Could not generate planetary paragraphs: {e}")
+            planetary_paragraphs = "Planetary paragraphs not available"
+        
+        # Prompt4emeCouv
+        prompt4eme_couv = f"""This illustration attached is the cover you made of a Plumastro book about my client's astrological personality. Animal symbolising astrologically the client on the illustration : {animal_summary} here is the client birth chart data : {planetary_paragraphs}
+Aspects and configurations : {aspects_text}{patterns_text} Explique en Francais en approximativement 500 (entre 440 et 560) caracteres pourquoi tu as fait cette illustration avec cette animal, cette position, ces couleurs pour decrire le client ? Tu es un expert astrologue, et explique le de maniere poetique. Tout le texte doit etre en français, pas d'anglais. N'utilise pas de tiret pour ponctuer tes phrases. Parles des positions des planètes marquantes qui ont une forte influence sur la personnalite. Voici une reference de description que tu as faite pour un autre client : "Abeille de velours, elle traverse les ronces avec une grâce instinctive. Sa force est calme, enracinée, mais toujours en mouvement — elle sait où cueillir, où guérir. Chaque battement d'aile parle d'un monde intérieur dense, patient, infiniment loyal. Elle avance sans bruit, portée par une sagesse ancienne, tissant entre les roses un chemin secret. Autour d'elle, tout respire l'équilibre et la douceur farouche d'un être qui ne cède rien, sauf à l'amour." et une autre reference pour un autre client : "Lama d'améthyste, il avance avec une paix fière, porteur d'un feu intérieur maîtrisé. Il cherche du sens, des sommets, une vérité à incarner. Sa nature profonde l'enracine : il aime la lenteur, la sensualité, la constance des choses simples. Il observe le monde avec patience, ajuste chaque geste, affine chaque pensée. Derrière sa douceur calme, brûle une quête sincère : celle d'un être digne, lucide, attentif à ce qui compte, guidé par un éclat que rien ne peut éteindre." Garde ce ton poetique, pour decrire l'image d'un point de vue astrologique"""
         
         # Generate prompt_chatgpt by running generate_book.py and reading the output file
         prompt_chatgpt = ""
