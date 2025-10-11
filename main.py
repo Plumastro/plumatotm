@@ -846,8 +846,8 @@ def process_order():
     Order processing endpoint
     Expected JSON payload:
     {
-        "order_name-nb": "#1050-1",
-        "customAttributes_item.value": "Homme¬¬ LUCIEN¬¬ JEREMIE¬¬ Villecresnes — Île-de-France¬¬ France¬¬ Île-de-France¬¬ 48.7208822¬¬ 2.5327265¬¬ 1988-11-11¬¬ 12:25¬¬ Oui"
+        "order_name_nb": "#1050-1",
+        "customAttributes_item_value": "Homme¬¬ LUCIEN¬¬ JEREMIE¬¬ Villecresnes — Île-de-France¬¬ France¬¬ Île-de-France¬¬ 48.7208822¬¬ 2.5327265¬¬ 1988-11-11¬¬ 12:25¬¬ Oui"
     }
     """
     try:
@@ -858,14 +858,14 @@ def process_order():
         data = request.get_json()
         
         # Validate required fields
-        required_fields = ['order_name-nb', 'customAttributes_item.value']
+        required_fields = ['order_name_nb', 'customAttributes_item_value']
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
         
         # Extract parameters
-        order_name_nb = data['order_name-nb']
-        custom_attributes_value = data['customAttributes_item.value']
+        order_name_nb = data['order_name_nb']
+        custom_attributes_value = data['customAttributes_item_value']
         
         print(f"📦 Processing order: {order_name_nb}")
         
