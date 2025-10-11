@@ -1,0 +1,145 @@
+﻿Signe Soleil-Ascendant,Action/Attitude illustrable,Bicolore
+Belier-Belier,Charge directe,Ton 1 : rouge et Ton 2 : rouge
+Belier-Taureau,Position tendue prete a bondir,Ton 1 : rouge et Ton 2 : vert emeraude ou rose
+Belier-Gemeaux,Elan rapide avec la tete tournee,Ton 1 : rouge et Ton 2 : jaune
+Belier-Cancer,Posture audacieuse avec cote protege,Ton 1 : rouge et Ton 2 : argent ou nacre
+Belier-Lion,Rugissement en mouvement,Ton 1 : rouge et Ton 2 : or ou orange
+Belier-Vierge,Patte levee en plein mouvement,Ton 1 : rouge et Ton 2 : beige ou gris doux
+Belier-Balance,Foulee equilibree,Ton 1 : rouge et Ton 2 : rose pale ou bleu ciel
+Belier-Scorpion,Accroupi avec energie intense,Ton 1 : rouge et Ton 2 : rouge sombre ou bordeaux
+Belier-Sagittaire,Saut joyeux,Ton 1 : rouge et Ton 2 : violet
+Belier-Capricorne,Poussee contre resistance,Ton 1 : rouge et Ton 2 : brun fonce ou charbon
+Belier-Verseau,Elan soudain et inattendu,Ton 1 : rouge et Ton 2 : bleu electrique ou turquoise
+Belier-Poissons,Avance a travers la brume,Ton 1 : rouge et Ton 2 : vert mer ou lavande
+Taureau-Belier,Position ancree tete baissee,Ton 1 : vert emeraude ou rose et Ton 2 : rouge
+Taureau-Taureau,Immobile et inebranlable,Ton 1 : vert emeraude ou rose et Ton 2 : vert emeraude ou rose
+Taureau-Gemeaux,Renifle calmement des deux cotes,Ton 1 : vert emeraude ou rose et Ton 2 : jaune
+Taureau-Cancer,Repos mais vigilant,Ton 1 : vert emeraude ou rose et Ton 2 : argent ou nacre
+Taureau-Lion,Repos avec presence royale,Ton 1 : vert emeraude ou rose et Ton 2 : or ou orange
+Taureau-Vierge,Broutement attentif,Ton 1 : vert emeraude ou rose et Ton 2 : beige ou gris doux
+Taureau-Balance,Pas lent et harmonieux,Ton 1 : vert emeraude ou rose et Ton 2 : rose pale ou bleu ciel
+Taureau-Scorpion,Posture tendue mais contenue,Ton 1 : vert emeraude ou rose et Ton 2 : rouge sombre ou bordeaux
+Taureau-Sagittaire,Detente prete a explorer,Ton 1 : vert emeraude ou rose et Ton 2 : violet
+Taureau-Capricorne,Ascension lente et determinee,Ton 1 : vert emeraude ou rose et Ton 2 : brun fonce ou charbon
+Taureau-Verseau,Observation prudente,Ton 1 : vert emeraude ou rose et Ton 2 : bleu electrique ou turquoise
+Taureau-Poissons,"Immobilite reveuse, queue qui bouge",Ton 1 : vert emeraude ou rose et Ton 2 : vert mer ou lavande
+Gemeaux-Belier,Rotation en mouvement,Ton 1 : jaune et Ton 2 : rouge
+Gemeaux-Taureau,Rotation curieuse autour d'un point stable,Ton 1 : jaune et Ton 2 : vert emeraude ou rose
+Gemeaux-Gemeaux,"Oreilles dressees, posture legere",Ton 1 : jaune et Ton 2 : jaune
+Gemeaux-Cancer,Regard alerte en position repliee,Ton 1 : jaune et Ton 2 : argent ou nacre
+Gemeaux-Lion,Queue qui fouette en rythme,Ton 1 : jaune et Ton 2 : or ou orange
+Gemeaux-Vierge,Toilette rapide avec vigilance,Ton 1 : jaune et Ton 2 : beige ou gris doux
+Gemeaux-Balance,Imitation d'une posture,Ton 1 : jaune et Ton 2 : rose pale ou bleu ciel
+Gemeaux-Scorpion,Bond discret,Ton 1 : jaune et Ton 2 : rouge sombre ou bordeaux
+Gemeaux-Sagittaire,Pas joyeux,Ton 1 : jaune et Ton 2 : violet
+Gemeaux-Capricorne,Marche attentive tout en observant,Ton 1 : jaune et Ton 2 : brun fonce ou charbon
+Gemeaux-Verseau,Debout sur la pointe des pattes,Ton 1 : jaune et Ton 2 : bleu electrique ou turquoise
+Gemeaux-Poissons,Glissement rythme avec pauses,Ton 1 : jaune et Ton 2 : vert mer ou lavande
+Cancer-Belier,Charge en protegeant le coeur,Ton 1 : argent et Ton 2 : rouge
+Cancer-Taureau,Roule en restant vigilant,Ton 1 : argent et Ton 2 : vert emeraude ou rose
+Cancer-Gemeaux,"Repli attentif, oreilles en alerte",Ton 1 : argent et Ton 2 : jaune
+Cancer-Cancer,Immobilite protectrice,Ton 1 : argent et Ton 2 : argent
+Cancer-Lion,Presence protectrice,Ton 1 : argent et Ton 2 : or ou orange
+Cancer-Vierge,Organisation silencieuse de son espace,Ton 1 : argent et Ton 2 : beige ou gris doux
+Cancer-Balance,Regard lateral depuis un abri,Ton 1 : argent et Ton 2 : rose pale ou bleu ciel
+Cancer-Scorpion,Posture controlee en profondeur,Ton 1 : argent et Ton 2 : rouge sombre ou bordeaux
+Cancer-Sagittaire,Surveillance calme,Ton 1 : argent et Ton 2 : violet
+Cancer-Capricorne,A l'abri d'un mur rocheux,Ton 1 : argent et Ton 2 : brun fonce ou charbon
+Cancer-Verseau,Derive silencieuse,Ton 1 : argent et Ton 2 : bleu electrique ou turquoise
+Cancer-Poissons,Flottement protecteur,Ton 1 : argent et Ton 2 : vert mer ou lavande
+Lion-Belier,Bond victorieux,Ton 1 : or ou orange et Ton 2 : rouge
+Lion-Taureau,Fierte immobile,Ton 1 : or ou orange et Ton 2 : vert emeraude ou rose
+Lion-Gemeaux,Jeu expressif de la queue,Ton 1 : or ou orange et Ton 2 : jaune
+Lion-Cancer,Protection digne,Ton 1 : or ou orange et Ton 2 : argent
+Lion-Lion,"Poitrine en avant, regard puissant",Ton 1 : or ou orange et Ton 2 : or ou orange
+Lion-Vierge,Toilette elegante,Ton 1 : or ou orange et Ton 2 : beige ou gris doux
+Lion-Balance,Pas gracieux,Ton 1 : or ou orange et Ton 2 : rose pale ou bleu ciel
+Lion-Scorpion,Regard intense et droit,Ton 1 : or ou orange et Ton 2 : rouge sombre ou bordeaux
+Lion-Sagittaire,Bond joyeux et long,Ton 1 : or ou orange et Ton 2 : violet
+Lion-Capricorne,Ascension spectaculaire,Ton 1 : or ou orange et Ton 2 : brun fonce ou charbon
+Lion-Verseau,Performance suivie d'une pause,Ton 1 : or ou orange et Ton 2 : bleu electrique ou turquoise
+Lion-Poissons,Rugissement onirique,Ton 1 : or ou orange et Ton 2 : vert mer ou lavande
+Vierge-Belier,Avance prudente et precise,Ton 1 : beige ou gris doux et Ton 2 : rouge
+Vierge-Taureau,Ajustement du pas avec soin,Ton 1 : beige ou gris doux et Ton 2 : vert emeraude ou rose
+Vierge-Gemeaux,Toilette vigilante,Ton 1 : beige ou gris doux et Ton 2 : jaune
+Vierge-Cancer,Reorganisation calme,Ton 1 : beige ou gris doux et Ton 2 : argent
+Vierge-Lion,Discretion avec brillance cachee,Ton 1 : beige ou gris doux et Ton 2 : or ou orange
+Vierge-Vierge,Mouvement mesure,Ton 1 : beige ou gris doux et Ton 2 : beige ou gris doux
+Vierge-Balance,Toilette synchronisee,Ton 1 : beige ou gris doux et Ton 2 : rose pale ou bleu ciel
+Vierge-Scorpion,Pas discret et concentre,Ton 1 : beige ou gris doux et Ton 2 : rouge sombre ou bordeaux
+Vierge-Sagittaire,Progression planifiee,Ton 1 : beige ou gris doux et Ton 2 : violet
+Vierge-Capricorne,Verification du terrain,Ton 1 : beige ou gris doux et Ton 2 : brun fonce ou charbon
+Vierge-Verseau,Marche reflechie,Ton 1 : beige ou gris doux et Ton 2 : bleu electrique ou turquoise
+Vierge-Poissons,Toilette reveuse,Ton 1 : beige ou gris doux et Ton 2 : vert mer ou lavande
+Balance-Belier,Course avec conscience de soi,Ton 1 : rose pale ou bleu ciel et Ton 2 : rouge
+Balance-Taureau,Pause elegante,Ton 1 : rose pale ou bleu ciel et Ton 2 : vert emeraude ou rose
+Balance-Gemeaux,Mouvement leger et harmonieux,Ton 1 : rose pale ou bleu ciel et Ton 2 : jaune
+Balance-Cancer,Contact delicat,Ton 1 : rose pale ou bleu ciel et Ton 2 : argent
+Balance-Lion,Allure equilibree et elegante,Ton 1 : rose pale ou bleu ciel et Ton 2 : or ou orange
+Balance-Vierge,Perfection du mouvement,Ton 1 : rose pale ou bleu ciel et Ton 2 : beige ou gris doux
+Balance-Balance,Posture elegante,Ton 1 : rose pale ou bleu ciel et Ton 2 : rose pale ou bleu ciel
+Balance-Scorpion,Regard incline avec charme,Ton 1 : rose pale ou bleu ciel et Ton 2 : rouge sombre ou bordeaux
+Balance-Sagittaire,Rotation gracieuse,Ton 1 : rose pale ou bleu ciel et Ton 2 : violet
+Balance-Capricorne,Progression soigneuse,Ton 1 : rose pale ou bleu ciel et Ton 2 : brun fonce ou charbon
+Balance-Verseau,Allure etiree,Ton 1 : rose pale ou bleu ciel et Ton 2 : bleu electrique ou turquoise
+Balance-Poissons,Deplacement fluide,Ton 1 : rose pale ou bleu ciel et Ton 2 : vert mer ou lavande
+Scorpion-Belier,Tension silencieuse,Ton 1 : rouge sombre ou bordeaux et Ton 2 : rouge
+Scorpion-Taureau,Position assise concentree,Ton 1 : rouge sombre ou bordeaux et Ton 2 : vert emeraude ou rose
+Scorpion-Gemeaux,Tete secouee avec intensite,Ton 1 : rouge sombre ou bordeaux et Ton 2 : jaune
+Scorpion-Cancer,Accroupissement protecteur,Ton 1 : rouge sombre ou bordeaux et Ton 2 : argent
+Scorpion-Lion,Fierte silencieuse,Ton 1 : rouge sombre ou bordeaux et Ton 2 : or ou orange
+Scorpion-Vierge,Griffes aiguisees,Ton 1 : rouge sombre ou bordeaux et Ton 2 : beige ou gris doux
+Scorpion-Balance,Grace intimidante,Ton 1 : rouge sombre ou bordeaux et Ton 2 : rose pale ou bleu ciel
+Scorpion-Scorpion,Accroupissement vigilant,Ton 1 : rouge sombre ou bordeaux et Ton 2 : rouge sombre ou bordeaux
+Scorpion-Sagittaire,Bond furtif,Ton 1 : rouge sombre ou bordeaux et Ton 2 : violet
+Scorpion-Capricorne,Position de sommet,Ton 1 : rouge sombre ou bordeaux et Ton 2 : brun fonce ou charbon
+Scorpion-Verseau,Regard isole,Ton 1 : rouge sombre ou bordeaux et Ton 2 : bleu electrique ou turquoise
+Scorpion-Poissons,Presence douce mais puissante,Ton 1 : rouge sombre ou bordeaux et Ton 2 : vert mer ou lavande
+Sagittaire-Belier,Bond sauvage,Ton 1 : violet et Ton 2 : rouge
+Sagittaire-Taureau,Inclinaison retenue,Ton 1 : violet et Ton 2 : vert emeraude ou rose
+Sagittaire-Gemeaux,Course joyeuse,Ton 1 : violet et Ton 2 : jaune
+Sagittaire-Cancer,Joie retenue,Ton 1 : violet et Ton 2 : argent
+Sagittaire-Lion,Rotation en liberte,Ton 1 : violet et Ton 2 : or ou orange
+Sagittaire-Vierge,Bond calcule,Ton 1 : violet et Ton 2 : beige ou gris doux
+Sagittaire-Balance,Galop harmonieux,Ton 1 : violet et Ton 2 : rose pale ou bleu ciel
+Sagittaire-Scorpion,Passage vif,Ton 1 : violet et Ton 2 : rouge sombre ou bordeaux
+Sagittaire-Sagittaire,Etirement aspire,Ton 1 : violet et Ton 2 : violet
+Sagittaire-Capricorne,Observation depuis en hauteur,Ton 1 : violet et Ton 2 : brun fonce ou charbon
+Sagittaire-Verseau,Bond lateral,Ton 1 : violet et Ton 2 : bleu electrique ou turquoise
+Sagittaire-Poissons,Course dans la brume,Ton 1 : violet et Ton 2 : vert mer ou lavande
+Capricorne-Belier,Effort intense en montee,Ton 1 : brun fonce ou charbon et Ton 2 : rouge
+Capricorne-Taureau,Ancrage solide,Ton 1 : brun fonce ou charbon et Ton 2 : vert emeraude ou rose
+Capricorne-Gemeaux,Ascension calculee,Ton 1 : brun fonce ou charbon et Ton 2 : jaune
+Capricorne-Cancer,Surveillance depuis la pierre,Ton 1 : brun fonce ou charbon et Ton 2 : argent
+Capricorne-Lion,Fierte discrete,Ton 1 : brun fonce ou charbon et Ton 2 : or ou orange
+Capricorne-Vierge,Marquage d'altitude,Ton 1 : brun fonce ou charbon et Ton 2 : beige ou gris doux
+Capricorne-Balance,Montee controlee,Ton 1 : brun fonce ou charbon et Ton 2 : rose pale ou bleu ciel
+Capricorne-Scorpion,Sommet silencieux,Ton 1 : brun fonce ou charbon et Ton 2 : rouge sombre ou bordeaux
+Capricorne-Sagittaire,Strategie avant progression,Ton 1 : brun fonce ou charbon et Ton 2 : violet
+Capricorne-Capricorne,Avance en terrain rocailleux,Ton 1 : brun fonce ou charbon et Ton 2 : brun fonce ou charbon
+Capricorne-Verseau,Analyse en hauteur,Ton 1 : brun fonce ou charbon et Ton 2 : bleu electrique ou turquoise
+Capricorne-Poissons,Ascension dans le brouillard,Ton 1 : brun fonce ou charbon et Ton 2 : vert mer ou lavande
+Verseau-Belier,Course imprevisible,Ton 1 : bleu electrique ou turquoise et Ton 2 : rouge
+Verseau-Taureau,Pose stable esprit libre,Ton 1 : bleu electrique ou turquoise et Ton 2 : vert emeraude ou rose
+Verseau-Gemeaux,Rotation mentale en mouvement,Ton 1 : bleu electrique ou turquoise et Ton 2 : jaune
+Verseau-Cancer,Creation d'espace,Ton 1 : bleu electrique ou turquoise et Ton 2 : argent
+Verseau-Lion,Presence distante,Ton 1 : bleu electrique ou turquoise et Ton 2 : or ou orange
+Verseau-Vierge,Observation structuree,Ton 1 : bleu electrique ou turquoise et Ton 2 : beige ou gris doux
+Verseau-Balance,Marche fluide,Ton 1 : bleu electrique ou turquoise et Ton 2 : rose pale ou bleu ciel
+Verseau-Scorpion,Regard detache,Ton 1 : bleu electrique ou turquoise et Ton 2 : rouge sombre ou bordeaux
+Verseau-Sagittaire,Bond hors du schema,Ton 1 : bleu electrique ou turquoise et Ton 2 : violet
+Verseau-Capricorne,Refus de suivre,Ton 1 : bleu electrique ou turquoise et Ton 2 : brun fonce ou charbon
+Verseau-Verseau,Flottaison sinueuse,Ton 1 : bleu electrique ou turquoise et Ton 2 : bleu electrique ou turquoise
+Verseau-Poissons,Charge fluide,Ton 1 : bleu electrique ou turquoise et Ton 2 : vert mer ou lavande
+Poissons-Belier,Balancement tranquille,Ton 1 : vert mer ou lavande et Ton 2 : rouge
+Poissons-Taureau,Mouvement meditatif,Ton 1 : vert mer ou lavande et Ton 2 : vert emeraude ou rose
+Poissons-Gemeaux,Queue enveloppante,Ton 1 : vert mer ou lavande et Ton 2 : jaune
+Poissons-Cancer,Posture imaginative,Ton 1 : vert mer ou lavande et Ton 2 : argent
+Poissons-Lion,Pas efface,Ton 1 : vert mer ou lavande et Ton 2 : or ou orange
+Poissons-Vierge,Danse entre deux plans,Ton 1 : vert mer ou lavande et Ton 2 : beige ou gris doux
+Poissons-Balance,Eau immobile regard vigilant,Ton 1 : vert mer ou lavande et Ton 2 : rose pale ou bleu ciel
+Poissons-Scorpion,Eclaboussure vers l'horizon,Ton 1 : vert mer ou lavande et Ton 2 : rouge sombre ou bordeaux
+Poissons-Sagittaire,Montee lente en apesanteur,Ton 1 : vert mer ou lavande et Ton 2 : violet
+Poissons-Capricorne,Regard brumeux vers le ciel,Ton 1 : vert mer ou lavande et Ton 2 : brun fonce ou charbon
+Poissons-Verseau,Disparition progressive,Ton 1 : vert mer ou lavande et Ton 2 : bleu electrique ou turquoise
+Poissons-Poissons,,Ton 1 : vert mer ou lavande et Ton 2 : vert mer ou lavande

@@ -11,6 +11,8 @@ import json
 import tempfile
 from datetime import datetime
 import traceback
+import csv
+import re
 
 # Import the core engine
 import plumatotm_core
@@ -93,6 +95,7 @@ def home():
         "status": "running",
         "endpoints": {
             "POST /analyze": "Run full astrological analysis",
+            "POST /order": "Process order with customAttributes and generate prompts",
             "GET /health": "Health check",
             "GET /": "This information"
         }
@@ -244,6 +247,91 @@ def generate_top_aspects(date, time, lat, lon):
         traceback.print_exc()
         # Return empty aspects if error
         return {f"ASPECT{i}": "" for i in range(1, 11)}
+
+def parse_custom_attributes(custom_attributes_value):
+    """Parse the customAttributes_item.value format"""
+    parts = custom_attributes_value.split('¬¬ ')
+    if len(parts) != 11:
+        raise ValueError(f"Invalid customAttributes format. Expected 11 parts, got {len(parts)}")
+    
+    return {
+        'genre': parts[0].strip(),
+        'nom': parts[1].strip(),
+        'prenom': parts[2].strip(),
+        'lieu_naissance': parts[3].strip(),
+        'pays': parts[4].strip(),
+        'region': parts[5].strip(),
+        'lat': float(parts[6].strip()),
+        'lon': float(parts[7].strip()),
+        'date_naissance': parts[8].strip(),
+        'heure_naissance': parts[9].strip(),
+        'validation': parts[10].strip()
+    }
+
+def get_sun_ascendant_sign(birth_chart_data):
+    """Extract Sun and Ascendant signs from birth chart data"""
+    try:
+        planet_signs = birth_chart_data.get('planet_signs', {})
+        sun_sign = planet_signs.get('Sun', '')
+        ascendant_sign = planet_signs.get('Ascendant', '')
+        
+        # Translate to French
+        sign_translations = {
+            "ARIES": "Belier", "TAURUS": "Taureau", "GEMINI": "Gemeaux",
+            "CANCER": "Cancer", "LEO": "Lion", "VIRGO": "Vierge",
+            "LIBRA": "Balance", "SCORPIO": "Scorpion", "SAGITTARIUS": "Sagittaire",
+            "CAPRICORN": "Capricorne", "AQUARIUS": "Verseau", "PISCES": "Poissons"
+        }
+        
+        sun_fr = sign_translations.get(sun_sign, sun_sign)
+        ascendant_fr = sign_translations.get(ascendant_sign, ascendant_sign)
+        
+        return f"{sun_fr}-{ascendant_fr}"
+    except Exception as e:
+        print(f"ERROR: Could not extract sun-ascendant signs: {e}")
+        return "Unknown-Unknown"
+
+def get_animal_pose_colour(sun_ascendant_sign):
+    """Get animal pose and colours from plumatotm_animalposecolour.csv"""
+    try:
+        csv_path = "plumatotm_animalposecolour.csv"
+        if not os.path.exists(csv_path):
+            print(f"WARNING: {csv_path} not found")
+            return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
+        
+        with open(csv_path, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row['Signe Soleil-Ascendant'] == sun_ascendant_sign:
+                    action = row['Action/Attitude illustrable']
+                    bicolore = row['Bicolore']
+                    return action, bicolore
+        
+        print(f"WARNING: No match found for {sun_ascendant_sign}")
+        return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
+        
+    except Exception as e:
+        print(f"ERROR: Could not read animal pose colour CSV: {e}")
+        return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
+
+def generate_animal_summary(order_name_nb, animal_totem, genre, sun_ascendant_sign):
+    """Generate the Animal Summary string"""
+    try:
+        # Extract order number (remove the -1, -2, etc.)
+        order_number = order_name_nb.split('-')[0]
+        
+        # Get pose and colours
+        action, bicolore = get_animal_pose_colour(sun_ascendant_sign)
+        
+        # Capitalize animal name properly
+        animal_capitalized = animal_totem.title()
+        
+        # Format: "1048-1 - Léopard des neiges (Femme) ///// Foulee equilibree ///// Ton 1 : rouge et Ton 2 : vert emeraude ou rose"
+        return f"{order_number}-1 - {animal_capitalized} ({genre.capitalize()}) ///// {action} ///// {bicolore}"
+        
+    except Exception as e:
+        print(f"ERROR: Could not generate animal summary: {e}")
+        return f"{order_name_nb} - {animal_totem} ({genre}) ///// Pose inconnue ///// Couleurs inconnues"
 
 def generate_planetary_positions_summary():
     """Generate the PLANETARY POSITIONS SUMMARY from birth chart data."""
@@ -751,6 +839,203 @@ def list_files():
     except Exception as e:
         print(f"ERROR: Error listing files: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route('/order', methods=['POST'])
+def process_order():
+    """
+    Order processing endpoint
+    Expected JSON payload:
+    {
+        "order_name-nb": "#1050-1",
+        "customAttributes_item.value": "Homme¬¬ LUCIEN¬¬ JEREMIE¬¬ Villecresnes — Île-de-France¬¬ France¬¬ Île-de-France¬¬ 48.7208822¬¬ 2.5327265¬¬ 1988-11-11¬¬ 12:25¬¬ Oui"
+    }
+    """
+    try:
+        # Validate request
+        if not request.is_json:
+            return jsonify({"error": "Request must be JSON"}), 400
+        
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['order_name-nb', 'customAttributes_item.value']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+        
+        # Extract parameters
+        order_name_nb = data['order_name-nb']
+        custom_attributes_value = data['customAttributes_item.value']
+        
+        print(f"📦 Processing order: {order_name_nb}")
+        
+        # Parse custom attributes
+        try:
+            parsed_data = parse_custom_attributes(custom_attributes_value)
+            print(f"✅ Parsed data for {parsed_data['prenom']} {parsed_data['nom']}")
+        except ValueError as e:
+            return jsonify({"error": f"Invalid customAttributes format: {e}"}), 400
+        
+        # Check if analyzer is ready
+        if analyzer is None:
+            return jsonify({"error": "Analyzer not initialized"}), 500
+        
+        # Run astrological analysis (reuse existing logic)
+        print("🔮 Running astrological analysis...")
+        try:
+            result = analyzer.run_analysis(
+                date=parsed_data['date_naissance'],
+                time=parsed_data['heure_naissance'], 
+                lat=parsed_data['lat'],
+                lon=parsed_data['lon'],
+                user_name=parsed_data['prenom']
+            )
+            
+            # Load analysis results
+            analysis_results = load_analysis_results()
+            
+            # Generate TOP 10 ASPECTS
+            top_aspects = generate_top_aspects(
+                parsed_data['date_naissance'],
+                parsed_data['heure_naissance'],
+                parsed_data['lat'],
+                parsed_data['lon']
+            )
+            analysis_results['TOP ASPECTS'] = top_aspects
+            
+        except Exception as e:
+            print(f"ERROR: Analysis failed: {e}")
+            return jsonify({
+                "error": "Astrological analysis failed",
+                "details": str(e)
+            }), 500
+        
+        # Extract data for animal summary
+        birth_chart_data = analysis_results.get('birth_chart', {})
+        top3_summary = analysis_results.get('top3_summary', {})
+        top1_data = top3_summary.get('Top1', {})
+        animal_totem = top1_data.get('animal', 'Animal inconnu')
+        
+        # Get Sun-Ascendant sign for pose lookup
+        sun_ascendant_sign = get_sun_ascendant_sign(birth_chart_data)
+        
+        # Generate Animal Summary
+        animal_summary = generate_animal_summary(
+            order_name_nb, animal_totem, parsed_data['genre'], sun_ascendant_sign
+        )
+        
+        # Generate prompts
+        prenom_capitalized = parsed_data['prenom'].capitalize()
+        nom_capitalized = parsed_data['nom'].capitalize()
+        
+        # Prompt1reCouv
+        prompt1re_couv = f"""Texte que Victor utilise pour la 1re couv
+{animal_summary}"""
+        
+        # Generate aspects and patterns for Prompt4emeCouv
+        from aspects_patterns_generator import AspectsPatternsGenerator
+        generator = AspectsPatternsGenerator()
+        aspects_patterns_data = generator.generate_aspects_patterns(
+            parsed_data['date_naissance'],
+            parsed_data['heure_naissance'],
+            parsed_data['lat'],
+            parsed_data['lon']
+        )
+        
+        # Format aspects and patterns text
+        aspects_text = ""
+        if aspects_patterns_data['aspects']:
+            aspects_text = "\nAspects:\n"
+            for aspect in aspects_patterns_data['aspects'][:10]:  # Top 10 only
+                aspects_text += f"{aspect['planet1']} {aspect['aspect']} {aspect['planet2']} (orb: {aspect['orb']}°)\n"
+        
+        patterns_text = ""
+        if aspects_patterns_data['patterns']:
+            patterns_text = "\nConfigurations:\n"
+            for pattern in aspects_patterns_data['patterns']:
+                patterns_text += f"{pattern['type']}\n"
+        
+        # Generate planetary positions content (reuse from generate_book.py)
+        planetary_positions_content = ""
+        try:
+            # Load birth chart for planetary positions
+            with open("outputs/birth_chart.json", 'r', encoding='utf-8') as f:
+                birth_chart_data = json.load(f)
+            
+            french_birth_chart = birth_chart_data.get('french_birth_chart', {})
+            
+            # Create planetary positions text
+            planetary_positions_content = "Birth Chart Data:\n"
+            for planet, position in french_birth_chart.items():
+                planetary_positions_content += f"{planet}: {position}\n"
+                
+        except Exception as e:
+            print(f"WARNING: Could not generate planetary positions content: {e}")
+            planetary_positions_content = "Planetary positions not available"
+        
+        # Prompt4emeCouv
+        prompt4eme_couv = f"""This illustration attached is the cover you made of a Plumastro book about my client's astrological personality. Animal symbolising astrologically the client on the illustration : {animal_summary} here is the client birth chart data : {planetary_positions_content}
+Aspects and configurations : {aspects_text}{patterns_text} Explique en Francais en approximativement 500 (entre 440 et 560) caracteres pourquoi tu as fait cette illustration avec cette animal, cette position, ces couleurs pour decrire le client ? Tu es un expert astrologue, et explique le de maniere poetique. Tout le texte doit etre en français, pas d'anglais. N'utilise pas de tiret pour ponctuer tes phrases. Parles des positions des planètes marquantes qui ont une forte influence sur la personnalite. Voici une reference de description que tu as faite pour un autre client : "Abeille de velours, elle traverse les ronces avec une grâce instinctive. Sa force est calme, enracinée, mais toujours en mouvement — elle sait où cueillir, où guérir. Chaque battement d'aile parle d'un monde intérieur dense, patient, infiniment loyal. Elle avance sans bruit, portée par une sagesse ancienne, tissant entre les roses un chemin secret. Autour d'elle, tout respire l'équilibre et la douceur farouche d'un être qui ne cède rien, sauf à l'amour." et une autre reference pour un autre client : "Lama d'améthyste, il avance avec une paix fière, porteur d'un feu intérieur maîtrisé. Il cherche du sens, des sommets, une vérité à incarner. Sa nature profonde l'enracine : il aime la lenteur, la sensualité, la constance des choses simples. Il observe le monde avec patience, ajuste chaque geste, affine chaque pensée. Derrière sa douceur calme, brûle une quête sincère : celle d'un être digne, lucide, attentif à ce qui compte, guidé par un éclat que rien ne peut éteindre." Garde ce ton poetique, pour decrire l'image d'un point de vue astrologique"""
+        
+        # Generate prompt_chatgpt (reuse from generate_book.py)
+        try:
+            from generate_book import generate_chatgpt_prompt
+            input_data = {
+                'genre': parsed_data['genre'],
+                'nom': parsed_data['nom'],
+                'prenom': parsed_data['prenom'],
+                'lieu_naissance': parsed_data['lieu_naissance'],
+                'pays': parsed_data['pays'],
+                'region': parsed_data['region'],
+                'lat': parsed_data['lat'],
+                'lon': parsed_data['lon'],
+                'date_naissance': parsed_data['date_naissance'],
+                'heure_naissance': parsed_data['heure_naissance']
+            }
+            prompt_chatgpt = generate_chatgpt_prompt(input_data, aspects_patterns_data)
+        except Exception as e:
+            print(f"WARNING: Could not generate chatgpt prompt: {e}")
+            prompt_chatgpt = "ChatGPT prompt generation failed"
+        
+        # Prepare response
+        response_data = {
+            "status": "success",
+            "message": "Order processed successfully",
+            "timestamp": datetime.now().isoformat(),
+            "order_info": {
+                "order_name_nb": order_name_nb,
+                "prenom": prenom_capitalized,
+                "nom": nom_capitalized,
+                "animal_summary": animal_summary
+            },
+            "prompts": {
+                "Prompt1reCouv": prompt1re_couv,
+                "Prompt4emeCouv": prompt4eme_couv,
+                "prompt_chatgpt": prompt_chatgpt
+            },
+            "analysis_data": analysis_results
+        }
+        
+        # Cleanup memory
+        cleanup_memory()
+        cleanup_output_files()
+        
+        from flask import Response
+        return Response(json.dumps(response_data, ensure_ascii=False, indent=2), mimetype='application/json')
+        
+    except Exception as e:
+        print(f"ERROR: Order processing error: {e}")
+        print(traceback.format_exc())
+        
+        # Cleanup even on error
+        cleanup_memory()
+        cleanup_output_files()
+        
+        return jsonify({
+            "status": "error",
+            "message": str(e),
+            "timestamp": datetime.now().isoformat()
+        }), 500
 
 # Initialize analyzer and Supabase at module level (after function definition)
 print("Starting PLUMATOTM API...")
