@@ -275,7 +275,7 @@ def get_sun_ascendant_sign(birth_chart_data):
         sun_sign = planet_signs.get('Sun', '')
         ascendant_sign = planet_signs.get('Ascendant', '')
         
-        # Translate to French
+        # Translate to French - NO ACCENTS (to match CSV format)
         sign_translations = {
             "ARIES": "Belier", "TAURUS": "Taureau", "GEMINI": "Gemeaux",
             "CANCER": "Cancer", "LEO": "Lion", "VIRGO": "Vierge",
@@ -299,9 +299,9 @@ def get_animal_pose_colour(sun_ascendant_sign):
             print(f"WARNING: {csv_path} not found")
             return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
         
-        # Try different encodings
-        encodings = ['utf-8', 'utf-8-sig', 'latin1', 'cp1252']
-        reader = None
+        # Try different encodings - start with utf-8-sig to handle BOM
+        encodings = ['utf-8-sig', 'utf-8', 'latin1', 'cp1252']
+        working_encoding = None
         
         for encoding in encodings:
             try:
@@ -309,17 +309,14 @@ def get_animal_pose_colour(sun_ascendant_sign):
                     reader = csv.DictReader(f)
                     # Test if we can read the first row
                     first_row = next(reader, None)
-                    if first_row and 'Signe Soleil-Ascendant' in first_row:
+                    if first_row and ('Signe Soleil-Ascendant' in first_row or '\ufeffSigne Soleil-Ascendant' in first_row):
+                        working_encoding = encoding
                         print(f"SUCCESS: CSV loaded with encoding {encoding}")
                         break
-                    else:
-                        print(f"WARNING: Wrong encoding {encoding}, trying next...")
-                        continue
             except Exception as enc_error:
-                print(f"WARNING: Encoding {encoding} failed: {enc_error}")
                 continue
         
-        if reader is None:
+        if not working_encoding:
             print("ERROR: Could not read CSV with any encoding")
             return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
         
@@ -965,6 +962,7 @@ def process_order():
         # Get Sun-Ascendant sign for pose lookup
         sun_ascendant_sign = get_sun_ascendant_sign(birth_chart_data)
         print(f"DEBUG: sun_ascendant_sign: {sun_ascendant_sign}")
+        print(f"DEBUG: birth_chart_data planet_signs: {birth_chart_data.get('planet_signs', {}) if birth_chart_data else 'None'}")
         
         # Generate Animal Summary
         animal_summary = generate_animal_summary(
@@ -1002,31 +1000,18 @@ def process_order():
             for pattern in aspects_patterns_data['patterns']:
                 patterns_text += f"{pattern['type']}\n"
         
-        # Generate planetary positions content (reuse from generate_book.py)
-        planetary_positions_content = ""
-        try:
-            # Load birth chart for planetary positions
-            with open("outputs/birth_chart.json", 'r', encoding='utf-8') as f:
-                birth_chart_data = json.load(f)
-            
-            french_birth_chart = birth_chart_data.get('french_birth_chart', {})
-            
-            # Create planetary positions text
-            planetary_positions_content = "Birth Chart Data:\n"
-            for planet, position in french_birth_chart.items():
-                planetary_positions_content += f"{planet}: {position}\n"
-                
-        except Exception as e:
-            print(f"WARNING: Could not generate planetary positions content: {e}")
-            planetary_positions_content = "Planetary positions not available"
+        # Prompt4emeCouv (simplified since we now have the full prompt_chatgpt.txt)
+        prompt4eme_couv = f"""This illustration attached is the cover you made of a Plumastro book about my client's astrological personality. Animal symbolising astrologically the client on the illustration : {animal_summary}
+
+Explique en Francais en approximativement 500 (entre 440 et 560) caracteres pourquoi tu as fait cette illustration avec cette animal, cette position, ces couleurs pour decrire le client ? Tu es un expert astrologue, et explique le de maniere poetique. Tout le texte doit etre en français, pas d'anglais. N'utilise pas de tiret pour ponctuer tes phrases. Parles des positions des planètes marquantes qui ont une forte influence sur la personnalite. Voici une reference de description que tu as faite pour un autre client : "Abeille de velours, elle traverse les ronces avec une grâce instinctive. Sa force est calme, enracinée, mais toujours en mouvement — elle sait où cueillir, où guérir. Chaque battement d'aile parle d'un monde intérieur dense, patient, infiniment loyal. Elle avance sans bruit, portée par une sagesse ancienne, tissant entre les roses un chemin secret. Autour d'elle, tout respire l'équilibre et la douceur farouche d'un être qui ne cède rien, sauf à l'amour." et une autre reference pour un autre client : "Lama d'améthyste, il avance avec une paix fière, porteur d'un feu intérieur maîtrisé. Il cherche du sens, des sommets, une vérité à incarner. Sa nature profonde l'enracine : il aime la lenteur, la sensualité, la constance des choses simples. Il observe le monde avec patience, ajuste chaque geste, affine chaque pensée. Derrière sa douceur calme, brûle une quête sincère : celle d'un être digne, lucide, attentif à ce qui compte, guidé par un éclat que rien ne peut éteindre." Garde ce ton poetique, pour decrire l'image d'un point de vue astrologique"""
         
-        # Prompt4emeCouv
-        prompt4eme_couv = f"""This illustration attached is the cover you made of a Plumastro book about my client's astrological personality. Animal symbolising astrologically the client on the illustration : {animal_summary} here is the client birth chart data : {planetary_positions_content}
-Aspects and configurations : {aspects_text}{patterns_text} Explique en Francais en approximativement 500 (entre 440 et 560) caracteres pourquoi tu as fait cette illustration avec cette animal, cette position, ces couleurs pour decrire le client ? Tu es un expert astrologue, et explique le de maniere poetique. Tout le texte doit etre en français, pas d'anglais. N'utilise pas de tiret pour ponctuer tes phrases. Parles des positions des planètes marquantes qui ont une forte influence sur la personnalite. Voici une reference de description que tu as faite pour un autre client : "Abeille de velours, elle traverse les ronces avec une grâce instinctive. Sa force est calme, enracinée, mais toujours en mouvement — elle sait où cueillir, où guérir. Chaque battement d'aile parle d'un monde intérieur dense, patient, infiniment loyal. Elle avance sans bruit, portée par une sagesse ancienne, tissant entre les roses un chemin secret. Autour d'elle, tout respire l'équilibre et la douceur farouche d'un être qui ne cède rien, sauf à l'amour." et une autre reference pour un autre client : "Lama d'améthyste, il avance avec une paix fière, porteur d'un feu intérieur maîtrisé. Il cherche du sens, des sommets, une vérité à incarner. Sa nature profonde l'enracine : il aime la lenteur, la sensualité, la constance des choses simples. Il observe le monde avec patience, ajuste chaque geste, affine chaque pensée. Derrière sa douceur calme, brûle une quête sincère : celle d'un être digne, lucide, attentif à ce qui compte, guidé par un éclat que rien ne peut éteindre." Garde ce ton poetique, pour decrire l'image d'un point de vue astrologique"""
-        
-        # Generate prompt_chatgpt (reuse from generate_book.py)
+        # Generate prompt_chatgpt by running generate_book.py and reading the output file
+        prompt_chatgpt = ""
         try:
-            from generate_book import generate_chatgpt_prompt
+            # First, run generate_book.py to create the prompt file
+            from generate_book import generate_book
+            
+            # Prepare input data in the format expected by generate_book.py
             input_data = {
                 'genre': parsed_data['genre'],
                 'nom': parsed_data['nom'],
@@ -1039,9 +1024,29 @@ Aspects and configurations : {aspects_text}{patterns_text} Explique en Francais 
                 'date_naissance': parsed_data['date_naissance'],
                 'heure_naissance': parsed_data['heure_naissance']
             }
-            prompt_chatgpt = generate_chatgpt_prompt(input_data, aspects_patterns_data)
+            
+            # Run generate_book.py
+            print("Running generate_book.py to create prompt_chatgpt.txt...")
+            success = generate_book(input_data)
+            
+            if success:
+                # Read the generated prompt file
+                prompt_file = "livre/prompt_chatgpt.txt"
+                if os.path.exists(prompt_file):
+                    with open(prompt_file, 'r', encoding='utf-8') as f:
+                        prompt_chatgpt = f.read()
+                    print(f"SUCCESS: Read prompt_chatgpt.txt ({len(prompt_chatgpt)} chars)")
+                else:
+                    print(f"WARNING: prompt_chatgpt.txt not found after generate_book.py")
+                    prompt_chatgpt = "Prompt file not generated"
+            else:
+                print("WARNING: generate_book.py failed")
+                prompt_chatgpt = "Generate book failed"
+                
         except Exception as e:
             print(f"WARNING: Could not generate chatgpt prompt: {e}")
+            import traceback
+            traceback.print_exc()
             prompt_chatgpt = "ChatGPT prompt generation failed"
         
         # Prepare response
