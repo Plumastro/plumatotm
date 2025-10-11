@@ -768,26 +768,15 @@ Respecte les contraintes de longueur de texte pour chaque page.
     
     # Générer le prompt complet
     prompt = f"""
-    
-{planetary_positions_content}
-Aspects and configurations : {aspects_text}{patterns_text}
-
-
-
-
-
-
-
-
-
-
+# {planetary_positions_content}
+# Aspects and configurations : {aspects_text}{patterns_text}
 You are an expert astrologer from the Plumastro team.
 Your mission is to write a highly personalised astrology book in French, using tutoiement, based on the client's complete natal chart. The text must sound alive, precise, and warm, as if it were written directly for them by the Plumastro team.
 Your name is {astrologue_name} from Plumastro
 
 1. Client Information
 
-Prenom : {'-'.join([word[:1].upper() + word[1:].lower() for word in input_data.get('prenom', '').split('-')]) if input_data.get('prenom', '') else ''},
+Prenom : {'-'.join([word[:1].upper() + word[1:].lower() for word in input_data.get('prenom', '').split('-')]) if input_data.get('prenom', '') else ''}
 
 Lieu de naissance : {input_data.get('lieu_naissance', '').split(' — ')[0]}
 
