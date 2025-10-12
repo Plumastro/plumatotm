@@ -450,7 +450,7 @@ def load_analysis_results():
                 planet_order = [
                     "Soleil", "Ascendant", "Lune", "Mercure", "Vénus", "Mars", 
                     "Jupiter", "Saturne", "Uranus", "Neptune", "Pluton", 
-                    "Nœud Nord", "MC"
+                    "MC", "Nœud Nord"
                 ]
                 
                 # Create ordered dictionary with the exact order
