@@ -575,7 +575,7 @@ def generate_chatgpt_prompt(input_data, aspects_patterns_data):
     # Définir les instructions pour les pages selon si la planète est dans le top 8 ou non
     TOP_8_PAGES_GUIDANCE = f"""- Page 1 ({TEXT_LENGTHS['MID']}): in 2 paragraphs, describe the planet's position in sign and house. Explain what the sign and house mean and how they influence the planet.
 - Page 2 [{TEXT_LENGTHS['MID']}]: in 2 paragraphs, provide a deeper personal interpretation. Explain clearly the influence of this planet on the subject's identity and life. Focus on personality analysis based on planetary position, considering also aspects. Give clear plumastro analysis of the personality. DO NOT mention the animal totem.
-- Page 3 [{TEXT_LENGTHS['MEGA_SHORT']}]: analyze the connection between this planet and the animal totem. Explain how this planetary energy resonates with the totem's characteristics. Do not write "animal totem" in the text."""
+- Page 3 [{TEXT_LENGTHS['MEGA_SHORT']}]: analyze the connection between this planet and the animal totem. Explain how this planetary energy resonates with the totem's characteristics. Write once the name of the animal in the text, but do not write "animal totem"."""
 
     NOT_TOP_8_PAGES_GUIDANCE = f"""- Page 1 ({TEXT_LENGTHS['MID']}): in 2 paragraphs, describe the planet's position in sign and house. Explain what the sign and house mean and how they influence the planet.
 - Page 2 [{TEXT_LENGTHS['V_LONG']}]: in 2 or 3 paragraphs, provide a deeper personal interpretation. Explain clearly the influence of this planet on the subject's identity and life. Focus on personality analysis based on planetary position, here you have to consider aspects, more than just the planet and its location. Give clear plumastro analysis of the personality. DO NOT mention the animal totem."""
@@ -769,16 +769,15 @@ Respecte les contraintes de longueur de texte pour chaque page.
     # Générer le prompt complet
     prompt = f"""{planetary_positions_content}
 Aspects and configurations : {aspects_text}{patterns_text}
+
+
+
+
+
+
+
+
 You are an expert astrologer from the Plumastro team.
-
-
-
-
-
-
-
-
-
 Your mission is to write a highly personalised astrology book in French, using tutoiement, based on the client's complete natal chart. The text must sound alive, precise, and warm, as if it were written directly for them by the Plumastro team.
 Your name is {astrologue_name} from Plumastro
 
@@ -923,11 +922,10 @@ Your name is {astrologue_name} from Plumastro
 
 LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
 Next Section :
-TON ANIMAL TOTEM
-Lien spirituel avec l'animal totem (1 page) ({TEXT_LENGTHS['V_LONG']}) : Decris la CORRESPONDANCE AVEC L'ANIMAL TOTEM  {animal_totem_data[0]['determinant'] if len(animal_totem_data) > 1 else 'animal totem'}
+TON ANIMAL TOTEM (2 pages total)
+PAGE 1 : Lien spirituel avec l'animal totem (1 page) ({TEXT_LENGTHS['V_LONG']}) : Decris la CORRESPONDANCE AVEC L'ANIMAL TOTEM  {animal_totem_data[0]['determinant'] if len(animal_totem_data) > 1 else 'animal totem'}
 Using the birth chart, understand the personality of the subject and then create link with the animal totem.Focus only on the link between the personality and the animal totem. Focus on creating connections between the personality of the subject and the symbol of the animal.
-
-Spiritual link with the 2 other animals and transition to planetary analysis (1 page) ({TEXT_LENGTHS['LONG']}) : 
+PAGE 2 : Spiritual link with the 2 other animals and transition to planetary analysis (1 page) ({TEXT_LENGTHS['LONG']}) : 
 Mention also some correlations and spiritual link with 2 other animals that have a connection (even if it's not as strong as the animal totem)  {animal_totem_data[1]['determinant'] if len(animal_totem_data) > 1 else 'le deuxième animal'} and {animal_totem_data[2]['determinant'] if len(animal_totem_data) > 2 else 'le troisième animal'} without mentioning any planets but purely focusing on the overall symbol of the animal and the connection with the subject's personality.
 describe the link with the 2 animals and then connect it back to the animal totem reinforcing the link between the subject and animal totem. And finish with a transition to the upcoming planetary analysis
 Tone: deep, inviting, excited, plumastro-style
