@@ -990,9 +990,33 @@ def process_order():
         prenom_capitalized = parsed_data['prenom'].capitalize()
         nom_capitalized = parsed_data['nom'].capitalize()
         
-        # Prompt1reCouv
-        prompt1re_couv = f"""Texte que Victor utilise pour la 1re couv
-{animal_summary}"""
+        # Prompt1reCouv - Generate illustration prompt
+        # Extract animal name and colors from animal_summary
+        animal_name_fr = animal_totem  # Already in French from top1_data
+        
+        # Extract colors from animal_summary (format: "Ton 1 : rouge sombre ou bordeaux et Ton 2 : brun fonce ou charbon")
+        tone1 = "rouge et brun"  # Default colors
+        tone2 = "orange et jaune"  # Default colors
+        
+        try:
+            # Parse colors from animal_summary
+            if "Ton 1 :" in animal_summary and "et Ton 2 :" in animal_summary:
+                # Extract Tone 1
+                color_part = animal_summary.split("et Ton 2 :")[0].split("Ton 1 :")[1].strip()
+                tone1 = color_part.replace(" ou ", " et ").replace(" sombre", "").replace(" fonce", "").replace(" charbon", "")
+                
+                # Extract Tone 2  
+                tone2_part = animal_summary.split("et Ton 2 :")[1].strip()
+                tone2 = tone2_part.replace(" ou ", " et ").replace(" sombre", "").replace(" fonce", "").replace(" charbon", "")
+                
+                # Clean up any trailing "et" or extra words
+                tone1 = tone1.replace(" et", "").strip()
+                tone2 = tone2.replace(" et", "").strip()
+                
+        except Exception as e:
+            print(f"WARNING: Could not parse colors from animal_summary: {e}")
+        
+        prompt1re_couv = f"""Minimalist flat vector illustration of a {animal_name_fr} in a surreal landscape. Use a warm duotone palette {tone1} and {tone2}, strong shadows, smooth gradients, and rich textures. Add stars like little dots in the background. Composition should be vertical with detailed foreground and stylized background depth. Retro-futuristic poster style."""
         
         # Generate aspects and patterns for Prompt4emeCouv
         from aspects_patterns_generator import AspectsPatternsGenerator
