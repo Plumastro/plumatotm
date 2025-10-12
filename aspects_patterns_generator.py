@@ -212,15 +212,15 @@ class AspectsPatternsGenerator:
                     
                     if aspect.orb <= aspect_orb:
                         aspect_info = {
-                        "planet1": self.planet_names.get(obj1_id, obj1_id),
-                        "planet2": self.planet_names.get(obj2_id, obj2_id),
-                        "aspect": self.aspect_names.get(aspect.type, "Unknown"),
-                        "orb": round(aspect.orb, 1),
-                        "movement": aspect.movement(),
-                        "planet1_position": f"{obj1.signlon:.1f}° {obj1.sign}",
-                        "planet2_position": f"{obj2.signlon:.1f}° {obj2.sign}"
-                    }
-                    aspects.append(aspect_info)
+                            "planet1": self.planet_names.get(obj1_id, obj1_id),
+                            "planet2": self.planet_names.get(obj2_id, obj2_id),
+                            "aspect": self.aspect_names.get(aspect.type, "Unknown"),
+                            "orb": round(aspect.orb, 1),
+                            "movement": aspect.movement(),
+                            "planet1_position": f"{obj1.signlon:.1f}° {obj1.sign}",
+                            "planet2_position": f"{obj2.signlon:.1f}° {obj2.sign}"
+                        }
+                        aspects.append(aspect_info)
         
         # Trier par orb croissant
         aspects.sort(key=lambda x: x["orb"])
