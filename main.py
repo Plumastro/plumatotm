@@ -453,13 +453,25 @@ def load_analysis_results():
                     "MC", "Nœud Nord"
                 ]
                 
+                # Order for french_birth_chart_nomin (MC becomes "Milieu Ciel")
+                planet_order_nomin = [
+                    "Soleil", "Ascendant", "Lune", "Mercure", "Vénus", "Mars", 
+                    "Jupiter", "Saturne", "Uranus", "Neptune", "Pluton", 
+                    "Milieu Ciel", "Nœud Nord"
+                ]
+                
                 # Create ordered dictionary with the exact order
                 # Use a regular dict with Python 3.7+ order preservation
                 ordered_french_chart = {}
                 ordered_french_chart_nomin = {}
+                
+                # Order french_birth_chart with "MC"
                 for planet in planet_order:
                     if planet in french_chart:
                         ordered_french_chart[planet] = french_chart[planet]
+                
+                # Order french_birth_chart_nomin with "Milieu Ciel"
+                for planet in planet_order_nomin:
                     if planet in french_chart_nomin:
                         ordered_french_chart_nomin[planet] = french_chart_nomin[planet]
                 
