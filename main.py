@@ -688,13 +688,15 @@ def analyze():
         
         try:
             # Run analysis using the analyzer's run_analysis method
+            # For /analyze endpoint, we ENABLE ChatGPT interpretation
             result = analyzer.run_analysis(
                 date=date,
                 time=time, 
                 lat=lat,
                 lon=lon,
                 openai_api_key=openai_api_key,
-                user_name=name
+                user_name=name,
+                skip_chatgpt=False  # Enable ChatGPT for /analyze endpoint
             )
             
             # Load additional results for frontend
@@ -926,6 +928,7 @@ def process_order():
             return jsonify({"error": "Analyzer not initialized"}), 500
         
         # Run astrological analysis (reuse existing logic)
+        # For /order endpoint, we SKIP ChatGPT interpretation to save OpenAI credits
         print("🔮 Running astrological analysis...")
         try:
             result = analyzer.run_analysis(
@@ -933,7 +936,8 @@ def process_order():
                 time=parsed_data['heure_naissance'], 
                 lat=parsed_data['lat'],
                 lon=parsed_data['lon'],
-                user_name=parsed_data['prenom']
+                user_name=parsed_data['prenom'],
+                skip_chatgpt=True  # Skip ChatGPT for /order endpoint to save credits
             )
             
             # Load analysis results

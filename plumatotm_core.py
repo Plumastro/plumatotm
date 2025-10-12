@@ -1236,8 +1236,12 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         import gc
         gc.collect()
     
-    def run_analysis(self, date: str, time: str, lat: float, lon: float, timezone_method: str = None, openai_api_key: str = None, translations_csv_path: str = None, user_name: str = None):
-        """Run the complete analysis pipeline."""
+    def run_analysis(self, date: str, time: str, lat: float, lon: float, timezone_method: str = None, openai_api_key: str = None, translations_csv_path: str = None, user_name: str = None, skip_chatgpt: bool = False):
+        """Run the complete analysis pipeline.
+        
+        Args:
+            skip_chatgpt: If True, skip ChatGPT interpretation to save API credits (default: False)
+        """
         import time as time_module
         
         # Start timing
@@ -1324,38 +1328,42 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         step_timers['output_generation'] = time_module.time() - step_start
         print(f"TIMER:  Output generation: {step_timers['output_generation']:.3f}s")
         
-        # 9. Generate ChatGPT interpretation (sequential)
-        step_start = time_module.time()
-        interpretation = self.generate_chatgpt_interpretation(
-            planet_signs, planet_houses, true_false_table, animal_totals, openai_api_key
-        )
-        step_timers['chatgpt_interpretation'] = time_module.time() - step_start
-        print(f"TIMER:  ChatGPT interpretation: {step_timers['chatgpt_interpretation']:.3f}s")
-        
-        # 10. Process ChatGPT interpretation result
-        if interpretation:
-            interpretation_file = "outputs/chatgpt_interpretation.json"
-            interpretation_txt_file = "outputs/chatgpt_interpretation.txt"
-            
-            # Create a copy with properly formatted interpretation
-            formatted_interpretation = interpretation.copy()
-            formatted_interpretation["interpretation"] = formatted_interpretation["interpretation"].replace("\\n", "\n")
-            
-            # Save JSON file
-            with open(interpretation_file, 'w', encoding='utf-8') as f:
-                json.dump(formatted_interpretation, f, indent=2, ensure_ascii=False)
-            
-            # Save text file with proper line breaks
-            with open(interpretation_txt_file, 'w', encoding='utf-8') as f:
-                f.write(f"Animal totem: {formatted_interpretation['top1_animal']}\n")
-                f.write(f"Planètes corrélées: {', '.join(formatted_interpretation['true_planets'])}\n\n")
-                f.write("Interprétation:\n")
-                f.write(formatted_interpretation["interpretation"])
-            
-            print(f"SUCCESS: ChatGPT interpretation completed and saved to: {interpretation_file}")
-            print(f"FORMAT: Formatted interpretation saved to: {interpretation_txt_file}")
+        # 9. Generate ChatGPT interpretation (sequential) - SKIP if requested
+        if skip_chatgpt:
+            print("INFO: Skipping ChatGPT interpretation (skip_chatgpt=True)")
+            step_timers['chatgpt_interpretation'] = 0.0
         else:
-            print("WARNING: ChatGPT interpretation generation failed")
+            step_start = time_module.time()
+            interpretation = self.generate_chatgpt_interpretation(
+                planet_signs, planet_houses, true_false_table, animal_totals, openai_api_key
+            )
+            step_timers['chatgpt_interpretation'] = time_module.time() - step_start
+            print(f"TIMER:  ChatGPT interpretation: {step_timers['chatgpt_interpretation']:.3f}s")
+        
+            # 10. Process ChatGPT interpretation result
+            if interpretation:
+                interpretation_file = "outputs/chatgpt_interpretation.json"
+                interpretation_txt_file = "outputs/chatgpt_interpretation.txt"
+                
+                # Create a copy with properly formatted interpretation
+                formatted_interpretation = interpretation.copy()
+                formatted_interpretation["interpretation"] = formatted_interpretation["interpretation"].replace("\\n", "\n")
+                
+                # Save JSON file
+                with open(interpretation_file, 'w', encoding='utf-8') as f:
+                    json.dump(formatted_interpretation, f, indent=2, ensure_ascii=False)
+                
+                # Save text file with proper line breaks
+                with open(interpretation_txt_file, 'w', encoding='utf-8') as f:
+                    f.write(f"Animal totem: {formatted_interpretation['top1_animal']}\n")
+                    f.write(f"Planètes corrélées: {', '.join(formatted_interpretation['true_planets'])}\n\n")
+                    f.write("Interprétation:\n")
+                    f.write(formatted_interpretation["interpretation"])
+                
+                print(f"SUCCESS: ChatGPT interpretation completed and saved to: {interpretation_file}")
+                print(f"FORMAT: Formatted interpretation saved to: {interpretation_txt_file}")
+            else:
+                print("WARNING: ChatGPT interpretation generation failed")
         
         # Memory cleanup after all computations
         del raw_scores  # Free memory after all uses
