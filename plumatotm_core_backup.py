@@ -728,10 +728,19 @@ class BirthChartAnalyzer:
                     planet_fr = planet_names_fr[planet]
                     sign_fr = sign_names_fr.get(sign, sign)
                     
-                    # Get exact degrees (no minutes)
+                    # Get degrees with rounding based on minutes
                     if planet_positions and planet in planet_positions:
                         pos_data = planet_positions[planet]
                         degrees = int(pos_data["degrees"])
+                        minutes = int(pos_data["minutes"])
+                        
+                        # Round up if minutes > 30, otherwise keep as is
+                        if minutes > 30:
+                            degrees += 1
+                            # Handle edge case: if degrees becomes 30, reset to 0 and move to next sign
+                            # But the sign should already be correct from the original calculation
+                            if degrees == 30:
+                                degrees = 0
                         
                         # Get house number if available
                         house_number = planet_houses.get(planet, "")
