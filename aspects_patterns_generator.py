@@ -45,6 +45,30 @@ class AspectsPatternsGenerator:
             const.BIQUINTILE: "Biquintile",
             const.QUINCUNX: "Quincunx"
         }
+        
+        # Définir les orbes selon les standards professionnels
+        # Aspects majeurs: 8°, Aspects mineurs: 4°
+        self.aspect_orbs = {
+            # Aspects majeurs - 8° d'orbe
+            const.CONJUNCTION: 8,
+            const.SEXTILE: 8,
+            const.SQUARE: 8,
+            const.TRINE: 8,
+            const.OPPOSITION: 8,
+            
+            # Aspects mineurs - 4° d'orbe
+            const.SEMISEXTILE: 4,
+            const.SEMIQUINTILE: 4,
+            const.SEMISQUARE: 4,
+            const.QUINTILE: 4,
+            const.SESQUIQUINTILE: 4,
+            const.BIQUINTILE: 4,
+            const.QUINCUNX: 4
+        }
+    
+    def get_aspect_orb(self, aspect_type):
+        """Retourne l'orbe approprié pour un type d'aspect donné"""
+        return self.aspect_orbs.get(aspect_type, 4)  # 4° par défaut pour les aspects non définis
 
     def generate_chart_from_plumatotm_data(self, date, time, lat, lon):
         """Génère un thème astrologique en réutilisant la même logique que PLUMATOTM"""
@@ -115,21 +139,27 @@ class AspectsPatternsGenerator:
             if diff > 180:
                 diff = 360 - diff
             
-            # Définir les angles cibles et orbes maximales pour chaque aspect
+            # Définir les angles cibles pour chaque aspect
             aspect_angles = {
-                const.CONJUNCTION: (0, 8),
-                const.SEXTILE: (60, 8),
-                const.SQUARE: (90, 8),
-                const.TRINE: (120, 8),
-                const.QUINCUNX: (150, 8),
-                const.OPPOSITION: (180, 8)
+                const.CONJUNCTION: 0,
+                const.SEXTILE: 60,
+                const.SQUARE: 90,
+                const.TRINE: 120,
+                const.QUINCUNX: 150,
+                const.OPPOSITION: 180,
+                const.SEMISEXTILE: 30,
+                const.SEMISQUARE: 45,
+                const.QUINTILE: 72,
+                const.SESQUIQUINTILE: 108,
+                const.BIQUINTILE: 144
             }
             
             # Vérifier chaque aspect demandé
             for aspect_type in aspect_list:
                 if aspect_type in aspect_angles:
-                    target_angle, max_orb = aspect_angles[aspect_type]
+                    target_angle = aspect_angles[aspect_type]
                     orb = abs(diff - target_angle)
+                    max_orb = self.get_aspect_orb(aspect_type)  # Utilise les orbes différenciés
                     
                     if orb <= max_orb:
                         # Créer un objet aspect factice
@@ -172,8 +202,16 @@ class AspectsPatternsGenerator:
                 # Obtenir l'aspect
                 aspect = getAspect(obj1, obj2, const.MAJOR_ASPECTS)
                 
-                if aspect and aspect.exists() and aspect.orb <= max_orb:
-                    aspect_info = {
+                if aspect and aspect.exists():
+                    # Utiliser l'orbe approprié pour ce type d'aspect
+                    aspect_orb = self.get_aspect_orb(aspect.type)
+                    
+                    # Si max_orb est spécifié, l'utiliser comme limite supérieure
+                    if max_orb is not None:
+                        aspect_orb = min(aspect_orb, max_orb)
+                    
+                    if aspect.orb <= aspect_orb:
+                        aspect_info = {
                         "planet1": self.planet_names.get(obj1_id, obj1_id),
                         "planet2": self.planet_names.get(obj2_id, obj2_id),
                         "aspect": self.aspect_names.get(aspect.type, "Unknown"),
