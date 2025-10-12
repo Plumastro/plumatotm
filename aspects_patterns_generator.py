@@ -199,8 +199,16 @@ class AspectsPatternsGenerator:
                 if not obj2:
                     continue
                 
-                # Obtenir l'aspect
+                # Obtenir l'aspect avec fallback manuel pour North Node et Ascendant
                 aspect = getAspect(obj1, obj2, const.MAJOR_ASPECTS)
+                
+                # Si flatlib ne détecte pas l'aspect, essayer manuellement (pour North Node, ASC, MC)
+                if not aspect or not aspect.exists():
+                    # Essayer avec notre override qui calcule manuellement
+                    aspect = self._get_aspect_with_node_override(obj1, obj2, [
+                        const.CONJUNCTION, const.SEXTILE, const.SQUARE, 
+                        const.TRINE, const.OPPOSITION
+                    ])
                 
                 if aspect and aspect.exists():
                     # Utiliser l'orbe approprié pour ce type d'aspect
@@ -211,12 +219,18 @@ class AspectsPatternsGenerator:
                         aspect_orb = min(aspect_orb, max_orb)
                     
                     if aspect.orb <= aspect_orb:
+                        # Gérer le mouvement (peut ne pas exister pour les aspects manuels)
+                        try:
+                            movement = aspect.movement()
+                        except:
+                            movement = "N/A"
+                        
                         aspect_info = {
                             "planet1": self.planet_names.get(obj1_id, obj1_id),
                             "planet2": self.planet_names.get(obj2_id, obj2_id),
                             "aspect": self.aspect_names.get(aspect.type, "Unknown"),
                             "orb": round(aspect.orb, 1),
-                            "movement": aspect.movement(),
+                            "movement": movement,
                             "planet1_position": f"{obj1.signlon:.1f}° {obj1.sign}",
                             "planet2_position": f"{obj2.signlon:.1f}° {obj2.sign}"
                         }
