@@ -408,7 +408,7 @@ def generate_chatgpt_prompt(input_data, aspects_patterns_data):
         "Stellium": "Stellium",
         "Multiple Aspect": "Aspect Multiple",
         "Multiple Planet Square": "Carré Multiple",
-        "Yod": "Doigt de Dieu"
+        "Yod": "Yod"
     }
     
     # Charger les résultats d'analyse
@@ -1216,7 +1216,7 @@ def generate_book(input_data=None):
                     for planet in pattern['planets']:
                         print(f"  {planet['name']} in {planet['position']}")
                 elif pattern['type'] == 'Yod':
-                    print("  DOIGT DE DIEU DETECTE!")
+                    print("  YOD DETECTE!")
                     for planet in pattern['planets']:
                         print(f"  {planet['name']} in {planet['position']}")
                 elif pattern['type'] == 'Stellium':

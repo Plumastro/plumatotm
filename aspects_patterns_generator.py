@@ -1191,7 +1191,7 @@ class AspectsPatternsGenerator:
         # Appliquer les filtres dans l'ordre de priorité (configurations majeures)
         patterns.extend(self._filter_t_squares(t_squares))  # T-Squares (tension/conflit)
         patterns.extend(multiple_planet_squares)  # Multiple Planet Squares (complexité)
-        patterns.extend(self._filter_yods(yods))  # Yods (doigt de Dieu - mission spéciale)
+        patterns.extend(self._filter_yods(yods))  # Yods (mission spéciale)
         patterns.extend(self._filter_cradles(cradles))  # Cradles (soutien harmonieux)
         patterns.extend(grand_trines)  # Grand Trines (facilité/talent)
         patterns.extend(kites)  # Cerf-volants (potentiel dirigé)

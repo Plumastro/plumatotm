@@ -444,6 +444,7 @@ def load_analysis_results():
             with open(birth_chart_path, 'r', encoding='utf-8') as f:
                 birth_chart_data = json.load(f)
                 french_chart = birth_chart_data.get('french_birth_chart', {})
+                french_chart_nomin = birth_chart_data.get('french_birth_chart_nomin', {})
                 
                 # Define the exact order we want (matching the JSON file order)
                 planet_order = [
@@ -455,11 +456,15 @@ def load_analysis_results():
                 # Create ordered dictionary with the exact order
                 # Use a regular dict with Python 3.7+ order preservation
                 ordered_french_chart = {}
+                ordered_french_chart_nomin = {}
                 for planet in planet_order:
                     if planet in french_chart:
                         ordered_french_chart[planet] = french_chart[planet]
+                    if planet in french_chart_nomin:
+                        ordered_french_chart_nomin[planet] = french_chart_nomin[planet]
                 
                 results['french_birth_chart'] = ordered_french_chart
+                results['french_birth_chart_nomin'] = ordered_french_chart_nomin
         
         # 2. Load animal proportion with French translations
         animal_proportion_path = "outputs/animal_proportion.json"

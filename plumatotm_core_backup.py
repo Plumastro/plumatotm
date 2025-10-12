@@ -684,6 +684,75 @@ class BirthChartAnalyzer:
             print(f"Error formatting French birth chart: {e}")
             return {}
     
+    def _format_birth_chart_french_nomin(self, planet_signs: Dict[str, str], planet_houses: Dict[str, int], planet_positions: Dict[str, Dict[str, float]] = None) -> Dict[str, str]:
+        """Format birth chart in French with degrees only (no minutes)."""
+        
+        # French planet names
+        planet_names_fr = {
+            "Sun": "Soleil",
+            "Moon": "Lune", 
+            "Mercury": "Mercure",
+            "Venus": "Vénus",
+            "Mars": "Mars",
+            "Jupiter": "Jupiter",
+            "Saturn": "Saturne",
+            "Uranus": "Uranus",
+            "Neptune": "Neptune",
+            "Pluto": "Pluton",
+            "North Node": "Nœud Nord",
+            "Ascendant": "Ascendant",
+            "MC": "MC"
+        }
+        
+        # French sign names
+        sign_names_fr = {
+            "ARIES": "Bélier",
+            "TAURUS": "Taureau", 
+            "GEMINI": "Gémeaux",
+            "CANCER": "Cancer",
+            "LEO": "Lion",
+            "VIRGO": "Vierge",
+            "LIBRA": "Balance",
+            "SCORPIO": "Scorpion",
+            "SAGITTARIUS": "Sagittaire",
+            "CAPRICORN": "Capricorne",
+            "AQUARIUS": "Verseau",
+            "PISCES": "Poissons"
+        }
+        
+        try:
+            french_chart = {}
+            
+            for planet, sign in planet_signs.items():
+                if planet in planet_names_fr:
+                    planet_fr = planet_names_fr[planet]
+                    sign_fr = sign_names_fr.get(sign, sign)
+                    
+                    # Get exact degrees (no minutes)
+                    if planet_positions and planet in planet_positions:
+                        pos_data = planet_positions[planet]
+                        degrees = int(pos_data["degrees"])
+                        
+                        # Get house number if available
+                        house_number = planet_houses.get(planet, "")
+                        if house_number:
+                            french_chart[planet_fr] = f"en {degrees}° {sign_fr} en Maison {house_number}"
+                        else:
+                            french_chart[planet_fr] = f"en {degrees}° {sign_fr}"
+                    else:
+                        # Fallback to just sign if no position data
+                        house_number = planet_houses.get(planet, "")
+                        if house_number:
+                            french_chart[planet_fr] = f"en {sign_fr} en Maison {house_number}"
+                        else:
+                            french_chart[planet_fr] = f"en {sign_fr}"
+            
+            return french_chart
+            
+        except Exception as e:
+            print(f"Error formatting French birth chart (no minutes): {e}")
+            return {}
+    
     def generate_chatgpt_interpretation(self, planet_signs: Dict[str, str], 
                                       planet_houses: Dict[str, int],
                                       true_false_table: pd.DataFrame, 
@@ -869,6 +938,7 @@ Pour chaque planète marquée TRUE, voici son signe et sa maison dans le thème 
         
         # Add French formatted birth chart
         birth_chart_data["french_birth_chart"] = self._format_birth_chart_french(planet_signs, planet_houses, planet_positions)
+        birth_chart_data["french_birth_chart_nomin"] = self._format_birth_chart_french_nomin(planet_signs, planet_houses, planet_positions)
         with open(output_files["birth_chart"], 'w', encoding='utf-8') as f:
             json.dump(birth_chart_data, f, indent=2, ensure_ascii=False)
         print(f"Birth chart data saved to: {output_files['birth_chart']}")
