@@ -785,7 +785,7 @@ class BirthChartAnalyzer:
             "Pluto": "Pluton",
             "North Node": "Nœud Nord",
             "Ascendant": "Ascendant",
-            "MC": "Milieu Ciel"
+            "MC": "MC"
         }
         
         # French sign names
