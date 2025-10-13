@@ -923,9 +923,9 @@ Your name is {astrologue_name} from Plumastro
 LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
 Next Section :
 TON ANIMAL TOTEM (2 pages total)
-PAGE 1 : Lien spirituel avec l'animal totem (1 page) ({TEXT_LENGTHS['V_LONG']}) : Decris la CORRESPONDANCE AVEC L'ANIMAL TOTEM  {animal_totem_data[0]['determinant'] if len(animal_totem_data) > 1 else 'animal totem'}
+PAGE 1 : Lien spirituel avec l'animal totem (Page 1) ({TEXT_LENGTHS['V_LONG']}) : Decris la CORRESPONDANCE AVEC L'ANIMAL TOTEM  {animal_totem_data[0]['determinant'] if len(animal_totem_data) > 1 else 'animal totem'}
 Using the birth chart, understand the personality of the subject and then create link with the animal totem.Focus only on the link between the personality and the animal totem. Focus on creating connections between the personality of the subject and the symbol of the animal.
-PAGE 2 : Spiritual link with the 2 other animals and transition to planetary analysis (1 page) ({TEXT_LENGTHS['LONG']}) : 
+PAGE 2 : Spiritual link with the 2 other animals and transition to planetary analysis (Page 2) ({TEXT_LENGTHS['LONG']}) : 
 Mention also some correlations and spiritual link with 2 other animals that have a connection (even if it's not as strong as the animal totem)  {animal_totem_data[1]['determinant'] if len(animal_totem_data) > 1 else 'le deuxième animal'} and {animal_totem_data[2]['determinant'] if len(animal_totem_data) > 2 else 'le troisième animal'} without mentioning any planets but purely focusing on the overall symbol of the animal and the connection with the subject's personality.
 describe the link with the 2 animals and then connect it back to the animal totem reinforcing the link between the subject and animal totem. And finish with a transition to the upcoming planetary analysis
 Tone: deep, inviting, excited, plumastro-style
@@ -1009,7 +1009,7 @@ Explain what planetary transits are.
 Describe key life periods and ages of transformation. On page1 focus on early stage of life, page2 is mid-life and page3 end-life. Make it a continuous flow for all 3 pages
 Consider the age of the subject now to speak in the past and future depending on the age you're analysing. Go deep in the analysis here as an astrology expert, correlate transits with the birth chart to describe clearly the key life moments of the subject based on the birth chart.
 Always tie predictions to the subject's natal chart.
-Deliver personalised guidance, not generic trends. Sois clair et precis sur l'interpretation des moments de vie et de ce que le sujet a vecu ou va vivre.
+Sois clair et precis sur l'interpretation des moments de vie et de ce que le sujet a vecu ou va vivre.
 Write ages of the subject in numbers, don't write years (e.g. 2028)
 Ton of voice : Plumastro style, direct, warm, personal, professional but Gen-Z friendly.
 Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
