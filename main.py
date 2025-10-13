@@ -453,11 +453,11 @@ def load_analysis_results():
                     "MC", "Nœud Nord"
                 ]
                 
-                # Order for french_birth_chart_nomin (MC becomes "Milieu Ciel")
+                # Order for french_birth_chart_nomin (MC stays as "MC")
                 planet_order_nomin = [
                     "Soleil", "Ascendant", "Lune", "Mercure", "Vénus", "Mars", 
                     "Jupiter", "Saturne", "Uranus", "Neptune", "Pluton", 
-                    "Milieu Ciel", "Nœud Nord"
+                    "MC", "Nœud Nord"
                 ]
                 
                 # Create ordered dictionary with the exact order
