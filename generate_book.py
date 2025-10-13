@@ -982,7 +982,7 @@ Souviens toi : tu t'addresses directement au sujet
 LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
 Next Section :
 COMPATIBILITÉS AVEC LES SIGNES (2 pages total)
-Page 1 ({TEXT_LENGTHS['V_LONG']}): introduce compatibility concept in astrology, then cover Feu & Terre, consider the entire birth chart in the analysis.
+Page 1 ({TEXT_LENGTHS['V_LONG']}): introduce compatibility concept in astrology, but then explain that we can still get an overview of the compatibility by analysing the sun sign of other people with the subject's birth chart. then cover Feu & Terre, consider the entire birth chart in the analysis.
 Page 2 ({TEXT_LENGTHS['V_LONG']}): cover Air & Eau, consider the entire birth chart in the analysis. End this page providing an idea of what type of personality and sign a subject's lover could have. Be specific to 2 or 3 signs maximum that vibrate the most with the subject.
 For each element, go through each sign and put each sign in perspective with the entire personality of the subject, for signs where there is a key interaction you can give an example of how they could match in real life.
 Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
