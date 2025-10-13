@@ -1043,7 +1043,7 @@ Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parenthese
 
 
 
-{astrologue_name} et l'equipe Plumastro
+{astrologue_name} et l'équipe Plumastro
 
 
 
