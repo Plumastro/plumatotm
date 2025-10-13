@@ -234,7 +234,7 @@ def generate_top_aspects(date, time, lat, lon):
                 planet1_fr = planet_translations.get(aspect['planet1'], aspect['planet1'])
                 planet2_fr = planet_translations.get(aspect['planet2'], aspect['planet2'])
                 aspect_fr = aspect_translations.get(aspect['aspect'], aspect['aspect'])
-                top_aspects[f"ASPECT{i}"] = f"{planet1_fr} {aspect_fr} {planet2_fr} (orb: {aspect['orb']}°)"
+                top_aspects[f"ASPECT{i}"] = f"{aspect_fr}_{planet1_fr} {aspect_fr} {planet2_fr} (orb: {aspect['orb']}°)"
             else:
                 # Si moins de 10 aspects, laisser vide
                 top_aspects[f"ASPECT{i}"] = ""
