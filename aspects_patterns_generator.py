@@ -681,11 +681,11 @@ class AspectsPatternsGenerator:
         return grand_squares
 
     def _detect_stelliums(self, chart, conjunction_orb=8):
-        """Détecte les stelliums avec la règle STRICTE: 
-        3+ planètes en conjonction mutuelle (toutes dans l'orbe de conjonction)
+        """Détecte les stelliums en groupant les planètes connectées par conjonctions.
         
-        Note: Un vrai stellium nécessite que toutes les planètes soient en conjonction,
-        pas seulement dans le même signe.
+        Un stellium est un groupe de 3+ planètes où chaque planète est en conjonction 
+        avec au moins une autre planète du groupe (connexité par conjonctions).
+        Tous les groupes de planètes connectées sont regroupés en UN SEUL stellium.
         """
         stelliums = []
         
@@ -712,61 +712,84 @@ class AspectsPatternsGenerator:
                     "is_personal": obj_id in personal_planets
                 })
         
-        # Chercher des groupes de 3+ planètes en conjonction mutuelle
-        # Algorithme: pour chaque combinaison de 3+ planètes, vérifier si toutes sont en conjonction
-        from itertools import combinations
+        # Étape 1: Construire un graphe de connexions par conjonctions
+        def angular_distance(lon1, lon2):
+            """Calcule la distance angulaire entre deux longitudes (0-180°)"""
+            diff = abs(lon1 - lon2)
+            if diff > 180:
+                diff = 360 - diff
+            return diff
         
-        for size in range(len(planets_data), 2, -1):  # De toutes les planètes vers 3
-            for combo in combinations(planets_data, size):
-                # Vérifier que toutes les planètes sont en conjonction mutuelle
-                all_in_conjunction = True
-                has_personal = False
+        # Créer un dictionnaire des connexions (qui est en conjonction avec qui)
+        connections = {}
+        for i, planet1 in enumerate(planets_data):
+            connections[planet1["name"]] = []
+            for j, planet2 in enumerate(planets_data):
+                if i != j:
+                    distance = angular_distance(planet1["lon"], planet2["lon"])
+                    if distance <= conjunction_orb:
+                        connections[planet1["name"]].append(planet2["name"])
+        
+        # Étape 2: Trouver les composantes connexes (groupes de planètes connectées)
+        def find_connected_component(start_planet, visited, connections):
+            """Trouve toutes les planètes connectées à start_planet via des conjonctions"""
+            component = []
+            stack = [start_planet]
+            
+            while stack:
+                current = stack.pop()
+                if current in visited:
+                    continue
+                    
+                visited.add(current)
+                component.append(current)
                 
-                for i in range(len(combo)):
-                    if combo[i]["is_personal"]:
-                        has_personal = True
-                    
-                    for j in range(i+1, len(combo)):
-                        # Calculer la distance angulaire
-                        lon1 = combo[i]["lon"]
-                        lon2 = combo[j]["lon"]
-                        diff = abs(lon1 - lon2)
-                        if diff > 180:
-                            diff = 360 - diff
-                        
-                        # Si la distance dépasse l'orbe de conjonction, pas un stellium
-                        if diff > conjunction_orb:
-                            all_in_conjunction = False
-                            break
-                    
-                    if not all_in_conjunction:
+                # Ajouter toutes les planètes en conjonction avec la planète courante
+                for neighbor in connections.get(current, []):
+                    if neighbor not in visited:
+                        stack.append(neighbor)
+            
+            return component
+        
+        # Trouver tous les groupes connexes
+        visited = set()
+        connected_components = []
+        
+        for planet_data in planets_data:
+            planet_name = planet_data["name"]
+            if planet_name not in visited:
+                component = find_connected_component(planet_name, visited, connections)
+                if len(component) >= 3:  # Un stellium nécessite au moins 3 planètes
+                    connected_components.append(component)
+        
+        # Étape 3: Valider et formater les stelliums
+        for component in connected_components:
+            # Vérifier qu'au moins une planète personnelle est dans le stellium
+            has_personal = False
+            component_planets_data = []
+            
+            for planet_name in component:
+                # Trouver les données de cette planète
+                for planet_data in planets_data:
+                    if planet_data["name"] == planet_name:
+                        component_planets_data.append(planet_data)
+                        if planet_data["is_personal"]:
+                            has_personal = True
                         break
+            
+            # Un stellium valide doit contenir au moins une planète personnelle
+            if has_personal and len(component_planets_data) >= 3:
+                # Trier les planètes par longitude pour un ordre cohérent
+                component_planets_data.sort(key=lambda p: p["lon"])
                 
-                # Si toutes les planètes sont en conjonction ET au moins une est personnelle
-                if all_in_conjunction and has_personal and len(combo) >= 3:
-                    # Vérifier que ce stellium n'est pas déjà détecté (ou un sous-ensemble)
-                    planet_names = set([p["name"] for p in combo])
-                    is_duplicate = False
-                    
-                    for existing in stelliums:
-                        existing_names = set([p["name"] for p in existing["planets"]])
-                        if planet_names.issubset(existing_names):
-                            is_duplicate = True
-                            break
-                    
-                    if not is_duplicate:
-                        # Retirer les stelliums qui sont des sous-ensembles de celui-ci
-                        stelliums = [s for s in stelliums 
-                                    if not set([p["name"] for p in s["planets"]]).issubset(planet_names)]
-                        
-                        stellium = {
-                            "type": "Stellium",
-                            "sign": combo[0]["sign"],  # Toutes devraient être dans le même signe
-                            "planets": [{"name": p["name"], "position": p["position"]} for p in combo],
-                            "count": len(combo),
-                            "personal_count": sum(1 for p in combo if p["is_personal"])
-                        }
-                        stelliums.append(stellium)
+                stellium = {
+                    "type": "Stellium",
+                    "sign": component_planets_data[0]["sign"],  # Signe de la première planète
+                    "planets": [{"name": p["name"], "position": p["position"]} for p in component_planets_data],
+                    "count": len(component_planets_data),
+                    "personal_count": sum(1 for p in component_planets_data if p["is_personal"])
+                }
+                stelliums.append(stellium)
         
         return stelliums
 

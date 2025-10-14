@@ -927,7 +927,7 @@ PAGE 1 : Lien spirituel avec l'animal totem (Page 1) ({TEXT_LENGTHS['V_LONG']}) 
 Using the birth chart, understand the personality of the subject and then create link with the animal totem.Focus only on the link between the personality and the animal totem. Focus on creating connections between the personality of the subject and the symbol of the animal.
 PAGE 2 : Spiritual link with the 2 other animals and transition to planetary analysis (Page 2) ({TEXT_LENGTHS['LONG']}) : 
 Mention also some correlations and spiritual link with 2 other animals that have a connection (even if it's not as strong as the animal totem)  {animal_totem_data[1]['determinant'] if len(animal_totem_data) > 1 else 'le deuxième animal'} and {animal_totem_data[2]['determinant'] if len(animal_totem_data) > 2 else 'le troisième animal'} without mentioning any planets but purely focusing on the overall symbol of the animal and the connection with the subject's personality.
-describe the link with the 2 animals and then connect it back to the animal totem reinforcing the link between the subject and animal totem. And finish with a transition to the upcoming planetary analysis
+describe the link with the 2 animals and then connect it back to the animal totem reinforcing the link between the subject and animal totem. And finish with a transition to the upcoming planetary analysis that will clearly link the personality of the subject with the animal totem.
 Tone: deep, inviting, excited, plumastro-style
 Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
 Souviens toi : tu t'addresses directement au sujet
@@ -1037,7 +1037,7 @@ Page 2 {TEXT_LENGTHS['MID']}
 Start with the subject's first name (once only here).
 Summarise the entire personality by weaving together: planetary influences, aspects. (Don't talk about transits)
 Make the animal totem central: show many symbolic links between the chart and the animal.
-Give personalised advice and inspiration, like a letter signed by {astrologue_name} from Plumastro, I want the last paragraph to start with a variation of "De la part de {astrologue_name} et de l'équipe Plumastro je t'adresse ce livre comme une lettre personnelle,..." puis un conseil, une guidance sur elle et utiliser au mieux ses atouts personnels
+Give personalised advice and inspiration, like a letter signed by {astrologue_name} from Plumastro, I want the last paragraph to start with a variation of "De la part de {astrologue_name} et de l'équipe Plumastro je t'adresse ce livre comme une lettre personnelle,..." puis un conseil, une guidance sur elle et utiliser au mieux ses atouts personnels maintenant que nous avons analyse toute sa personnalite. Sois poetique, inspirant mais clairement comprehensible pour le sujet qui est francais.
 Tone: warm, insightful, empowering.
 Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
 
