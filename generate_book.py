@@ -982,7 +982,7 @@ Souviens toi : tu t'addresses directement au sujet
 LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
 Next Section :
 COMPATIBILITÉS AVEC LES SIGNES (2 pages total)
-Page 1 ({TEXT_LENGTHS['V_LONG']}): introduce compatibility concept in astrology, but then explain that we can still get an overview of the compatibility by analysing the sun sign of other people with the subject's birth chart. then cover Feu & Terre, consider the entire birth chart in the analysis.
+Page 1 ({TEXT_LENGTHS['V_LONG']}): introduce compatibility concept in astrology and explain that even if we'd need to analyse 2 birth charts to get a full compatibility analysis, we can still get an overview of the compatibility by analysing the sun sign of other people with the subject's birth chart. then cover Feu & Terre, consider the entire birth chart in the analysis.
 Page 2 ({TEXT_LENGTHS['V_LONG']}): cover Air & Eau, consider the entire birth chart in the analysis. End this page providing an idea of what type of personality and sign a subject's lover could have. Be specific to 2 or 3 signs maximum that vibrate the most with the subject.
 For each element, go through each sign and put each sign in perspective with the entire personality of the subject, for signs where there is a key interaction you can give an example of how they could match in real life.
 Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
@@ -1009,7 +1009,7 @@ Explain what planetary transits are.
 Describe key life periods and ages of transformation. On page1 focus on early stage of life, page2 is mid-life and page3 end-life. Make it a continuous flow for all 3 pages
 Consider the age of the subject now to speak in the past and future depending on the age you're analysing. Go deep in the analysis here as an astrology expert, correlate transits with the birth chart to describe clearly the key life moments of the subject based on the birth chart.
 Always tie predictions to the subject's natal chart.
-Sois clair et precis sur l'interpretation des moments de vie et de ce que le sujet a vecu ou va vivre.
+Sois clair et precis sur l'interpretation des moments de vie et de ce que le sujet a vecu ou va vivre. Plutot que de parler de TOUS les transits, concentre ton analyse sur les PLUS MARQUANTS, ceux que tu peux interpreter precisemment grace aux aspects et positions que les transits forment sur sa carte du ciel. Tes predictions doivent etre precises, fiables profondes et realistes
 Write ages of the subject in numbers, don't write years (e.g. 2028)
 Ton of voice : Plumastro style, direct, warm, personal, professional but Gen-Z friendly.
 Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
@@ -1037,7 +1037,7 @@ Page 2 {TEXT_LENGTHS['MID']}
 Start with the subject's first name (once only here).
 Summarise the entire personality by weaving together: planetary influences, aspects. (Don't talk about transits)
 Make the animal totem central: show many symbolic links between the chart and the animal.
-Give personalised advice and inspiration, like a letter signed by {astrologue_name} from Plumastro, I want the last paragraph to start with a variation of "De la part de {astrologue_name} et de l'équipe Plumastro je t'adresse ce livre comme une lettre personnelle,..." puis un conseil, une guidance sur elle et utiliser au mieux ses atouts personnels maintenant que nous avons analyse toute sa personnalite. Sois poetique, inspirant mais clairement comprehensible pour le sujet qui est francais.
+Based on EVERYTHING we've learned about the subject personality after analysing the birth chart, give a personalised advice and inspiration specific to the subject, like a letter signed by {astrologue_name} from Plumastro, I want the last paragraph to start with a variation of "De la part de {astrologue_name} et de l'équipe Plumastro je t'adresse ce livre comme une lettre personnelle,..." puis un conseil, une guidance sur utiliser au mieux ses atouts personnels maintenant que nous avons analyse toute sa personnalite. Sois poetique, inspirant mais clairement comprehensible pour le sujet qui est francais et 100% personnalise, pas de phrase generique : que du personnel.
 Tone: warm, insightful, empowering.
 Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
 
