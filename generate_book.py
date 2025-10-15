@@ -575,7 +575,7 @@ def generate_chatgpt_prompt(input_data, aspects_patterns_data):
     # Définir les instructions pour les pages selon si la planète est dans le top 8 ou non
     TOP_8_PAGES_GUIDANCE = f"""- Page 1 ({TEXT_LENGTHS['MID']}): in 2 paragraphs, describe the planet's position in sign and house. Explain what the sign and house mean and how they influence the planet.
 - Page 2 [{TEXT_LENGTHS['MID']}]: in 2 paragraphs, provide a deeper personal interpretation. Explain clearly the influence of this planet on the subject's identity and life. Focus on personality analysis based on planetary position, considering also aspects. Give clear plumastro analysis of the personality. DO NOT mention the animal totem.
-- Page 3 [{TEXT_LENGTHS['MEGA_SHORT']}]: analyze the connection between this planet and the animal totem. Explain how this planetary energy resonates with the totem's characteristics. Write once the name of the animal in the text, but do not write "animal totem"."""
+- Page 3 [{TEXT_LENGTHS['MEGA_SHORT']}]: analyze the connection between the meaning of this planet placement in the birth chart and the symbol of theanimal totem. Explain how this planetary energy resonates with the totem's characteristics. Write once the name of the animal in the text, but do not write "animal totem"."""
 
     NOT_TOP_8_PAGES_GUIDANCE = f"""- Page 1 ({TEXT_LENGTHS['MID']}): in 2 paragraphs, describe the planet's position in sign and house. Explain what the sign and house mean and how they influence the planet.
 - Page 2 [{TEXT_LENGTHS['V_LONG']}]: in 2 or 3 paragraphs, provide a deeper personal interpretation. Explain clearly the influence of this planet on the subject's identity and life. Focus on personality analysis based on planetary position, here you have to consider aspects, more than just the planet and its location. Give clear plumastro analysis of the personality. DO NOT mention the animal totem."""
@@ -1038,6 +1038,7 @@ Start with the subject's first name (once only here).
 Summarise the entire personality by weaving together: planetary influences, aspects. (Don't talk about transits)
 Make the animal totem central: show many symbolic links between the chart and the animal.
 Based on EVERYTHING we've learned about the subject personality after analysing the birth chart, give a personalised advice and inspiration specific to the subject, like a letter signed by {astrologue_name} from Plumastro, I want the last paragraph to start with a variation of "De la part de {astrologue_name} et de l'équipe Plumastro je t'adresse ce livre comme une lettre personnelle,..." puis un conseil, une guidance sur utiliser au mieux ses atouts personnels maintenant que nous avons analyse toute sa personnalite. Sois poetique, inspirant mais clairement comprehensible pour le sujet qui est francais et 100% personnalise, pas de phrase generique : que du personnel.
+The last paragraph must be fully personalized, no generic guidance. It's for the subject based on the entire personality.
 Tone: warm, insightful, empowering.
 Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
 
