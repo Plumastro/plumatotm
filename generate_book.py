@@ -1007,11 +1007,12 @@ Next Section :
 LES TRANSITS DE VIE (3 pages total, {TEXT_LENGTHS['V_LONG']} each)
 Explain what planetary transits are.
 Describe key life periods and ages of transformation. On page1 focus on early stage of life, page2 is mid-life and page3 end-life. Make it a continuous flow for all 3 pages
-Consider the age of the subject now to speak in the past and future depending on the age you're analysing. Go deep in the analysis here as an astrology expert, correlate transits with the birth chart to describe clearly the key life moments of the subject based on the birth chart.
+Consider the age of the subject now to speak in the past and future depending on the age of the subject today. Go deep in the analysis here but always remain easy to read and understandable as an astrology expert, correlate transits with the birth chart to describe clearly the key life moments of the subject based on the birth chart.
 Always tie predictions to the subject's natal chart.
-Sois clair et precis sur l'interpretation des moments de vie et de ce que le sujet a vecu ou va vivre. Plutot que de parler de TOUS les transits, concentre ton analyse sur les PLUS MARQUANTS, ceux que tu peux interpreter precisemment grace aux aspects et positions que les transits forment sur sa carte du ciel. Tes predictions doivent etre precises, fiables profondes et realistes
-Write ages of the subject in numbers, don't write years (e.g. 2028)
-Ton of voice : Plumastro style, direct, warm, personal, professional but Gen-Z friendly.
+Sois clair et precis sur l'interpretation des moments de vie et de ce que le sujet a vecu ou va vivre. Plutot que de parler de TOUS les transits, concentre ton analyse sur les PLUS MARQUANTS, ceux que tu peux interpreter precisemment grace aux aspects et positions que les transits forment sur sa carte du ciel. Tes predictions doivent etre precises, fiables profondes et realistes et explique clairement ce que le sujet vis dans sa vie a cette etape.
+Write ages of the subject in numbers, don't write years
+Mentionne uniquement les etapes majeures (juste celles qui sont fondamentales) et explique ce que les aspects forment sur sa carte du ciel, justifie tes predictions en mentionnant clairement les aspects et positions planetaires. Je prefere moins de passage cles mais plus clairs. Mentionne les ages cles et fais des phrases completes.
+Ton of voice : Plumastro style, direct, warm, personal, clear and understandable and Gen-Z friendly.
 Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
 Quand tu ecris des ages, ecris l'age suivi du mot "ans"
 Fais des phrases completes et claires, pas juste des phrases partielles. Sois clair et precis.
