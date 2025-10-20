@@ -288,8 +288,8 @@ def generate_planetary_positions_content():
         
         # Créer le contenu
         content_lines = [
-            "PLANETARY POSITIONS:",
-            "You can think of the planets as symbolizing core parts of the human personality, and the signs as different colors of consciousness through which they filter.",
+            "POSITIONS PLANÉTAIRES :",
+            "Tu peux penser aux planètes comme symbolisant les parties centrales de la personnalité humaine, et aux signes comme différentes couleurs de conscience à travers lesquelles elles filtrent.",
             "",
             ""
         ]
@@ -329,7 +329,7 @@ def generate_planetary_positions_content():
                 # Ajouter au contenu
                 content_lines.extend([
                     planet_english,
-                    "in",
+                    "en",
                     angle.replace('°', '° ').replace("'", "'"),
                     sign_en,
                     ""
@@ -573,12 +573,12 @@ def generate_chatgpt_prompt(input_data, aspects_patterns_data):
             animal_totem_info_part2
     
     # Définir les instructions pour les pages selon si la planète est dans le top 8 ou non
-    TOP_8_PAGES_GUIDANCE = f"""- Page 1 ({TEXT_LENGTHS['MID']}): in 2 paragraphs, describe the planet's position in sign and house. Explain what the sign and house mean and how they influence the planet.
-- Page 2 [{TEXT_LENGTHS['MID']}]: in 2 paragraphs, provide a deeper personal interpretation. Explain clearly the influence of this planet on the subject's identity and life. Focus on personality analysis based on planetary position, considering also aspects. Give clear plumastro analysis of the personality. DO NOT mention the animal totem.
-- Page 3 [{TEXT_LENGTHS['MEGA_SHORT']}]: analyze the connection between the meaning of this planet placement in the birth chart and the symbol of theanimal totem. Explain how this planetary energy resonates with the totem's characteristics. Write once the name of the animal in the text, but do not write "animal totem"."""
+    TOP_8_PAGES_GUIDANCE = f"""- Page 1 ({TEXT_LENGTHS['MID']}): en 2 paragraphes, décris la position de la planète en signe et maison. Explique ce que signifient le signe et la maison et comment ils influencent la planète.
+- Page 2 [{TEXT_LENGTHS['MID']}]: en 2 paragraphes, fournis une interprétation personnelle plus profonde. Explique clairement l'influence de cette planète sur l'identité et la vie du sujet. Concentre-toi sur l'analyse de personnalité basée sur la position planétaire, en considérant aussi les aspects. Donne une analyse plumastro claire de la personnalité. NE MENTIONNE PAS l'animal totem.
+- Page 3 [{TEXT_LENGTHS['MEGA_SHORT']}]: analyse la connexion entre la signification de cette position planétaire dans le thème natal et le symbole de l'animal totem. Explique comment cette énergie planétaire résonne avec les caractéristiques du totem. Écris une fois le nom de l'animal dans le texte, mais n'écris pas "animal totem"."""
 
-    NOT_TOP_8_PAGES_GUIDANCE = f"""- Page 1 ({TEXT_LENGTHS['MID']}): in 2 paragraphs, describe the planet's position in sign and house. Explain what the sign and house mean and how they influence the planet.
-- Page 2 [{TEXT_LENGTHS['V_LONG']}]: in 2 or 3 paragraphs, provide a deeper personal interpretation. Explain clearly the influence of this planet on the subject's identity and life. Focus on personality analysis based on planetary position, here you have to consider aspects, more than just the planet and its location. Give clear plumastro analysis of the personality. DO NOT mention the animal totem."""
+    NOT_TOP_8_PAGES_GUIDANCE = f"""- Page 1 ({TEXT_LENGTHS['MID']}): en 2 paragraphes, décris la position de la planète en signe et maison. Explique ce que signifient le signe et la maison et comment ils influencent la planète.
+- Page 2 [{TEXT_LENGTHS['V_LONG']}]: en 2 ou 3 paragraphes, fournis une interprétation personnelle plus profonde. Explique clairement l'influence de cette planète sur l'identité et la vie du sujet. Concentre-toi sur l'analyse de personnalité basée sur la position planétaire, ici tu dois considérer les aspects, plus que juste la planète et sa localisation. Donne une analyse plumastro claire de la personnalité. NE MENTIONNE PAS l'animal totem."""
     
     # Traductions des planètes pour correspondance
     planet_translations = {
@@ -699,9 +699,9 @@ def generate_chatgpt_prompt(input_data, aspects_patterns_data):
                     aspects_section += f"- {pattern}\n"
             
             # Créer un paragraphe complet pour cette planète
-            planet_paragraph = f"""LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
-Next Section :
-PLANETARY ANALYSIS
+            planet_paragraph = f"""CONTINUONS (RÉFÈRE-TOI AU PREMIER PROMPT ENVOYÉ DANS CE CHAT POUR T'ASSURER QUE TU CONNAIS TOUTES LES DONNÉES D'ENTRÉE)
+Section suivante :
+ANALYSE PLANÉTAIRE
 
 """
             
@@ -711,14 +711,15 @@ PLANETARY ANALYSIS
                 planet_paragraph += f"{planet} :\n{NOT_TOP_8_PAGES_GUIDANCE}{aspects_section}\n"
             
             planet_paragraph += """
-Important rules:
-Vary the structure from one planet to the next, avoid repetitions
-Sometimes begin with the sign, sometimes with the house, sometimes with an aspect.
-Alternate descriptive style (evocative imagery) and analytical style (reasoning).
-the planet amalysis must always be placed in the context of the full chart, never isolated.
-Les numeros des maisons sont ecrits en chiffres arabes.
-Souviens toi : pas de tiets "-" / "—"
+Règles importantes :
+Varie la structure d'une planète à l'autre, évite les répétitions
+Commence parfois par le signe, parfois par la maison, parfois par un aspect.
+Alterne le style descriptif (imagerie évocatrice) et le style analytique (raisonnement).
+L'analyse de la planète doit toujours être placée dans le contexte du thème complet, jamais isolée.
+Les numéros des maisons sont écrits en chiffres arabes.
+Souviens-toi : pas de tirets - ou —
 Respecte les contraintes de longueur de texte pour chaque page.
+Renvoie-moi toutes ces pages dans ta prochaine réponse :
 """
             
             planets_paragraphs.append(planet_paragraph)
@@ -768,7 +769,7 @@ Respecte les contraintes de longueur de texte pour chaque page.
     
     # Générer le prompt complet
     prompt = f"""{planetary_positions_content}
-Aspects and configurations : {aspects_text}{patterns_text}
+Aspects et configurations : {aspects_text}{patterns_text}
 
 
 
@@ -777,11 +778,11 @@ Aspects and configurations : {aspects_text}{patterns_text}
 
 
 
-You are an expert astrologer from the Plumastro team.
-Your mission is to write a highly personalised astrology book in French, using tutoiement, based on the client's complete natal chart. The text must sound alive, precise, and warm, as if it were written directly for them by the Plumastro team.
-Your name is {astrologue_name} from Plumastro
+Tu es un astrologue expert de l'équipe Plumastro.
+Ta mission est d'écrire un livre d'astrologie hautement personnalisé en français, en utilisant le tutoiement, basé sur le thème natal complet du client. Le texte doit sonner vivant, précis et chaleureux, comme s'il était écrit directement pour eux par l'équipe Plumastro.
+Ton nom est {astrologue_name} de Plumastro
 
-1. Client Information
+1. Informations Client
 
 Prenom : {'-'.join([word[:1].upper() + word[1:].lower() for word in input_data.get('prenom', '').split('-')]) if input_data.get('prenom', '') else ''}
 
@@ -795,43 +796,43 @@ Animal Totem : {animal_totem}
 
 Genre : {input_data['genre']}
 
-Birth Chart Data : {french_chart_text}
+Données du Thème Natal : {french_chart_text}
 
-Aspects and configurations : {aspects_text}{patterns_text}
+Aspects et configurations : {aspects_text}{patterns_text}
 
-2. Structure of the Book
+2. Structure du Livre
 
-The book is divided into chapters/sections, each with a specific word length constraint.
-You must write section by section. After each section, you will wait for me to say "OK" before continuing with the next one.
+Le livre est divisé en chapitres/sections, chacun avec une contrainte de longueur de texte spécifique.
+Tu dois écrire section par section. Après chaque section, tu attendras que je dise "OK" avant de continuer avec la suivante.
 
 INTRODUCTION
 TON ANIMAL TOTEM
-PLANETARY ANALYSIS
+ANALYSE PLANÉTAIRE
 COMPATIBILITÉS AVEC LES SIGNES
 LES TRANSITS DE VIE
 SYNTHÈSE DE LA PERSONNALITÉ
 
 
-3. Writing Constraints
-Language: French only.
-As an astrologer, your analysis must be sincere and honest, without any sugarcoating or flattery.
-Style: Expert astrologer, direct tutoiement.
-Tone: Alive, deep, personal, never vague or flat. Don't use "Enfin, Ainsi, Cependant, etc..."
-Formatting:
-No emojis.
+3. Contraintes d'Écriture
+Langue : Français uniquement.
+En tant qu'astrologue, ton analyse doit être sincère et honnête, sans édulcorer ni flatter.
+Style : Astrologue expert, tutoiement direct.
+Ton : Vivant, profond, personnel, jamais vague ou plat. N'utilise pas "Enfin, Ainsi, Cependant, etc..."
+Formatage :
+Pas d'emojis.
 N'utilise pas le mot "féconde" ou "fécond"
-No dashes or long "–" "—" → always use commas or slash instead.
-Evite les formulations trop litteraires comme "en somme" ou "enfin", sois naturel dans ton style d'expression. Tu es astrologue de l'equipe Plumastro
-Each page = maximum 2 paragraphs.
-Name usage: The subject's first name appears only twice in the whole book: once in the Introduction, once in the Synthèse.
-CRITICAL WORD COUNT REQUIREMENT:
-- Stay within the specified word range
-- Count words after writing each section and before sending the response to me, if outside range, rewrite to fit and then send the response to me.
+Pas de tirets ou de longs - ou —, utilise toujours des virgules ou des barres obliques à la place.
+Évite les formulations trop littéraires comme "en somme" ou "enfin", sois naturel dans ton style d'expression. Tu es astrologue de l'équipe Plumastro
+Chaque page = maximum 2 paragraphes.
+Usage du nom : Le prénom du sujet n'apparaît que deux fois dans tout le livre : une fois dans l'Introduction, une fois dans la Synthèse.
+EXIGENCE CRITIQUE DE COMPTAGE DE MOTS :
+- Reste dans la plage de mots spécifiée
+- Compte les mots après avoir écrit chaque section et avant de m'envoyer la réponse, si en dehors de la plage, réécris pour correspondre puis envoie-moi la réponse.
 
-4. Process
-I'll give you the guidance for each section, and then you'll write the section
-After each section, stop and wait for me to say "OK" before continuing.
-✅ REMEMBER ALL THESE INSTRUCTIONS AND INPUT DATA FOR THIS ENTIRE CHAT, YOU MUST REFER BACK TO THIS INPUT EVERYTIME YOU GENERATE A RESPONSE
+4. Processus
+Je te donnerai les instructions pour chaque section, puis tu écriras la section
+Après chaque section, arrête-toi et attends que je dise "OK" avant de continuer.
+✅ RAPPELLE-TOI TOUTES CES INSTRUCTIONS ET DONNÉES D'ENTRÉE POUR TOUT CE CHAT, TU DOIS TE RÉFÉRER À CES DONNÉES À CHAQUE FOIS QUE TU GÉNÈRES UNE RÉPONSE
 
 
 
@@ -851,17 +852,17 @@ After each section, stop and wait for me to say "OK" before continuing.
 
 
 
-LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
-Next Section :
+CONTINUONS (RÉFÈRE-TOI AU PREMIER PROMPT ENVOYÉ DANS CE CHAT POUR T'ASSURER QUE TU CONNAIS TOUTES LES DONNÉES D'ENTRÉE)
+Section suivante :
 INTRODUCTION ({TEXT_LENGTHS['MID']} 1 page)
-Start with the subject's first name "Prenom, tu es..."
-Present their birth data (date, place, time)
-Give a short synthesis of the subject's personality to tease the deeper analysis that will come next in the book (don't mention positions of planets or anything about birth chart)
-Mention the spiritual animal clearly
-Present yourself within the Plumastro team "Je vais analyser tout ton theme et t'accompagner..."
-Explain briefly what the book will analyse next.
-Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
-Your name is {astrologue_name} from Plumastro
+Commence par le prénom du sujet "Prénom, tu es..."
+Présente ses données de naissance (date, lieu, heure)
+Donne une courte synthèse de la personnalité du sujet pour titiller l'analyse plus profonde qui viendra ensuite dans le livre (ne mentionne pas les positions des planètes ou quoi que ce soit sur le thème natal)
+Mentionne clairement l'animal spirituel
+Présente-toi au sein de l'équipe Plumastro "Je vais analyser tout ton thème et t'accompagner..."
+Explique brièvement ce que le livre analysera ensuite.
+Souviens-toi : pas de tirets - ou —, remplace par des virgules ou parenthèses
+Ton nom est {astrologue_name} de Plumastro
 
 
 
@@ -920,17 +921,17 @@ Your name is {astrologue_name} from Plumastro
 
 
 
-LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
-Next Section :
+CONTINUONS (RÉFÈRE-TOI AU PREMIER PROMPT ENVOYÉ DANS CE CHAT POUR T'ASSURER QUE TU CONNAIS TOUTES LES DONNÉES D'ENTRÉE)
+Section suivante :
 TON ANIMAL TOTEM (2 pages total)
-PAGE 1 : Lien spirituel avec l'animal totem (Page 1) ({TEXT_LENGTHS['V_LONG']}) : Decris la CORRESPONDANCE AVEC L'ANIMAL TOTEM  {animal_totem_data[0]['determinant'] if len(animal_totem_data) > 1 else 'animal totem'}
-Using the birth chart, understand the personality of the subject and then create link with the animal totem.Focus only on the link between the personality and the animal totem. Focus on creating connections between the personality of the subject and the symbol of the animal.
-PAGE 2 : Spiritual link with the 2 other animals and transition to planetary analysis (Page 2) ({TEXT_LENGTHS['LONG']}) : 
-Mention also some correlations and spiritual link with 2 other animals that have a connection (even if it's not as strong as the animal totem)  {animal_totem_data[1]['determinant'] if len(animal_totem_data) > 1 else 'le deuxième animal'} and {animal_totem_data[2]['determinant'] if len(animal_totem_data) > 2 else 'le troisième animal'} without mentioning any planets but purely focusing on the overall symbol of the animal and the connection with the subject's personality.
-describe the link with the 2 animals and then connect it back to the animal totem reinforcing the link between the subject and animal totem. And finish with a transition to the upcoming planetary analysis that will clearly link the personality of the subject with the animal totem.
-Tone: deep, inviting, excited, plumastro-style
-Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
-Souviens toi : tu t'addresses directement au sujet
+PAGE 1 : Lien spirituel avec l'animal totem (Page 1) ({TEXT_LENGTHS['V_LONG']}) : Décris la CORRESPONDANCE AVEC L'ANIMAL TOTEM  {animal_totem_data[0]['determinant'] if len(animal_totem_data) > 1 else 'animal totem'}
+En utilisant le thème natal, comprends la personnalité du sujet puis crée un lien avec l'animal totem. Concentre-toi uniquement sur le lien entre la personnalité et l'animal totem. Concentre-toi sur la création de connexions entre la personnalité du sujet et le symbole de l'animal.
+PAGE 2 : Lien spirituel avec les 2 autres animaux et transition vers l'analyse planétaire (Page 2) ({TEXT_LENGTHS['LONG']}) : 
+Mentionne aussi quelques corrélations et lien spirituel avec 2 autres animaux qui ont une connexion (même si ce n'est pas aussi fort que l'animal totem)  {animal_totem_data[1]['determinant'] if len(animal_totem_data) > 1 else 'le deuxième animal'} et {animal_totem_data[2]['determinant'] if len(animal_totem_data) > 2 else 'le troisième animal'} sans mentionner de planètes mais en se concentrant purement sur le symbole global de l'animal et la connexion avec la personnalité du sujet.
+Décris le lien avec les 2 animaux puis reconnecte-le à l'animal totem en renforçant le lien entre le sujet et l'animal totem principal. Et finis par une transition vers l'analyse planétaire à venir qui liera clairement la personnalité du sujet avec l'animal totem top1.
+Ton : profond, invitant, enthousiaste, style plumastro
+Souviens-toi : pas de tirets - ou —, remplace par des virgules ou parenthèses
+Souviens-toi : tu t'adresses directement au sujet
 
 
 
@@ -979,14 +980,14 @@ Souviens toi : tu t'addresses directement au sujet
 
 
 
-LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
-Next Section :
+CONTINUONS (RÉFÈRE-TOI AU PREMIER PROMPT ENVOYÉ DANS CE CHAT POUR T'ASSURER QUE TU CONNAIS TOUTES LES DONNÉES D'ENTRÉE)
+Section suivante :
 COMPATIBILITÉS AVEC LES SIGNES (2 pages total)
-Page 1 ({TEXT_LENGTHS['V_LONG']}): introduce compatibility concept in astrology and explain that even if we'd need to analyse 2 birth charts to get a full compatibility analysis, we can still get an overview of the compatibility by analysing the sun sign of other people with the subject's birth chart. then cover Feu & Terre, consider the entire birth chart in the analysis.
-Page 2 ({TEXT_LENGTHS['V_LONG']}): cover Air & Eau, consider the entire birth chart in the analysis. End this page providing an idea of what type of personality and sign a subject's lover could have. Be specific to 2 or 3 signs maximum that vibrate the most with the subject.
-For each element, go through each sign and put each sign in perspective with the entire personality of the subject, for signs where there is a key interaction you can give an example of how they could match in real life.
-Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
-Souviens toi : tu t'addresses directement au sujet
+Page 1 ({TEXT_LENGTHS['V_LONG']}): introduis le concept de compatibilité en astrologie et explique que même si nous aurions besoin d'analyser 2 thèmes natals pour avoir une analyse de compatibilité complète, nous pouvons quand même avoir un aperçu de la compatibilité en analysant le signe solaire d'autres personnes avec le thème natal du sujet. puis couvre Feu & Terre, considère tout le thème natal dans l'analyse.
+Page 2 ({TEXT_LENGTHS['V_LONG']}): couvre Air & Eau, considère tout le thème natal dans l'analyse. Termine cette page en donnant une idée de quel type de personnalité et signe un amoureux du sujet pourrait avoir. Sois spécifique à 2 ou 3 signes maximum qui vibrent le plus avec le sujet.
+Pour chaque élément, passe en revue chaque signe et mets chaque signe en perspective avec toute la personnalité du sujet, pour les signes où il y a une interaction clé tu peux donner un exemple de comment ils pourraient s'accorder dans la vraie vie.
+Souviens-toi : pas de tirets - ou —, remplace par des virgules ou parenthèses
+Souviens-toi : tu t'adresses directement au sujet
 
 
 
@@ -1002,21 +1003,21 @@ Souviens toi : tu t'addresses directement au sujet
 
 
 
-LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
-Next Section :
+CONTINUONS (RÉFÈRE-TOI AU PREMIER PROMPT ENVOYÉ DANS CE CHAT POUR T'ASSURER QUE TU CONNAIS TOUTES LES DONNÉES D'ENTRÉE)
+Section suivante :
 LES TRANSITS DE VIE (3 pages total, {TEXT_LENGTHS['V_LONG']} each)
-Explain what planetary transits are.
-Describe key life periods and ages of transformation. On page1 focus on early stage of life, page2 is mid-life and page3 end-life. Make it a continuous flow for all 3 pages
-Consider the age of the subject now to speak in the past and future depending on the age of the subject today. Go deep in the analysis here but always remain easy to read and understandable as an astrology expert, correlate transits with the birth chart to describe clearly the key life moments of the subject based on the birth chart.
-Always tie predictions to the subject's natal chart.
-Sois clair et precis sur l'interpretation des moments de vie et de ce que le sujet a vecu ou va vivre. Plutot que de parler de TOUS les transits, concentre ton analyse sur les PLUS MARQUANTS, ceux que tu peux interpreter precisemment grace aux aspects et positions que les transits forment sur sa carte du ciel. Tes predictions doivent etre precises, fiables profondes et realistes et explique clairement ce que le sujet vis dans sa vie a cette etape.
-Write ages of the subject in numbers, don't write years
-Mentionne uniquement les etapes majeures (juste celles qui sont fondamentales) et explique ce que les aspects forment sur sa carte du ciel, justifie tes predictions en mentionnant clairement les aspects et positions planetaires. Je prefere moins de passage cles mais plus clairs. Mentionne les ages cles et fais des phrases completes.
-Ton of voice : Plumastro style, direct, warm, personal, clear and understandable and Gen-Z friendly.
-Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
-Quand tu ecris des ages, ecris l'age suivi du mot "ans"
-Fais des phrases completes et claires, pas juste des phrases partielles. Sois clair et precis.
-Si tu mentionnes une maison, indique le mot "maison" et son numero en chiffre arabe.
+Explique ce que sont les transits planétaires.
+Décris les périodes clés de la vie et les âges de transformation. Sur la page1 concentre-toi sur le début de vie, page2 est la mi-vie et page3 la fin de vie. Fais-en un flux continu pour les 3 pages
+Considère l'âge du sujet maintenant pour parler du passé et du futur selon l'âge du sujet aujourd'hui. Va profond dans l'analyse ici mais reste toujours facile à lire et compréhensible en tant qu'expert astrologue, corrèle les transits avec le thème natal pour décrire clairement les moments clés de la vie du sujet basés sur le thème natal.
+Lie toujours les prédictions au thème natal du sujet.
+Sois clair et précis sur l'interprétation des moments de vie et de ce que le sujet a vécu ou va vivre. Plutôt que de parler de TOUS les transits, concentre ton analyse sur les PLUS MARQUANTS, ceux que tu peux interpréter précisément grâce aux aspects et positions que les transits forment sur sa carte du ciel. Tes prédictions doivent être précises, fiables profondes et réalistes et explique clairement ce que le sujet vit dans sa vie à cette étape.
+Écris les âges du sujet en chiffres, n'écris pas les années
+Mentionne uniquement les étapes majeures (juste celles qui sont fondamentales) et explique ce que les aspects forment sur sa carte du ciel, justifie tes prédictions en mentionnant clairement les aspects et positions planétaires. Je préfère moins de passages clés mais plus clairs. Mentionne les âges clés et fais des phrases complètes.
+Ton de voix : Style Plumastro, direct, chaleureux, personnel, clair et compréhensible et adapté à la Gen-Z.
+Souviens-toi : pas de tirets - ou —, remplace par des virgules ou parenthèses
+Quand tu écris des âges, écris l'âge suivi du mot "ans"
+Fais des phrases complètes et claires, pas juste des phrases partielles. Sois clair et précis.
+Si tu mentionnes une maison, indique le mot "maison" et son numéro en chiffre arabe.
 
 
 
@@ -1030,18 +1031,18 @@ Si tu mentionnes une maison, indique le mot "maison" et son numero en chiffre ar
 
 
 
-LET'S CONTINUE (REFER BACK TO THE FIRST PROMPT SENT IN THIS CHAT TO ENSURE YOU'RE FAMILIAR WITH ALL INPUT DATA)
-Next Section :
+CONTINUONS (RÉFÈRE-TOI AU PREMIER PROMPT ENVOYÉ DANS CE CHAT POUR T'ASSURER QUE TU CONNAIS TOUTES LES DONNÉES D'ENTRÉE)
+Section suivante :
 SYNTHÈSE DE LA PERSONNALITÉ
 Page 1 {TEXT_LENGTHS['V_LONG']}
 Page 2 {TEXT_LENGTHS['MID']}
-Start with the subject's first name (once only here).
-Summarise the entire personality by weaving together: planetary influences, aspects. (Don't talk about transits)
-Make the animal totem central: show many symbolic links between the chart and the animal.
-Based on EVERYTHING we've learned about the subject personality after analysing the birth chart, give a personalised advice and inspiration specific to the subject, like a letter signed by {astrologue_name} from Plumastro, I want the last paragraph to start with a variation of "De la part de {astrologue_name} et de l'équipe Plumastro je t'adresse ce livre comme une lettre personnelle,..." puis un conseil, une guidance sur utiliser au mieux ses atouts personnels maintenant que nous avons analyse toute sa personnalite. Sois poetique, inspirant mais clairement comprehensible pour le sujet qui est francais et 100% personnalise, pas de phrase generique : que du personnel.
-The last paragraph must be fully personalized, no generic guidance. It's for the subject based on the entire personality.
-Tone: warm, insightful, empowering.
-Souviens toi : pas de tiets "-" / "—", remplace par des virgules ou parentheses
+Commence par le prénom du sujet (une seule fois ici).
+Résume toute la personnalité en tissant ensemble : influences planétaires, aspects. (Ne parle pas des transits)
+Rends l'animal totem central : montre de nombreux liens symboliques entre le thème et l'animal.
+Basé sur TOUT ce que nous avons appris sur la personnalité du sujet après avoir analysé le thème natal, donne un conseil personnalisé et une inspiration spécifique au sujet, comme une lettre signée par {astrologue_name} de Plumastro, je veux que le dernier paragraphe commence par une variation de "De la part de {astrologue_name} et de l'équipe Plumastro je t'adresse ce livre comme une lettre personnelle,..." puis un conseil, une guidance sur utiliser au mieux ses atouts personnels maintenant que nous avons analysé toute sa personnalité. Sois poétique, inspirant mais clairement compréhensible pour le sujet qui est français et 100% personnalisé, pas de phrase générique : que du personnel.
+Le dernier paragraphe doit être entièrement personnalisé, pas de guidance générique. C'est pour le sujet basé sur toute la personnalité.
+Ton : chaleureux, perspicace, habilitant.
+Souviens-toi : pas de tirets - ou —, remplace par des virgules ou parenthèses
 
 
 
