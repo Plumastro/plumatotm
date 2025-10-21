@@ -291,34 +291,13 @@ def get_sun_ascendant_sign(birth_chart_data):
         print(f"ERROR: Could not extract sun-ascendant signs: {e}")
         return "Unknown-Unknown"
 
-def get_animal_pose_colour(sun_ascendant_sign):
-    """Get animal pose and colours from plumatotm_animalposecolour.csv"""
+def get_animal_pose_from_csv(sun_ascendant_sign):
+    """Get animal pose from plumatotm_animalpose.csv"""
     try:
-        csv_path = "plumatotm_animalposecolour.csv"
+        csv_path = "plumatotm_animalpose.csv"
         if not os.path.exists(csv_path):
             print(f"WARNING: {csv_path} not found")
-            return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
-        
-        # Try different encodings - start with utf-8-sig to handle BOM
-        encodings = ['utf-8-sig', 'utf-8', 'latin1', 'cp1252']
-        working_encoding = None
-        
-        for encoding in encodings:
-            try:
-                with open(csv_path, 'r', encoding=encoding) as f:
-                    reader = csv.DictReader(f)
-                    # Test if we can read the first row
-                    first_row = next(reader, None)
-                    if first_row and ('Signe Soleil-Ascendant' in first_row or '\ufeffSigne Soleil-Ascendant' in first_row):
-                        working_encoding = encoding
-                        print(f"SUCCESS: CSV loaded with encoding {encoding}")
-                        break
-            except Exception as enc_error:
-                continue
-        
-        if not working_encoding:
-            print("ERROR: Could not read CSV with any encoding")
-            return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
+            return "Pose inconnue"
         
         # Search for the sign combination - handle BOM in CSV
         with open(csv_path, 'r', encoding='utf-8-sig') as f:
@@ -328,38 +307,66 @@ def get_animal_pose_colour(sun_ascendant_sign):
                 sign_key = row.get('Signe Soleil-Ascendant', '') or row.get('\ufeffSigne Soleil-Ascendant', '')
                 if sign_key.strip() == sun_ascendant_sign.strip():
                     action = row.get('Action/Attitude illustrable', 'Pose inconnue')
-                    bicolore = row.get('Bicolore', 'Ton 1 : inconnu et Ton 2 : inconnu')
                     print(f"FOUND: {sun_ascendant_sign} -> {action}")
-                    return action, bicolore
+                    return action
         
-        print(f"WARNING: No match found for '{sun_ascendant_sign}' in CSV")
-        print(f"DEBUG: Available signs (first 5): {list(csv.DictReader(open(csv_path, 'r', encoding='utf-8-sig')))[:5]}")
-        return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
+        print(f"WARNING: No match found for '{sun_ascendant_sign}' in pose CSV")
+        return "Pose inconnue"
         
     except Exception as e:
-        print(f"ERROR: Could not read animal pose colour CSV: {e}")
+        print(f"ERROR: Could not read animal pose CSV: {e}")
         import traceback
         traceback.print_exc()
-        return "Pose inconnue", "Ton 1 : inconnu et Ton 2 : inconnu"
+        return "Pose inconnue"
+
+def get_triotone_colors(sun_sign, ascendant_sign, moon_sign):
+    """Get triotone colors from plumatotm_animalcouleur.csv based on sun-ascendant-moon signs"""
+    try:
+        csv_path = "plumatotm_animalcouleur.csv"
+        if not os.path.exists(csv_path):
+            print(f"WARNING: {csv_path} not found")
+            return "rouge", "vert emeraude", "argent"
+        
+        # Load color mapping
+        color_mapping = {}
+        with open(csv_path, 'r', encoding='utf-8-sig') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                sign = row.get('Signe', '').strip()
+                color = row.get('couleur', '').strip()
+                if sign and color:
+                    color_mapping[sign] = color
+        
+        # Get colors for each sign
+        sun_color = color_mapping.get(sun_sign, "rouge")
+        ascendant_color = color_mapping.get(ascendant_sign, "vert emeraude") 
+        moon_color = color_mapping.get(moon_sign, "argent")
+        
+        print(f"TRIOTONE COLORS: Sun({sun_sign})={sun_color}, Asc({ascendant_sign})={ascendant_color}, Moon({moon_sign})={moon_color}")
+        
+        return sun_color, ascendant_color, moon_color
+        
+    except Exception as e:
+        print(f"ERROR: Could not read animal color CSV: {e}")
+        import traceback
+        traceback.print_exc()
+        return "rouge", "vert emeraude", "argent"
 
 def generate_animal_summary(order_name_nb, animal_totem, genre, sun_ascendant_sign):
     """Generate the Animal Summary string"""
     try:
-        # Extract order number (remove the -1, -2, etc.)
-        order_number = order_name_nb.split('-')[0]
-        
-        # Get pose and colours
-        action, bicolore = get_animal_pose_colour(sun_ascendant_sign)
+        # Get pose from new CSV
+        action = get_animal_pose_from_csv(sun_ascendant_sign)
         
         # Capitalize animal name properly
         animal_capitalized = animal_totem.title()
         
-        # Format: "1048-1 - Léopard des neiges (Femme) ///// Foulee equilibree ///// Ton 1 : rouge et Ton 2 : vert emeraude ou rose"
-        return f"{order_number}-1 - {animal_capitalized} ({genre.capitalize()}) ///// {action} ///// {bicolore}"
+        # Format: "Panthère (Homme) ///// Position de sommet" (no order number)
+        return f"{animal_capitalized} ({genre.capitalize()}) ///// {action}"
         
     except Exception as e:
         print(f"ERROR: Could not generate animal summary: {e}")
-        return f"{order_name_nb} - {animal_totem} ({genre}) ///// Pose inconnue ///// Couleurs inconnues"
+        return f"{animal_totem} ({genre}) ///// Pose inconnue"
 
 def generate_planetary_positions_summary():
     """Generate the PLANETARY POSITIONS SUMMARY from birth chart data."""
@@ -994,33 +1001,46 @@ def process_order():
         prenom_capitalized = parsed_data['prenom'].capitalize()
         nom_capitalized = parsed_data['nom'].capitalize()
         
-        # Prompt1reCouv - Generate illustration prompt
-        # Extract animal name and colors from animal_summary
+        # Prompt1reCouv - Generate illustration prompt with new triotone system
+        # Extract animal name
         animal_name_fr = animal_totem  # Already in French from top1_data
         
-        # Extract colors from animal_summary (format: "Ton 1 : rouge sombre ou bordeaux et Ton 2 : brun fonce ou charbon")
-        tone1 = "rouge et brun"  # Default colors
-        tone2 = "orange et jaune"  # Default colors
+        # Get Sun, Ascendant, and Moon signs from birth chart data
+        sun_sign = "Belier"  # Default
+        ascendant_sign = "Taureau"  # Default  
+        moon_sign = "Cancer"  # Default
         
         try:
-            # Parse colors from animal_summary
-            if "Ton 1 :" in animal_summary and "et Ton 2 :" in animal_summary:
-                # Extract Tone 1
-                color_part = animal_summary.split("et Ton 2 :")[0].split("Ton 1 :")[1].strip()
-                tone1 = color_part.replace(" ou ", " et ").replace(" sombre", "").replace(" fonce", "").replace(" charbon", "")
+            if birth_chart_data and 'planet_signs' in birth_chart_data:
+                planet_signs = birth_chart_data['planet_signs']
+                sun_sign_en = planet_signs.get('Sun', 'ARIES')
+                ascendant_sign_en = planet_signs.get('Ascendant', 'TAURUS')
+                moon_sign_en = planet_signs.get('Moon', 'CANCER')
                 
-                # Extract Tone 2  
-                tone2_part = animal_summary.split("et Ton 2 :")[1].strip()
-                tone2 = tone2_part.replace(" ou ", " et ").replace(" sombre", "").replace(" fonce", "").replace(" charbon", "")
+                # Translate to French signs (NO ACCENTS to match CSV format)
+                sign_translations = {
+                    "ARIES": "Belier", "TAURUS": "Taureau", "GEMINI": "Gemeaux",
+                    "CANCER": "Cancer", "LEO": "Lion", "VIRGO": "Vierge",
+                    "LIBRA": "Balance", "SCORPIO": "Scorpion", "SAGITTARIUS": "Sagittaire",
+                    "CAPRICORN": "Capricorne", "AQUARIUS": "Verseau", "PISCES": "Poissons"
+                }
                 
-                # Clean up any trailing "et" or extra words
-                tone1 = tone1.replace(" et", "").strip()
-                tone2 = tone2.replace(" et", "").strip()
+                sun_sign = sign_translations.get(sun_sign_en, "Belier")
+                ascendant_sign = sign_translations.get(ascendant_sign_en, "Taureau")
+                moon_sign = sign_translations.get(moon_sign_en, "Cancer")
                 
+                print(f"DEBUG: Signs - Sun: {sun_sign}, Asc: {ascendant_sign}, Moon: {moon_sign}")
         except Exception as e:
-            print(f"WARNING: Could not parse colors from animal_summary: {e}")
+            print(f"WARNING: Could not extract signs from birth chart: {e}")
         
-        prompt1re_couv = f"""Minimalist flat vector illustration of a {animal_name_fr} in a surreal landscape. Use a warm duotone palette {tone1} and {tone2}, strong shadows, smooth gradients, and rich textures. Add stars like little dots in the background. Composition should be vertical with detailed foreground and stylized background depth. Retro-futuristic poster style."""
+        # Get triotone colors from new CSV system
+        tone1, tone2, tone3 = get_triotone_colors(sun_sign, ascendant_sign, moon_sign)
+        
+        prompt1re_couv = f"""Minimalist flat vector illustration of a {animal_name_fr} in a surreal landscape. Add planets in the background. Use a warm TRIOTONE palette of:
+{tone1}
+{tone2}
+{tone3}
+shadows, smooth gradients, and rich textures. Add stars like little dots in the background. Composition should be vertical with detailed foreground and stylized background depth. Retro-futuristic poster style. Cinematic lighting."""
         
         # Generate aspects and patterns for Prompt4emeCouv
         from aspects_patterns_generator import AspectsPatternsGenerator
