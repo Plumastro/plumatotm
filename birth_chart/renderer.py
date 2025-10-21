@@ -19,8 +19,8 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 logger = logging.getLogger(__name__)
 
-# Cache global pour les icônes redimensionnées
-_icon_cache = {}
+# Import global icon cache
+from icon_cache import get_global_icon_cache
 
 class BirthChartRenderer:
     """Renders birth charts as PNG images."""
@@ -81,7 +81,9 @@ class BirthChartRenderer:
         
         # Load icon mappings
         self.icon_mappings = self._create_icon_mappings()
-        self.loaded_icons = {}
+        
+        # Get global icon cache
+        self.global_cache = get_global_icon_cache()
     
     def _create_icon_mappings(self) -> Dict[str, List[str]]:
         """Create mappings for icon file names."""
@@ -131,11 +133,7 @@ class BirthChartRenderer:
         }
     
     def _load_icon(self, name: str, size: int) -> Optional[np.ndarray]:
-        """Load an icon from the icons directory with caching."""
-        # Check instance cache first
-        if name in self.loaded_icons:
-            return self.loaded_icons[name]
-        
+        """Load an icon from the icons directory using global cache."""
         if name not in self.icon_mappings:
             logger.warning(f"No icon mapping for {name}")
             return None
@@ -143,32 +141,14 @@ class BirthChartRenderer:
         for filename in self.icon_mappings[name]:
             icon_path = os.path.join(self.icons_dir, filename)
             if os.path.exists(icon_path):
-                # Create cache key with path and size
-                cache_key = f"{icon_path}_{size}"
-                
-                # Check global cache first
-                if cache_key in _icon_cache:
-                    self.loaded_icons[name] = _icon_cache[cache_key]
-                    logger.debug(f"Loaded icon from cache: {filename} for {name}")
-                    return _icon_cache[cache_key]
-                
-                try:
-                    # Load and resize icon with high quality
-                    img = Image.open(icon_path).convert("RGBA")
-                    # Utiliser un redimensionnement de haute qualité
-                    img = img.resize((size, size), Image.Resampling.LANCZOS)
-                    # Assurer que l'image a une bonne qualité
-                    icon_array = np.asarray(img)
-                    
-                    # Store in both caches
-                    _icon_cache[cache_key] = icon_array
-                    self.loaded_icons[name] = icon_array
-                    
-                    logger.debug(f"Loaded and cached icon: {filename} for {name}")
+                # Use global cache to load icon
+                icon_array = self.global_cache.load_icon(icon_path, size)
+                if icon_array is not None:
+                    logger.debug(f"Loaded icon: {filename} for {name} ({size}x{size})")
                     print(f"DEBUG: Loaded icon: {filename} for {name}")  # Debug visible
                     return icon_array
-                except Exception as e:
-                    logger.warning(f"Could not load icon {filename}: {e}")
+                else:
+                    logger.warning(f"Could not load icon {filename}")
                     continue
         
         logger.warning(f"No icon found for {name}")
@@ -358,7 +338,9 @@ class BirthChartRenderer:
             self._draw_angles(ax, chart_data, ascendant_longitude)
             
             # Ensure output directory exists
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            output_dir = os.path.dirname(output_path)
+            if output_dir:  # Only create directory if there is one
+                os.makedirs(output_dir, exist_ok=True)
             
             # Save with transparent background and high quality
             plt.tight_layout()

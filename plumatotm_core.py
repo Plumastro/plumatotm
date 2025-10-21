@@ -1367,6 +1367,15 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         
         # Memory cleanup after all computations
         del raw_scores  # Free memory after all uses
+        
+        # Clear global icon cache to prevent memory buildup
+        try:
+            from icon_cache import clear_global_cache
+            clear_global_cache()
+            print("CACHE: Global icon cache cleared")
+        except ImportError:
+            pass  # Icon cache not available
+        
         gc.collect()
         
         # Final timing and summary

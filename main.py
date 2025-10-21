@@ -596,6 +596,13 @@ def cleanup_memory():
         except:
             pass
         
+        # Clear global icon cache
+        try:
+            from icon_cache import clear_global_cache
+            clear_global_cache()
+        except ImportError:
+            pass  # Icon cache not available
+        
         # Force garbage collection
         gc.collect()
         

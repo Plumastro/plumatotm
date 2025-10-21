@@ -15,8 +15,8 @@ import os
 from typing import Dict, List, Tuple, Optional
 from PIL import Image
 
-# Cache global pour les icônes redimensionnées
-_radar_icon_cache = {}
+# Import global icon cache
+from icon_cache import get_global_icon_cache
 
 class RadarChartGenerator:
     """Generates radar charts for animal-planet correlations."""
@@ -71,6 +71,9 @@ class RadarChartGenerator:
             "Uranus": 3.0, "Neptune": 3.0, "Pluto": 2.0, "North Node": 2.0, "MC": 5.0
         }
         
+        # Get global icon cache
+        self.global_cache = get_global_icon_cache()
+        
         # Load custom icons if folder is provided
         self.custom_icons = {}
         if self.icons_folder and os.path.exists(self.icons_folder):
@@ -101,27 +104,18 @@ class RadarChartGenerator:
                     # Create cache key with path and size
                     cache_key = f"{icon_path}_64x64"
                     
-                    # Check global cache first
-                    if cache_key in _radar_icon_cache:
-                        self.custom_icons[planet] = _radar_icon_cache[cache_key]
-                        print(f"SUCCESS: Loaded custom PNG icon from cache for {planet}: {name} (64x64)")
-                        break
-                    
-                    try:
-                        # Load and resize the PNG icon (from 750x750 to 64x64)
+                    # Use global cache to load icon (64x64 for radar charts)
+                    icon_array = self.global_cache.load_icon(icon_path, 64)
+                    if icon_array is not None:
+                        # Convert numpy array back to PIL Image for radar charts
                         from PIL import Image
-                        icon = Image.open(icon_path)
-                        # Resize to a reasonable size for the radar chart
-                        icon = icon.resize((64, 64), Image.Resampling.LANCZOS)
-                        
-                        # Store in both caches
-                        _radar_icon_cache[cache_key] = icon
+                        icon = Image.fromarray(icon_array)
                         self.custom_icons[planet] = icon
-                        
-                        print(f"SUCCESS: Loaded custom PNG icon for {planet}: {name} (resized to 64x64)")
+                        print(f"SUCCESS: Loaded custom PNG icon for {planet}: {name} (64x64)")
                         break
-                    except Exception as e:
-                        print(f"WARNING: Could not load icon {name} for {planet}: {e}")
+                    else:
+                        print(f"WARNING: Could not load icon {name} for {planet}")
+                        continue
     
     def generate_top_animal_radar(self, result_data: Dict, output_path: str = "outputs/top1_animal_radar.png"):
         """
@@ -388,7 +382,9 @@ class RadarChartGenerator:
         ax.spines['polar'].set_visible(False)
         
         # Ensure output directory exists
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        output_dir = os.path.dirname(output_path)
+        if output_dir:  # Only create directory if there is one
+            os.makedirs(output_dir, exist_ok=True)
         
         # Save the chart
         plt.tight_layout()
