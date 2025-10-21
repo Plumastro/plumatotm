@@ -681,10 +681,11 @@ class AspectsPatternsGenerator:
         return grand_squares
 
     def _detect_stelliums(self, chart, conjunction_orb=8):
-        """Détecte les stelliums en groupant les planètes dans le MÊME SIGNE.
+        """Détecte les stelliums en groupant les planètes connectées par CONJONCTIONS.
         
-        Un stellium est un groupe de 3+ planètes dans le MÊME SIGNE ZODIACAL.
-        Toutes les planètes du stellium doivent être dans le même signe.
+        Un stellium est un groupe de 3+ planètes où chaque planète est en conjonction 
+        avec au moins une autre planète du groupe (connexité par conjonctions).
+        Toutes les planètes du stellium doivent être connectées par des conjonctions.
         """
         stelliums = []
         
@@ -692,9 +693,11 @@ class AspectsPatternsGenerator:
         personal_planets = [const.SUN, const.MOON, const.MERCURY, const.VENUS, const.MARS]
         # Définir les planètes sociales (optionnelles)
         social_planets = [const.JUPITER, const.SATURN, const.URANUS, const.NEPTUNE, const.PLUTO]
+        # Définir les points astrologiques importants (ASC, MC, North Node)
+        important_points = [const.ASC, const.MC, const.NORTH_NODE]
         
-        # Toutes les planètes à considérer
-        all_planet_ids = personal_planets + social_planets
+        # Toutes les planètes et points à considérer
+        all_planet_ids = personal_planets + social_planets + important_points
         
         # Obtenir toutes les planètes avec leurs positions
         planets_data = []
@@ -708,35 +711,92 @@ class AspectsPatternsGenerator:
                     "position": f"{obj.signlon:.1f}°",
                     "sign": obj.sign,
                     "lon": obj.lon,
-                    "is_personal": obj_id in personal_planets
+                    "is_personal": obj_id in personal_planets,
+                    "is_important_point": obj_id in important_points
                 })
         
-        # Grouper les planètes par signe
-        planets_by_sign = {}
-        for planet_data in planets_data:
-            sign = planet_data["sign"]
-            if sign not in planets_by_sign:
-                planets_by_sign[sign] = []
-            planets_by_sign[sign].append(planet_data)
+        # Étape 1: Trouver toutes les conjonctions entre planètes
+        def angular_distance(lon1, lon2):
+            """Calcule la distance angulaire entre deux longitudes (0-180°)"""
+            diff = abs(lon1 - lon2)
+            if diff > 180:
+                diff = 360 - diff
+            return diff
         
-        # Détecter les stelliums (3+ planètes dans le même signe)
-        for sign, sign_planets in planets_by_sign.items():
-            if len(sign_planets) >= 3:
-                # Vérifier qu'au moins une planète personnelle est dans le stellium
-                has_personal = any(planet["is_personal"] for planet in sign_planets)
-                
-                if has_personal:
-                    # Trier les planètes par longitude pour un ordre cohérent
-                    sign_planets.sort(key=lambda p: p["lon"])
+        # Créer un dictionnaire des connexions (qui est en conjonction avec qui)
+        connections = {}
+        for i, planet1 in enumerate(planets_data):
+            connections[planet1["name"]] = []
+            for j, planet2 in enumerate(planets_data):
+                if i != j:
+                    distance = angular_distance(planet1["lon"], planet2["lon"])
+                    if distance <= conjunction_orb:
+                        connections[planet1["name"]].append(planet2["name"])
+        
+        # Étape 2: Trouver les composantes connexes (groupes de planètes connectées par conjonctions)
+        def find_connected_component(start_planet, visited, connections):
+            """Trouve toutes les planètes connectées à start_planet via des conjonctions"""
+            component = []
+            stack = [start_planet]
+            
+            while stack:
+                current = stack.pop()
+                if current in visited:
+                    continue
                     
-                    stellium = {
-                        "type": "Stellium",
-                        "sign": sign,
-                        "planets": [{"name": p["name"], "position": p["position"]} for p in sign_planets],
-                        "count": len(sign_planets),
-                        "personal_count": sum(1 for p in sign_planets if p["is_personal"])
-                    }
-                    stelliums.append(stellium)
+                visited.add(current)
+                component.append(current)
+                
+                # Ajouter toutes les planètes en conjonction avec la planète courante
+                for neighbor in connections.get(current, []):
+                    if neighbor not in visited:
+                        stack.append(neighbor)
+            
+            return component
+        
+        # Trouver tous les groupes connexes
+        visited = set()
+        connected_components = []
+        
+        for planet_data in planets_data:
+            planet_name = planet_data["name"]
+            if planet_name not in visited:
+                component = find_connected_component(planet_name, visited, connections)
+                if len(component) >= 3:  # Un stellium nécessite au moins 3 planètes
+                    connected_components.append(component)
+        
+        # Étape 3: Valider et formater les stelliums
+        for component in connected_components:
+            # Vérifier qu'au moins une planète personnelle OU un point important est dans le stellium
+            has_personal = False
+            has_important_point = False
+            component_planets_data = []
+            
+            for planet_name in component:
+                # Trouver les données de cette planète
+                for planet_data in planets_data:
+                    if planet_data["name"] == planet_name:
+                        component_planets_data.append(planet_data)
+                        if planet_data["is_personal"]:
+                            has_personal = True
+                        if planet_data["is_important_point"]:
+                            has_important_point = True
+                        break
+            
+            # Un stellium valide doit contenir au moins une planète personnelle OU un point important
+            if (has_personal or has_important_point) and len(component_planets_data) >= 3:
+                # Trier les planètes par longitude pour un ordre cohérent
+                component_planets_data.sort(key=lambda p: p["lon"])
+                
+                stellium = {
+                    "type": "Stellium",
+                    "sign": component_planets_data[0]["sign"],  # Signe de la première planète
+                    "planets": [{"name": p["name"], "position": p["position"]} for p in component_planets_data],
+                    "count": len(component_planets_data),
+                    "personal_count": sum(1 for p in component_planets_data if p["is_personal"]),
+                    "important_points_count": sum(1 for p in component_planets_data if p["is_important_point"])
+                }
+                stelliums.append(stellium)
         
         return stelliums
 
