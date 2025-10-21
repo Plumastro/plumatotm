@@ -17,6 +17,14 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
+# Performance optimizations for matplotlib rendering
+plt.rcParams['path.simplify'] = True  # Simplify paths for faster rendering
+plt.rcParams['path.simplify_threshold'] = 0.1  # Aggressive simplification
+plt.rcParams['agg.path.chunksize'] = 10000  # Optimize path rendering
+plt.rcParams['figure.max_open_warning'] = 0  # Disable warnings
+plt.rcParams['savefig.pad_inches'] = 0  # Reduce padding
+plt.rcParams['savefig.bbox'] = 'tight'  # Optimize bbox calculation
+
 logger = logging.getLogger(__name__)
 
 # Import global icon cache
@@ -27,13 +35,13 @@ class BirthChartRenderer:
     
     def __init__(self, icons_dir: str = "icons"):
         self.icons_dir = icons_dir
-        self.canvas_size = 1500  # Restauré à 1500 pour haute qualité
-        self.dpi = 100  # Haute qualité
+        self.canvas_size = 1200  # Optimized for performance (was 1500)
+        self.dpi = 100  # Maintain high quality
         
         # Chart dimensions according to FRS specifications
-        # Centre: (750, 750), Rayon utile R ≈ 700px (haute qualité)
-        self.center = (750, 750)
-        self.R = 700  # Rayon utile (haute qualité)
+        # Centre: (600, 600), Rayon utile R ≈ 560px (optimized)
+        self.center = (600, 600)
+        self.R = 560  # Rayon utile (optimized)
         
         # Rayons spécifiés dans le FRS (en pixels) - COURONNE DES SIGNES 25% PLUS FINE
         self.sign_ring_outer = self.R * 0.97  # R*0.97 (inchangé)
@@ -74,10 +82,14 @@ class BirthChartRenderer:
         # aspects confinés à la limite intérieure des maisons (inchangé)
         self.aspect_max_radius = self.house_ring_inner
         
-        # Icon sizes according to FRS - CORRIGÉS (même taille, meilleure qualité)
-        self.sign_icon_size = 48  # Taille originale
-        self.house_icon_size = 32 # Taille originale
-        self.planet_icon_size = 48 # Taille originale
+        # Icon sizes according to FRS - PROPORTIONAL to canvas size
+        # Original: 48px icons at 1500px canvas = 3.2% of canvas
+        # This ensures consistent relative icon size regardless of canvas size
+        # Future-proof: changing canvas_size will automatically scale all icons
+        canvas_ratio = self.canvas_size / 1500.0  # Ratio to original 1500px canvas
+        self.sign_icon_size = int(48 * canvas_ratio)  # Proportional to canvas
+        self.house_icon_size = int(32 * canvas_ratio)  # Proportional to canvas  
+        self.planet_icon_size = int(48 * canvas_ratio)  # Proportional to canvas
         
         # Load icon mappings
         self.icon_mappings = self._create_icon_mappings()

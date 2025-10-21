@@ -321,9 +321,13 @@ class RadarChartGenerator:
         # Add the first value to the end to close the polygon
         values += values[:1]
         
-        # Create the figure
-        fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(projection='polar'), 
+        # Create the figure (optimized for performance)
+        # Scale figure size proportionally (8/10 = 0.8 ratio)
+        fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(projection='polar'), 
                               facecolor='none')
+        
+        # Calculate proportional scaling for icons and text
+        self.figure_scale = 8.0 / 10.0  # Ratio to original 10x10 figure
         
         # Set background to transparent
         ax.set_facecolor('none')
@@ -374,9 +378,10 @@ class RadarChartGenerator:
             # Use custom icons
             self._add_custom_icons_to_chart(ax, angles[:-1], labels, values[:-1])
         else:
-            # Use text labels
+            # Use text labels with proportional font size
+            font_size = int(20 * self.figure_scale)  # 20 * 0.8 = 16px
             ax.set_thetagrids([np.degrees(angle) for angle in angles[:-1]], 
-                             labels=labels, fontsize=20, fontweight='bold')
+                             labels=labels, fontsize=font_size, fontweight='bold')
         
         # Remove all spines
         ax.spines['polar'].set_visible(False)
@@ -388,7 +393,7 @@ class RadarChartGenerator:
         
         # Save the chart
         plt.tight_layout()
-        plt.savefig(output_path, dpi=100, bbox_inches='tight', facecolor='none', transparent=True)
+        plt.savefig(output_path, dpi=72, bbox_inches='tight', facecolor='none', transparent=True)
         plt.close()
         
         print(f"SUCCESS: Radar chart saved to: {output_path}")
@@ -462,10 +467,11 @@ class RadarChartGenerator:
                         # Use global cache to get icon (already loaded and cached)
                         icon_array = self.global_cache.load_icon(icon_path, 64)
                         if icon_array is not None:
-                            # Use the improved positioning method with smaller icons (40% reduction: 64 -> 38)
-                            # Increased pad from 0.08 to 0.12 for maximum distance from the chart
+                            # Use proportional icon sizing based on figure scale
+                            # Original: 38px icons at 10x10 figure, now scaled proportionally
+                            icon_size = int(38 * self.figure_scale)  # 38 * 0.8 = 30px
                             self._add_icon_polar(ax, angle, max_radius, icon_array, 
-                                               px=38, pad=0.12, z=10)
+                                               px=icon_size, pad=0.12, z=10)
                         else:
                             print(f"WARNING: Could not load icon for {planet} from global cache")
                     except Exception as e:
@@ -476,8 +482,9 @@ class RadarChartGenerator:
                 # Fallback to text if no custom icon
                 planet_symbol = self.planet_symbols.get(planet, planet)
                 icon_radius = max_radius + 12
+                font_size = int(20 * self.figure_scale)  # 20 * 0.8 = 16px
                 ax.text(np.degrees(angle), icon_radius, planet_symbol, 
-                       ha='center', va='center', fontsize=20, fontweight='bold')
+                       ha='center', va='center', fontsize=font_size, fontweight='bold')
 
 def generate_radar_charts_from_results(result_file: str = "outputs/result.json", icons_folder: Optional[str] = None):
     """
