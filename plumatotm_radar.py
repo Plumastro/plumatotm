@@ -393,11 +393,6 @@ class RadarChartGenerator:
         
         print(f"SUCCESS: Radar chart saved to: {output_path}")
     
-    def _load_rgba_icon(self, icon_path):
-        """Load PNG icon as RGBA to avoid colormap issues."""
-        from PIL import Image
-        img = Image.open(icon_path).convert("RGBA")
-        return np.asarray(img)
     
     def _add_icon_polar(self, ax, theta, r, img_rgba, px=64, pad=0.02, z=10):
         """
@@ -431,8 +426,7 @@ class RadarChartGenerator:
         # Position icons at the end of each radial line (at 100% + small offset)
         max_radius = 100  # 100% radius where lines end
         
-        # Cache for RGBA icons to avoid reloading
-        rgba_cache = {}
+        # Use global cache for icons (no local cache needed)
         
         for i, (angle, label, data_value) in enumerate(zip(angles, labels, values)):
             planet = self.planets[i]
@@ -463,18 +457,20 @@ class RadarChartGenerator:
                         icon_path = full_path
                         break
                 
-                if icon_path and icon_path not in rgba_cache:
+                if icon_path:
                     try:
-                        rgba_cache[icon_path] = self._load_rgba_icon(icon_path)
+                        # Use global cache to get icon (already loaded and cached)
+                        icon_array = self.global_cache.load_icon(icon_path, 64)
+                        if icon_array is not None:
+                            # Use the improved positioning method with smaller icons (40% reduction: 64 -> 38)
+                            # Increased pad from 0.08 to 0.12 for maximum distance from the chart
+                            self._add_icon_polar(ax, angle, max_radius, icon_array, 
+                                               px=38, pad=0.12, z=10)
+                        else:
+                            print(f"WARNING: Could not load icon for {planet} from global cache")
                     except Exception as e:
-                        print(f"WARNING: Error loading RGBA icon for {planet}: {e}")
+                        print(f"WARNING: Error loading icon for {planet}: {e}")
                         continue
-                
-                if icon_path in rgba_cache:
-                    # Use the improved positioning method with smaller icons (40% reduction: 64 -> 38)
-                    # Increased pad from 0.08 to 0.12 for maximum distance from the chart
-                    self._add_icon_polar(ax, angle, max_radius, rgba_cache[icon_path], 
-                                       px=38, pad=0.12, z=10)
                 
             else:
                 # Fallback to text if no custom icon
