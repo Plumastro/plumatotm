@@ -102,16 +102,17 @@ class RadarChartGenerator:
                 icon_path = os.path.join(self.icons_folder, name)
                 if os.path.exists(icon_path):
                     # Create cache key with path and size
-                    cache_key = f"{icon_path}_64x64"
+                    cache_key = f"{icon_path}_96x96"
                     
-                    # Use global cache to load icon (64x64 for radar charts)
-                    icon_array = self.global_cache.load_icon(icon_path, 64)
+                    # Use global cache to load icon at higher resolution for better quality
+                    # Load at 96px (1.5x the final size) for better quality when scaled down
+                    icon_array = self.global_cache.load_icon(icon_path, 96)
                     if icon_array is not None:
                         # Convert numpy array back to PIL Image for radar charts
                         from PIL import Image
                         icon = Image.fromarray(icon_array)
                         self.custom_icons[planet] = icon
-                        print(f"SUCCESS: Loaded custom PNG icon for {planet}: {name} (64x64)")
+                        print(f"SUCCESS: Loaded custom PNG icon for {planet}: {name} (96x96)")
                         break
                     else:
                         print(f"WARNING: Could not load icon {name} for {planet}")
@@ -416,7 +417,7 @@ class RadarChartGenerator:
 
         from matplotlib.offsetbox import OffsetImage, AnnotationBbox
         
-        oi = OffsetImage(img_rgba, zoom=zoom, interpolation='nearest')  # pas de cmap
+        oi = OffsetImage(img_rgba, zoom=zoom, interpolation='bilinear')  # High quality interpolation
         ab = AnnotationBbox(
             oi, (theta, r_icon),
             xycoords='data', frameon=False, pad=0.0,
@@ -464,8 +465,9 @@ class RadarChartGenerator:
                 
                 if icon_path:
                     try:
-                        # Use global cache to get icon (already loaded and cached)
-                        icon_array = self.global_cache.load_icon(icon_path, 64)
+                        # Use global cache to get icon at higher resolution for better quality
+                        # Load at 96px (1.5x the final size) for better quality when scaled down
+                        icon_array = self.global_cache.load_icon(icon_path, 96)
                         if icon_array is not None:
                             # Use proportional icon sizing based on figure scale
                             # Original: 38px icons at 10x10 figure, now scaled proportionally
