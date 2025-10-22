@@ -931,6 +931,7 @@ Mentionne aussi quelques corrélations et lien spirituel avec 2 autres animaux q
 Décris le lien avec les 2 animaux puis reconnecte-le à l'animal totem en renforçant le lien entre le sujet et l'animal totem principal. Et finis par une transition vers l'analyse planétaire à venir qui liera clairement la personnalité du sujet avec l'animal totem top1.
 Ton : profond, invitant, enthousiaste, style plumastro
 Souviens-toi : pas de tirets - ou —, remplace par des virgules ou parenthèses
+N'ecris pas de phrases bateaux, generiques ou vides de sens. Tout doit etre personnel, pertinent pour le lecteur.
 Souviens-toi : tu t'adresses directement au sujet
 
 
@@ -987,6 +988,7 @@ Page 1 ({TEXT_LENGTHS['V_LONG']}): introduis le concept de compatibilité en ast
 Page 2 ({TEXT_LENGTHS['V_LONG']}): couvre Air & Eau, considère tout le thème natal dans l'analyse. Termine cette page en donnant une idée de quel type de personnalité et signe un amoureux du sujet pourrait avoir. Sois spécifique à 2 ou 3 signes maximum qui vibrent le plus avec le sujet.
 Pour chaque élément, passe en revue chaque signe et mets chaque signe en perspective avec toute la personnalité du sujet, pour les signes où il y a une interaction clé tu peux donner un exemple de comment ils pourraient s'accorder dans la vraie vie.
 Souviens-toi : pas de tirets - ou —, remplace par des virgules ou parenthèses
+N'ecris pas de phrases bateaux, generiques ou vides de sens. Tout doit etre personnel, pertinent pour le lecteur.
 Souviens-toi : tu t'adresses directement au sujet
 
 
@@ -1017,6 +1019,7 @@ Ton de voix : Style Plumastro, direct, chaleureux, personnel, clair et compréhe
 Souviens-toi : pas de tirets - ou —, remplace par des virgules ou parenthèses
 Quand tu écris des âges, écris l'âge suivi du mot "ans"
 Fais des phrases complètes et claires, pas juste des phrases partielles. Sois clair et précis.
+N'ecris pas de phrases bateaux, generiques ou vides de sens. Tout doit etre personnel, pertinent pour le lecteur.
 Si tu mentionnes une maison, indique le mot "maison" et son numéro en chiffre arabe.
 
 
@@ -1042,6 +1045,7 @@ Rends l'animal totem central : montre de nombreux liens symboliques entre le th�
 Basé sur TOUT ce que nous avons appris sur la personnalité du sujet après avoir analysé le thème natal, donne un conseil personnalisé et une inspiration spécifique au sujet, comme une lettre signée par {astrologue_name} de Plumastro, je veux que le dernier paragraphe commence par une variation de "De la part de {astrologue_name} et de l'équipe Plumastro je t'adresse ce livre comme une lettre personnelle,..." puis un conseil, une guidance sur utiliser au mieux ses atouts personnels maintenant que nous avons analysé toute sa personnalité. Sois poétique, inspirant mais clairement compréhensible pour le sujet qui est français et 100% personnalisé, pas de phrase générique : que du personnel.
 Le dernier paragraphe doit être entièrement personnalisé, pas de guidance générique. C'est pour le sujet basé sur toute la personnalité.
 Ton : chaleureux, perspicace, habilitant.
+N'ecris pas de phrases bateaux, generiques ou vides de sens. Tout doit etre personnel, pertinent pour le lecteur.
 Souviens-toi : pas de tirets - ou —, remplace par des virgules ou parenthèses
 
 
