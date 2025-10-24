@@ -1401,6 +1401,38 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
             percentage = (duration / total_time) * 100
             print(f"{i}. {step}: {duration:.3f}s ({percentage:.1f}%)")
 
+    def _get_chart_object(self, date, time, lat, lon):
+        """Get the flatlib Chart object for reuse in aspects calculation"""
+        try:
+            # Parse date and time - flatlib expects YYYY/MM/DD format
+            date_formatted = date.replace('-', '/')
+            
+            # Create datetime object for flatlib
+            dt = Datetime(date_formatted, time, 0)
+            
+            # Create geographic position
+            pos = GeoPos(lat, lon)
+            
+            # Determine house system based on latitude
+            if abs(lat) > 66.0:
+                house_system = const.HOUSES_PORPHYRIUS
+            else:
+                house_system = const.HOUSES_PLACIDUS
+            
+            # Create chart with same objects as compute_birth_chart
+            custom_objects = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'North Node']
+            chart = Chart(dt, pos, hsys=house_system, IDs=custom_objects)
+            
+            return chart
+            
+        except Exception as e:
+            print(f"WARNING: Could not create chart object for reuse: {e}")
+            return None
+
+    def get_last_computed_chart(self):
+        """Get the last computed chart for reuse in aspects calculation"""
+        return getattr(self, '_last_computed_chart', None)
+
 
 def main():
     """Main CLI function."""
