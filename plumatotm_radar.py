@@ -488,6 +488,35 @@ class RadarChartGenerator:
                 ax.text(np.degrees(angle), icon_radius, planet_symbol, 
                        ha='center', va='center', fontsize=font_size, fontweight='bold')
 
+def generate_radar_charts_from_data(animal_totals, percentage_strength, icons_folder: Optional[str] = None):
+    """
+    Generate radar chart from the analysis data directly.
+    
+    Args:
+        animal_totals: List of tuples (animal, score) for top animals
+        percentage_strength: Dictionary with percentage strength data
+        icons_folder: Optional path to folder containing custom PNG icons
+    """
+    
+    try:
+        # Create the structure expected by the radar generator
+        radar_data = {
+            "data": {
+                "top_3_animals": [{"ANIMAL": animal, "TOTAL_SCORE": score} for animal, score in animal_totals[:3]],
+                "top3_percentage_strength": percentage_strength
+            }
+        }
+        
+        # Initialize the generator with custom icons folder
+        generator = RadarChartGenerator(icons_folder=icons_folder)
+        
+        # Generate radar charts
+        return generator.generate_radar_charts(radar_data)
+        
+    except Exception as e:
+        print(f"WARNING: Radar chart generation failed: {e}")
+        return None
+
 def generate_radar_charts_from_results(result_file: str = "outputs/result.json", icons_folder: Optional[str] = None):
     """
     Generate radar chart from the analysis results.

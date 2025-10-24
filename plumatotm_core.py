@@ -1150,7 +1150,7 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         # 10. Generate radar chart automatically
         try:
             step_start = time_module.time()
-            from plumatotm_radar import generate_radar_charts_from_results
+            from plumatotm_radar import generate_radar_charts_from_data
             print("CHART: Generating radar chart...")
             # Check if icons folder exists
             icons_folder = "icons" if os.path.exists("icons") else None
@@ -1159,7 +1159,8 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
             else:
                 print("CHART: Using default planet symbols")
             
-            radar_result = generate_radar_charts_from_results(output_files["result"], icons_folder)
+            # OPTIMISATION: Pass data directly instead of using result.json file
+            radar_result = generate_radar_charts_from_data(animal_totals, percentage_strength, icons_folder)
             output_timers['radar_charts'] = time_module.time() - step_start
             print(f"TIMER: Radar charts: {output_timers['radar_charts']:.3f}s")
             if radar_result:
