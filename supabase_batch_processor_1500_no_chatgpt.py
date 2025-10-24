@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Supabase Batch Processor for PLUMATOTM - 1000 Profiles (No ChatGPT)
+Supabase Batch Processor for PLUMATOTM - 1500 Profiles (No ChatGPT)
 
-This script processes 1000 birth profiles in batch and updates Supabase database.
+This script processes 1500 birth profiles in batch and updates Supabase database.
 It integrates with the PLUMATOTM core engine and Supabase manager.
 Skips ChatGPT interpretation to avoid API bottlenecks.
 """
@@ -24,8 +24,8 @@ except ImportError as e:
     print("Please ensure all required modules are installed")
     sys.exit(1)
 
-class SupabaseBatchProcessor:
-    """Batch processor for handling multiple birth profiles with Supabase integration."""
+class SupabaseBatchProcessor1500:
+    """Batch processor for handling 1500 birth profiles with Supabase integration."""
     
     def __init__(self):
         """Initialize the batch processor with Supabase configuration."""
@@ -44,22 +44,16 @@ class SupabaseBatchProcessor:
             'errors': []
         }
     
-    def _parse_profiles_json(self, profiles_json: str) -> List[Dict]:
-        """Parse the profiles JSON string into a list of profile dictionaries."""
-        profiles = []
-        lines = profiles_json.strip().split('\n')
-        
-        for line in lines:
-            line = line.strip()
-            if line:
-                try:
-                    profile = json.loads(line)
-                    profiles.append(profile)
-                except json.JSONDecodeError as e:
-                    print(f"⚠️  Skipping invalid JSON line: {line[:50]}...")
-                    continue
-        
-        return profiles
+    def _load_profiles(self) -> List[Dict]:
+        """Load profiles from JSON file."""
+        try:
+            with open('plumastro_1500_profiles.json', 'r', encoding='utf-8') as f:
+                profiles_data = json.load(f)
+            print(f"[INFO] Loaded {len(profiles_data)} profiles from plumastro_1500_profiles.json")
+            return profiles_data
+        except Exception as e:
+            print(f"[ERROR] Error loading profiles: {e}")
+            return []
     
     def _process_single_profile(self, profile: Dict, profile_index: int) -> Optional[Dict]:
         """Process a single birth profile and return the result."""
@@ -71,12 +65,12 @@ class SupabaseBatchProcessor:
             lat = float(profile.get('lat', 0))
             lon = float(profile.get('lon', 0))
             
-            print(f"\n📊 Processing profile {profile_index + 1}/1000")
-            print(f"   📅 Date: {date}")
-            print(f"   🕐 Time: {time}")
-            print(f"   📍 Location: {lat}, {lon}")
+            print(f"\n[INFO] Processing profile {profile_index + 1}/1500")
+            print(f"   Date: {date}")
+            print(f"   Time: {time}")
+            print(f"   Location: {lat}, {lon}")
             if name:
-                print(f"   👤 Name: {name}")
+                print(f"   Name: {name}")
             
             # Run analysis WITHOUT ChatGPT interpretation
             self.analyzer.run_analysis(
@@ -103,12 +97,12 @@ class SupabaseBatchProcessor:
                     self.results['unique_animals'].add(top1_animal)
                     self.results['animal_counts'][top1_animal] = self.results['animal_counts'].get(top1_animal, 0) + 1
                     
-                    print(f"   ✅ SUCCESS: {top1_animal} (Score: {top1_score})")
+                    print(f"   [SUCCESS] {top1_animal} (Score: {top1_score})")
                     
                     # Try to update Supabase
                     try:
                         # Generate a plumid for this profile
-                        plumid = f"batch1000_{profile_index + 1:05d}_{date.replace('-', '_')}_{time.replace(':', '_')}"
+                        plumid = f"batch1500_{profile_index + 1:05d}_{date.replace('-', '_')}_{time.replace(':', '_')}"
                         
                         supabase_result = self.supabase_manager.add_user(
                             plumid=plumid,
@@ -116,11 +110,11 @@ class SupabaseBatchProcessor:
                             user_name=name if name else None
                         )
                         if supabase_result:
-                            print(f"   🌐 Supabase updated successfully (PlumID: {plumid})")
+                            print(f"   [SUPABASE] Updated successfully (PlumID: {plumid})")
                         else:
-                            print(f"   ⚠️  Supabase update failed")
+                            print(f"   [WARNING] Supabase update failed")
                     except Exception as supabase_error:
-                        print(f"   ⚠️  Supabase error: {supabase_error}")
+                        print(f"   [WARNING] Supabase error: {supabase_error}")
                     
                     return {
                         'success': True,
@@ -128,31 +122,33 @@ class SupabaseBatchProcessor:
                         'top1_score': top1_score
                     }
                 else:
-                    print(f"   ❌ FAILED: No animals found in results")
+                    print(f"   [FAILED] No animals found in results")
                     self.results['errors'].append(f"Profile {profile_index + 1}: No animals found in results")
                     return None
                     
             except Exception as e:
-                print(f"   ❌ FAILED: Error reading results: {e}")
+                print(f"   [FAILED] Error reading results: {e}")
                 self.results['errors'].append(f"Profile {profile_index + 1}: Error reading results: {e}")
                 return None
                 
         except Exception as e:
             error_msg = f"Exception: {str(e)}"
-            print(f"   ❌ ERROR: {error_msg}")
+            print(f"   [ERROR] {error_msg}")
             self.results['errors'].append(f"Profile {profile_index + 1}: {error_msg}")
             return None
     
-    def process_batch(self, profiles_json: str) -> Dict:
+    def process_batch(self) -> Dict:
         """Process all profiles in the batch."""
-        print("🚀 Starting batch processing...")
+        print("[START] Starting batch processing for 1500 profiles...")
         print("=" * 60)
         
-        # Parse profiles
-        profiles = self._parse_profiles_json(profiles_json)
-        self.results['total_profiles'] = len(profiles)
+        # Load profiles
+        profiles = self._load_profiles()
+        if not profiles:
+            return {'success': False, 'error': 'No profiles loaded'}
         
-        print(f"📋 Total profiles to process: {len(profiles)}")
+        self.results['total_profiles'] = len(profiles)
+        print(f"[INFO] Total profiles to process: {len(profiles)}")
         print("=" * 60)
         
         # Process each profile
@@ -163,6 +159,12 @@ class SupabaseBatchProcessor:
                 self.results['successful_analyses'] += 1
             else:
                 self.results['failed_analyses'] += 1
+            
+            # Progress update every 50 profiles
+            if (i + 1) % 50 == 0:
+                print(f"\n[PROGRESS] Progress: {i + 1}/{len(profiles)} profiles processed")
+                print(f"[SUCCESS] Successful: {self.results['successful_analyses']}")
+                print(f"[FAILED] Failed: {self.results['failed_analyses']}")
         
         # Print summary
         self._print_summary()
@@ -180,71 +182,54 @@ class SupabaseBatchProcessor:
     def _print_summary(self):
         """Print a summary of the batch processing results."""
         print("\n" + "="*60)
-        print("📊 BATCH PROCESSING COMPLETE")
+        print("[COMPLETE] BATCH PROCESSING COMPLETE - 1500 PROFILES")
         print("="*60)
-        print(f"📋 Total profiles processed: {self.results['total_profiles']}")
-        print(f"✅ Successful analyses: {self.results['successful_analyses']}")
-        print(f"❌ Failed analyses: {self.results['failed_analyses']}")
-        print(f"🎯 Unique animals found: {len(self.results['unique_animals'])}")
+        print(f"[INFO] Total profiles processed: {self.results['total_profiles']}")
+        print(f"[SUCCESS] Successful analyses: {self.results['successful_analyses']}")
+        print(f"[FAILED] Failed analyses: {self.results['failed_analyses']}")
+        print(f"[RESULT] Unique animals found: {len(self.results['unique_animals'])}")
         
-        # Top 10 animals
+        # Top 15 animals
         if self.results['animal_counts']:
-            print(f"\n🏆 Top 10 animals:")
+            print(f"\n[TOP] Top 15 animals:")
             sorted_animals = sorted(self.results['animal_counts'].items(), 
                                   key=lambda x: x[1], reverse=True)
-            for i, (animal, count) in enumerate(sorted_animals[:10], 1):
+            for i, (animal, count) in enumerate(sorted_animals[:15], 1):
                 print(f"   {i:2d}. {animal}: {count} occurrences")
         
         print("="*60)
 
 def main():
     """Main function to run the batch processor."""
-    print("🚀 PLUMATOTM SUPABASE BATCH PROCESSOR - 1000 PROFILES (NO CHATGPT)")
+    print("[START] PLUMATOTM SUPABASE BATCH PROCESSOR - 1500 PROFILES (NO CHATGPT)")
     print("=" * 60)
-    print("🌐 This will update your Supabase database!")
-    print("⚠️  ChatGPT interpretation is DISABLED for faster processing")
+    print("[INFO] This will update your Supabase database!")
+    print("[INFO] ChatGPT interpretation is DISABLED for faster processing")
     print("=" * 60)
-    
-    # Load profiles from JSON file
-    try:
-        with open('plumastro_1000_profiles.json', 'r', encoding='utf-8') as f:
-            profiles_data = json.load(f)
-        
-        # Convert to the format expected by the processor
-        profiles_input = '\n'.join([json.dumps(profile) for profile in profiles_data])
-        print(f"📊 Loaded {len(profiles_data)} profiles from plumastro_1000_profiles.json")
-        
-    except FileNotFoundError:
-        print("❌ Error: plumastro_1000_profiles.json not found!")
-        return
-    except json.JSONDecodeError as e:
-        print(f"❌ Error parsing JSON: {e}")
-        return
-    except Exception as e:
-        print(f"❌ Error loading profiles: {e}")
-        return
     
     # Create processor
-    processor = SupabaseBatchProcessor()
+    processor = SupabaseBatchProcessor1500()
     
     # Process the batch
     try:
-        result = processor.process_batch(profiles_input)
+        result = processor.process_batch()
         
         if result['success']:
-            print(f"\n🎉 Batch processing completed successfully!")
-            print(f"📊 Processed {result['total_profiles']} profiles")
-            print(f"✅ {result['successful_analyses']} successful analyses")
-            print(f"❌ {result['failed_analyses']} failed analyses")
-            print(f"🎯 Found {result['unique_animals']} unique animals")
+            print(f"\n[SUCCESS] Batch processing completed successfully!")
+            print(f"[INFO] Processed {result['total_profiles']} profiles")
+            print(f"[SUCCESS] {result['successful_analyses']} successful analyses")
+            print(f"[FAILED] {result['failed_analyses']} failed analyses")
+            print(f"[RESULT] Found {result['unique_animals']} unique animals")
         else:
-            print(f"\n❌ Batch processing failed: {result.get('error', 'Unknown error')}")
+            print(f"\n[FAILED] Batch processing completed with errors")
+            print(f"[INFO] Processed {result['total_profiles']} profiles")
+            print(f"[SUCCESS] {result['successful_analyses']} successful analyses")
+            print(f"[FAILED] {result['failed_analyses']} failed analyses")
             
     except Exception as e:
-        print(f"\n❌ Error during batch processing: {e}")
+        print(f"\n[ERROR] Error during batch processing: {e}")
         import traceback
         traceback.print_exc()
 
 if __name__ == "__main__":
     main()
-

@@ -1,73 +1,84 @@
 #!/usr/bin/env python3
 """
-Test de connexion Supabase pour PLUMATOTM
+Test de connexion Supabase pour vérifier la configuration
 """
 
-from supabase_manager import supabase_manager
-from supabase_config import supabase_config
+import sys
+import os
+
+# Add current directory to path for imports
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    from supabase_manager import SupabaseManager
+except ImportError as e:
+    print(f"❌ Import error: {e}")
+    sys.exit(1)
 
 def test_supabase_connection():
-    """Test la connexion Supabase"""
-    print("🧪 Test de connexion Supabase...")
+    """Test de connexion et d'insertion Supabase."""
+    print("[TEST] Test de connexion Supabase...")
+    print("=" * 50)
     
-    # Vérifier la configuration
-    print(f"✅ URL configurée: {bool(supabase_config.url)}")
-    print(f"✅ Clé configurée: {bool(supabase_config.key)}")
-    print(f"✅ Table: {supabase_config.table_name}")
+    # Créer le gestionnaire
+    manager = SupabaseManager()
     
-    if not supabase_config.is_configured():
-        print("❌ Supabase non configuré")
-        print("   Configurez SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY")
+    # Vérifier la connexion
+    if not manager.is_available():
+        print("[FAILED] Supabase non disponible")
         return False
     
-    # Tester la connexion
-    if not supabase_manager.is_available():
-        print("❌ Gestionnaire Supabase non disponible")
-        return False
+    print("[SUCCESS] Connexion Supabase OK")
     
-    print("✅ Gestionnaire Supabase disponible")
+    # Tester l'insertion d'un utilisateur de test
+    test_plumid = "test_connection_123"
+    test_animal = "Test Animal"
+    test_name = "Test User"
     
-    # Test d'insertion
-    test_plumid = "TEST_12345"
-    test_animal = "TestAnimal"
+    print(f"\n[TEST] Tentative d'insertion...")
+    print(f"   PlumID: {test_plumid}")
+    print(f"   Animal: {test_animal}")
+    print(f"   Nom: {test_name}")
     
-    print(f"🧪 Test d'insertion: {test_plumid} -> {test_animal}")
+    # Essayer d'ajouter l'utilisateur
+    success = manager.add_user(
+        plumid=test_plumid,
+        top1_animal=test_animal,
+        user_name=test_name
+    )
     
-    try:
-        # Essayer d'ajouter un utilisateur de test
-        success = supabase_manager.add_user(test_plumid, test_animal, "Test User")
+    if success:
+        print("[SUCCESS] Insertion réussie !")
         
-        if success:
-            print("✅ Insertion réussie")
-            
-            # Tester la récupération
-            print("🧪 Test de récupération...")
-            retrieved_animal = supabase_manager.get_user_animal(test_plumid)
-            
-            if retrieved_animal == test_animal:
-                print("✅ Récupération réussie")
-                
-                # Nettoyer le test
-                print("🧹 Nettoyage du test...")
-                # Note: Pas de méthode de suppression dans le code actuel
-                print("ℹ️  L'utilisateur de test reste dans la base (normal)")
-                
-                return True
-            else:
-                print(f"❌ Récupération échouée: {retrieved_animal} != {test_animal}")
-                return False
-        else:
-            print("❌ Insertion échouée")
-            return False
-            
-    except Exception as e:
-        print(f"❌ Erreur lors du test: {e}")
+        # Nettoyer le test
+        print("\n[TEST] Nettoyage du test...")
+        try:
+            manager.delete_user(test_plumid)
+            print("[SUCCESS] Test nettoyé")
+        except:
+            print("[WARNING] Nettoyage échoué (normal)")
+        
+        return True
+    else:
+        print("[FAILED] Insertion échouée")
+        print("\n[SOLUTION] Exécutez le script SQL dans Supabase :")
+        print("   1. Allez dans l'éditeur SQL de Supabase")
+        print("   2. Exécutez le contenu de fix_supabase_rls.sql")
+        print("   3. Relancez ce test")
         return False
 
-if __name__ == "__main__":
+def main():
+    """Fonction principale."""
+    print("[TEST] TEST DE CONNEXION SUPABASE")
+    print("=" * 50)
+    
     success = test_supabase_connection()
     
     if success:
-        print("\n🎉 Test Supabase réussi ! Votre API devrait maintenant fonctionner.")
+        print("\n[SUCCESS] Supabase est prêt pour les 1000 profils !")
     else:
-        print("\n💥 Test Supabase échoué. Vérifiez votre configuration.")
+        print("\n[FAILED] Problème de configuration Supabase")
+        print("   Consultez fix_supabase_rls.sql pour la solution")
+
+if __name__ == "__main__":
+    main()

@@ -719,6 +719,9 @@ L'analyse de la planète doit toujours être placée dans le contexte du thème 
 Les numéros des maisons sont écrits en chiffres arabes.
 Souviens-toi : pas de tirets - ou —
 Respecte les contraintes de longueur de texte pour chaque page.
+Relis et corrige orthographe, grammaire, accords de genre et de nombre.
+Rends le texte final après une vérification linguistique francophone.
+Respecte strictement les contraintes de longueur après corrections.
 Renvoie-moi toutes ces pages dans ta prochaine réponse :
 """
             
@@ -828,6 +831,9 @@ Usage du nom : Le prénom du sujet n'apparaît que deux fois dans tout le livre 
 EXIGENCE CRITIQUE DE COMPTAGE DE MOTS :
 - Reste dans la plage de mots spécifiée
 - Compte les mots après avoir écrit chaque section et avant de m'envoyer la réponse, si en dehors de la plage, réécris pour correspondre puis envoie-moi la réponse.
+Relis et corrige orthographe, grammaire, accords de genre et de nombre.
+Rends le texte final après une vérification linguistique francophone.
+Respecte strictement les contraintes de longueur après corrections.
 
 4. Processus
 Je te donnerai les instructions pour chaque section, puis tu écriras la section
@@ -862,6 +868,9 @@ Mentionne clairement l'animal spirituel
 Présente-toi au sein de l'équipe Plumastro "Je vais analyser tout ton thème et t'accompagner..."
 Explique brièvement ce que le livre analysera ensuite.
 Souviens-toi : pas de tirets - ou —, remplace par des virgules ou parenthèses
+Relis et corrige orthographe, grammaire, accords de genre et de nombre.
+Rends le texte final après une vérification linguistique francophone.
+Respecte strictement les contraintes de longueur après corrections.
 Ton nom est {astrologue_name} de Plumastro
 
 
@@ -932,6 +941,9 @@ Décris le lien avec les 2 animaux puis reconnecte-le à l'animal totem en renfo
 Ton : profond, invitant, enthousiaste, style plumastro
 Souviens-toi : pas de tirets - ou —, remplace par des virgules ou parenthèses
 N'ecris pas de phrases bateaux, generiques ou vides de sens. Tout doit etre personnel, pertinent pour le lecteur.
+Relis et corrige orthographe, grammaire, accords de genre et de nombre.
+Rends le texte final après une vérification linguistique francophone.
+Respecte strictement les contraintes de longueur après corrections.
 Souviens-toi : tu t'adresses directement au sujet
 
 
@@ -989,6 +1001,9 @@ Page 2 ({TEXT_LENGTHS['V_LONG']}): couvre Air & Eau, considère tout le thème n
 Pour chaque élément, passe en revue chaque signe et mets chaque signe en perspective avec toute la personnalité du sujet, pour les signes où il y a une interaction clé tu peux donner un exemple de comment ils pourraient s'accorder dans la vraie vie.
 Souviens-toi : pas de tirets - ou —, remplace par des virgules ou parenthèses
 N'ecris pas de phrases bateaux, generiques ou vides de sens. Tout doit etre personnel, pertinent pour le lecteur.
+Relis et corrige orthographe, grammaire, accords de genre et de nombre.
+Rends le texte final après une vérification linguistique francophone.
+Respecte strictement les contraintes de longueur après corrections.
 Souviens-toi : tu t'adresses directement au sujet
 
 
@@ -1020,6 +1035,9 @@ Souviens-toi : pas de tirets - ou —, remplace par des virgules ou parenthèses
 Quand tu écris des âges, écris l'âge suivi du mot "ans"
 Fais des phrases complètes et claires, pas juste des phrases partielles. Sois clair et précis.
 N'ecris pas de phrases bateaux, generiques ou vides de sens. Tout doit etre personnel, pertinent pour le lecteur.
+Relis et corrige orthographe, grammaire, accords de genre et de nombre.
+Rends le texte final après une vérification linguistique francophone.
+Respecte strictement les contraintes de longueur après corrections.
 Si tu mentionnes une maison, indique le mot "maison" et son numéro en chiffre arabe.
 
 
@@ -1042,10 +1060,13 @@ Page 2 {TEXT_LENGTHS['MID']}
 Commence par le prénom du sujet (une seule fois ici).
 Résume toute la personnalité en tissant ensemble : influences planétaires, aspects. (Ne parle pas des transits)
 Rends l'animal totem central : montre de nombreux liens symboliques entre le thème et l'animal.
-Basé sur TOUT ce que nous avons appris sur la personnalité du sujet après avoir analysé le thème natal, donne un conseil personnalisé et une inspiration spécifique au sujet, comme une lettre signée par {astrologue_name} de Plumastro, je veux que le dernier paragraphe commence par une variation de "De la part de {astrologue_name} et de l'équipe Plumastro je t'adresse ce livre comme une lettre personnelle,..." puis un conseil, une guidance sur utiliser au mieux ses atouts personnels maintenant que nous avons analysé toute sa personnalité. Sois poétique, inspirant mais clairement compréhensible pour le sujet qui est français et 100% personnalisé, pas de phrase générique : que du personnel.
-Le dernier paragraphe doit être entièrement personnalisé, pas de guidance générique. C'est pour le sujet basé sur toute la personnalité.
+Basé sur TOUT ce que nous avons appris sur la personnalité du sujet après avoir analysé le thème natal, donne un conseil personnalisé et une inspiration spécifique au sujet, comme une lettre signée par {astrologue_name} de Plumastro, je veux que le dernier paragraphe commence par une variation de "De la part de {astrologue_name} et de l'équipe Plumastro je t'adresse ce livre,..." puis conseille le sujet pour mieux utiliser ses atouts personnels maintenant que nous avons analysé toute sa personnalité. Sois poétique, inspirant mais clairement compréhensible pour le sujet qui est français et 100% personnalisé, pas de phrase générique : que du personnel.
+Le dernier paragraphe doit être entièrement personnalisé, pas de phrases génériques. C'est pour le sujet basé sur toute la personnalité.
 Ton : chaleureux, perspicace, habilitant.
 N'ecris pas de phrases bateaux, generiques ou vides de sens. Tout doit etre personnel, pertinent pour le lecteur.
+Relis et corrige orthographe, grammaire, accords de genre et de nombre.
+Rends le texte final après une vérification linguistique francophone.
+Respecte strictement les contraintes de longueur après corrections.
 Souviens-toi : pas de tirets - ou —, remplace par des virgules ou parenthèses
 
 
