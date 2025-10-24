@@ -36,7 +36,7 @@ class BirthChartRenderer:
     def __init__(self, icons_dir: str = "icons"):
         self.icons_dir = icons_dir
         self.canvas_size = 1200  # Optimized for performance (was 1500)
-        self.dpi = 100  # Maintain high quality
+        self.dpi = 72  # OPTIMISATION: Web-optimized DPI for faster loading
         
         # Chart dimensions according to FRS specifications
         # Centre: (600, 600), Rayon utile R ≈ 560px (optimized)

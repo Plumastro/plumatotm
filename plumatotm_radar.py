@@ -394,6 +394,7 @@ class RadarChartGenerator:
         
         # Save the chart
         plt.tight_layout()
+        # OPTIMISATION: Use web-optimized DPI for faster loading
         plt.savefig(output_path, dpi=72, bbox_inches='tight', facecolor='none', transparent=True)
         plt.close()
         
