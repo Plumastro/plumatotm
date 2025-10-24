@@ -183,45 +183,17 @@ SIGN_NAME_MAPPING = {
 def generate_top_aspects(date, time, lat, lon, existing_chart=None):
     """Generate the TOP 10 ASPECTS for the birth chart."""
     try:
-        # Import the aspects generator
+        # Import the aspects generator and translation cache
         from aspects_patterns_generator import AspectsPatternsGenerator
+        from translation_cache import get_aspect_translations, get_planet_translations
         
         # Generate aspects and patterns (reuse existing chart if provided)
         generator = AspectsPatternsGenerator()
         aspects_patterns_data = generator.generate_aspects_patterns(date, time, lat, lon, existing_chart=existing_chart)
         
-        # Traductions des aspects
-        aspect_translations = {
-            "Conjunction": "Conjonction",
-            "Opposition": "Opposition",
-            "Square": "Carré",
-            "Trine": "Trigone",
-            "Sextile": "Sextile",
-            "Quincunx": "Quinconce",
-            "Semisextile": "Semi-sextile",
-            "Semisquare": "Semi-carré",
-            "Quintile": "Quintile",
-            "Sesquiquintile": "Sesqui-quintile",
-            "Biquintile": "Bi-quintile",
-            "Semiquintile": "Semi-quintile"
-        }
-        
-        # Traductions des planètes
-        planet_translations = {
-            "Sun": "Soleil",
-            "Moon": "Lune",
-            "Mercury": "Mercure",
-            "Venus": "Vénus",
-            "Mars": "Mars",
-            "Jupiter": "Jupiter",
-            "Saturn": "Saturne",
-            "Uranus": "Uranus",
-            "Neptune": "Neptune",
-            "Pluto": "Pluton",
-            "North Node": "Nœud Nord",
-            "Ascendant": "Ascendant",
-            "MC": "MC"
-        }
+        # OPTIMISATION: Use cached translations instead of recreating dictionaries
+        aspect_translations = get_aspect_translations()
+        planet_translations = get_planet_translations()
         
         # Trier les aspects par orbe croissant (plus l'orbe est petit, plus l'aspect est puissant)
         sorted_aspects = sorted(aspects_patterns_data['aspects'], key=lambda x: x['orb'])[:10]
@@ -275,13 +247,9 @@ def get_sun_ascendant_sign(birth_chart_data):
         sun_sign = planet_signs.get('Sun', '')
         ascendant_sign = planet_signs.get('Ascendant', '')
         
-        # Translate to French - NO ACCENTS (to match CSV format)
-        sign_translations = {
-            "ARIES": "Belier", "TAURUS": "Taureau", "GEMINI": "Gemeaux",
-            "CANCER": "Cancer", "LEO": "Lion", "VIRGO": "Vierge",
-            "LIBRA": "Balance", "SCORPIO": "Scorpion", "SAGITTARIUS": "Sagittaire",
-            "CAPRICORN": "Capricorne", "AQUARIUS": "Verseau", "PISCES": "Poissons"
-        }
+        # OPTIMISATION: Use cached translations instead of recreating dictionary
+        from translation_cache import get_sign_translations
+        sign_translations = get_sign_translations()
         
         sun_fr = sign_translations.get(sun_sign, sun_sign)
         ascendant_fr = sign_translations.get(ascendant_sign, ascendant_sign)
@@ -1027,13 +995,9 @@ def process_order():
                 ascendant_sign_en = planet_signs.get('Ascendant', 'TAURUS')
                 moon_sign_en = planet_signs.get('Moon', 'CANCER')
                 
-                # Translate to French signs (NO ACCENTS to match CSV format)
-                sign_translations = {
-                    "ARIES": "Belier", "TAURUS": "Taureau", "GEMINI": "Gemeaux",
-                    "CANCER": "Cancer", "LEO": "Lion", "VIRGO": "Vierge",
-                    "LIBRA": "Balance", "SCORPIO": "Scorpion", "SAGITTARIUS": "Sagittaire",
-                    "CAPRICORN": "Capricorne", "AQUARIUS": "Verseau", "PISCES": "Poissons"
-                }
+                # OPTIMISATION: Use cached translations instead of recreating dictionary
+                from translation_cache import get_sign_translations
+                sign_translations = get_sign_translations()
                 
                 sun_sign = sign_translations.get(sun_sign_en, "Belier")
                 ascendant_sign = sign_translations.get(ascendant_sign_en, "Taureau")
