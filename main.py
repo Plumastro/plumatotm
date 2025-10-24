@@ -180,15 +180,15 @@ SIGN_NAME_MAPPING = {
 # Mapping des numéros de maisons vers chiffres arabes (plus utilisé, conservé pour compatibilité)
 # Les maisons sont maintenant affichées directement avec des chiffres arabes
 
-def generate_top_aspects(date, time, lat, lon):
+def generate_top_aspects(date, time, lat, lon, existing_chart=None):
     """Generate the TOP 10 ASPECTS for the birth chart."""
     try:
         # Import the aspects generator
         from aspects_patterns_generator import AspectsPatternsGenerator
         
-        # Generate aspects and patterns
+        # Generate aspects and patterns (reuse existing chart if provided)
         generator = AspectsPatternsGenerator()
-        aspects_patterns_data = generator.generate_aspects_patterns(date, time, lat, lon)
+        aspects_patterns_data = generator.generate_aspects_patterns(date, time, lat, lon, existing_chart=existing_chart)
         
         # Traductions des aspects
         aspect_translations = {
@@ -716,9 +716,10 @@ def analyze():
             # Load additional results for frontend
             analysis_results = load_analysis_results()
             
-            # Generate TOP 10 ASPECTS
+            # Generate TOP 10 ASPECTS (reuse chart from analyzer)
             print("🌟 Generating TOP 10 ASPECTS...")
-            top_aspects = generate_top_aspects(date, time, lat, lon)
+            existing_chart = analyzer.get_last_computed_chart()
+            top_aspects = generate_top_aspects(date, time, lat, lon, existing_chart)
             analysis_results['TOP ASPECTS'] = top_aspects
             print(f"✅ TOP 10 ASPECTS generated successfully")
             
@@ -957,12 +958,14 @@ def process_order():
             # Load analysis results
             analysis_results = load_analysis_results()
             
-            # Generate TOP 10 ASPECTS
+            # Generate TOP 10 ASPECTS (reuse chart from analyzer)
+            existing_chart = analyzer.get_last_computed_chart()
             top_aspects = generate_top_aspects(
                 parsed_data['date_naissance'],
                 parsed_data['heure_naissance'],
                 parsed_data['lat'],
-                parsed_data['lon']
+                parsed_data['lon'],
+                existing_chart
             )
             analysis_results['TOP ASPECTS'] = top_aspects
             
@@ -1049,14 +1052,16 @@ def process_order():
 {tone3}
 shadows, smooth gradients, and rich textures. Add stars like little dots in the background. Composition should be vertical with detailed foreground and stylized background depth. Retro-futuristic poster style. Cinematic lighting."""
         
-        # Generate aspects and patterns for Prompt4emeCouv
+        # Generate aspects and patterns for Prompt4emeCouv (reuse chart from analyzer)
         from aspects_patterns_generator import AspectsPatternsGenerator
         generator = AspectsPatternsGenerator()
+        existing_chart = analyzer.get_last_computed_chart()
         aspects_patterns_data = generator.generate_aspects_patterns(
             parsed_data['date_naissance'],
             parsed_data['heure_naissance'],
             parsed_data['lat'],
-            parsed_data['lon']
+            parsed_data['lon'],
+            existing_chart=existing_chart
         )
         
         # Format aspects and patterns text

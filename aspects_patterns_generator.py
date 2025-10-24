@@ -70,8 +70,13 @@ class AspectsPatternsGenerator:
         """Retourne l'orbe approprié pour un type d'aspect donné"""
         return self.aspect_orbs.get(aspect_type, 4)  # 4° par défaut pour les aspects non définis
 
-    def generate_chart_from_plumatotm_data(self, date, time, lat, lon):
-        """Génère un thème astrologique en réutilisant la même logique que PLUMATOTM"""
+    def generate_chart_from_plumatotm_data(self, date, time, lat, lon, existing_chart=None):
+        """Génère un thème astrologique en réutilisant la même logique que PLUMATOTM
+        Si existing_chart est fourni, le réutilise au lieu de recalculer"""
+        if existing_chart is not None:
+            # OPTIMISATION: Réutiliser le thème déjà calculé
+            return existing_chart
+            
         try:
             # Conversion UTC simplifiée (copiée de plumatotm_core)
             from datetime import datetime
@@ -1408,9 +1413,10 @@ class AspectsPatternsGenerator:
             'patterns': planet_patterns
         }
 
-    def generate_aspects_patterns(self, date, time, lat, lon, max_orb=8):
-        """Génère les aspects et patterns pour un thème donné"""
-        chart = self.generate_chart_from_plumatotm_data(date, time, lat, lon)
+    def generate_aspects_patterns(self, date, time, lat, lon, max_orb=8, existing_chart=None):
+        """Génère les aspects et patterns pour un thème donné
+        Si existing_chart est fourni, le réutilise au lieu de recalculer"""
+        chart = self.generate_chart_from_plumatotm_data(date, time, lat, lon, existing_chart)
         aspects = self.calculate_aspects(chart, max_orb)
         patterns = self.detect_patterns(chart, max_orb)
         
