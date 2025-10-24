@@ -1013,14 +1013,12 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
             "raw_scores_csv": "outputs/raw_scores.csv",
             "raw_scores_json": "outputs/raw_scores.json",
             "weighted_scores_csv": "outputs/weighted_scores.csv",
-            "weighted_scores_json": "outputs/weighted_scores.json",
             "animal_totals_csv": "outputs/animal_totals.csv",
             "animal_totals_json": "outputs/animal_totals.json",
             "top3_percentage_strength_csv": "outputs/top3_percentage_strength.csv",
             "top3_percentage_strength_json": "outputs/top3_percentage_strength.json",
             "top3_true_false_csv": "outputs/top3_true_false.csv",
-            "top3_true_false_json": "outputs/top3_true_false.json",
-            "result": "outputs/result.json"
+            "top3_true_false_json": "outputs/top3_true_false.json"
         }
         
         # Remove existing output files if they exist
@@ -1075,10 +1073,8 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
             json.dump(raw_scores, f, separators=(',', ':'))
         print(f"Raw scores saved to: {output_files['raw_scores_json']}")
         
-        # 4. Weighted Scores Table (JSON only - CSV removed for memory optimization)
-        with open(output_files["weighted_scores_json"], 'w', encoding='utf-8') as f:
-            json.dump(weighted_scores, f, separators=(',', ':'))
-        print(f"Weighted scores saved to: {output_files['weighted_scores_json']}")
+        # OPTIMISATION: Skip weighted_scores.json - data is redundant with animal_totals.json
+        # The animal totals already contain the weighted scores information
         
         # 5. Animal Totals Table (JSON only - CSV removed for memory optimization)
         animal_totals_dict = [{"ANIMAL": animal, "TOTAL_SCORE": score} for animal, score in animal_totals]
@@ -1110,9 +1106,8 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
             "top3_true_false": true_false_table
         }
         
-        with open(output_files["result"], 'w', encoding='utf-8') as f:
-            json.dump(combined_results, f, indent=2)
-        print(f"Combined results saved to: {output_files['result']}")
+        # OPTIMISATION: Skip combined results file (result.json) - not used by API
+        # The individual files are sufficient for the API endpoints
         
         # 9. Generate Birth Chart PNG
         if birth_date and birth_time and lat is not None and lon is not None:
