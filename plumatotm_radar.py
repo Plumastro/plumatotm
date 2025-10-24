@@ -510,8 +510,28 @@ def generate_radar_charts_from_data(animal_totals, percentage_strength, icons_fo
         # Initialize the generator with custom icons folder
         generator = RadarChartGenerator(icons_folder=icons_folder)
         
-        # Generate radar charts
-        return generator.generate_radar_charts(radar_data)
+        # Generate radar charts using individual methods
+        result = {}
+        
+        # Generate top 1 animal radar
+        top1_path = generator.generate_top_animal_radar(radar_data)
+        if top1_path:
+            result['top1_animal_chart'] = top1_path
+            print(f"SUCCESS: Radar chart saved to: {top1_path}")
+        
+        # Generate top 2 animal radar
+        top2_path = generator.generate_top2_animal_radar(radar_data)
+        if top2_path:
+            result['top2_animal_chart'] = top2_path
+            print(f"SUCCESS: Radar chart saved to: {top2_path}")
+        
+        # Generate top 3 animal radar
+        top3_path = generator.generate_top3_animal_radar(radar_data)
+        if top3_path:
+            result['top3_animal_chart'] = top3_path
+            print(f"SUCCESS: Radar chart saved to: {top3_path}")
+        
+        return result
         
     except Exception as e:
         print(f"WARNING: Radar chart generation failed: {e}")
