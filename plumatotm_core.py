@@ -1235,6 +1235,13 @@ Voici les planetes pour lesquelles tu dois concentrer ton analyse:
         # Explicit memory cleanup after analysis
         import gc
         gc.collect()
+    
+    def run_analysis(self, date: str, time: str, lat: float, lon: float, timezone_method: str = None, openai_api_key: str = None, translations_csv_path: str = None, user_name: str = None, skip_chatgpt: bool = False):
+        """Run the complete analysis pipeline.
+        
+        Args:
+            skip_chatgpt: If True, skip ChatGPT interpretation to save API credits (default: False)
+        """
         import time as time_module
         
         # Start timing
