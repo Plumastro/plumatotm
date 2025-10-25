@@ -87,9 +87,14 @@ class BirthChartRenderer:
         # This ensures consistent relative icon size regardless of canvas size
         # Future-proof: changing canvas_size will automatically scale all icons
         canvas_ratio = self.canvas_size / 1500.0  # Ratio to original 1500px canvas
-        self.sign_icon_size = int(48 * canvas_ratio)  # Proportional to canvas
-        self.house_icon_size = int(32 * canvas_ratio)  # Proportional to canvas  
-        self.planet_icon_size = int(48 * canvas_ratio)  # Proportional to canvas
+        
+        # OPTIMISATION: Compensate for DPI reduction (100→72) by increasing icon sizes
+        # DPI compensation factor: 100/72 ≈ 1.39
+        dpi_compensation = 100.0 / 72.0
+        
+        self.sign_icon_size = int(48 * canvas_ratio * dpi_compensation)  # Compensated for DPI
+        self.house_icon_size = int(32 * canvas_ratio * dpi_compensation)  # Compensated for DPI
+        self.planet_icon_size = int(48 * canvas_ratio * dpi_compensation)  # Compensated for DPI
         
         # Load icon mappings
         self.icon_mappings = self._create_icon_mappings()
