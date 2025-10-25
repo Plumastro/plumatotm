@@ -222,7 +222,7 @@ class BirthChartRenderer:
         half_w  = 0.5 * icon_px + halo_px
         # use arctan for robust geometry (or replace with half_w/r for small-angle approx)
         half_rad = float(np.arctan(half_w / r)) * safety
-        d = 2.6 * half_rad   # balanced center-to-center clearance for all neighbors (increased to 2.6)
+        d = 1.8 * half_rad   # OPTIMISATION: Reduced spacing for better planet clustering (was 2.6)
 
         # ----- 3) Sort around circle, break at largest natural gap -----
         order = np.argsort(a_des)
